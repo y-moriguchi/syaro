@@ -21,8 +21,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * This class represents a method info.
+ * 
  * @author Yuichiro MORIGUCHI
- *
  */
 public class MethodInfo implements ClassInfo {
 
@@ -44,27 +45,50 @@ public class MethodInfo implements ClassInfo {
 	private ConstantUtf8 descriptor;
 	private List<Attribute> attributes = new ArrayList<Attribute>();
 
+	/**
+	 * constructs a method info.
+	 * 
+	 * @param name method name
+	 * @param desc method descriptor
+	 */
 	public MethodInfo(String name, String desc) {
 		this.name = new ConstantUtf8(name);
 		this.descriptor = new ConstantUtf8(desc);
 	}
 
+	/**
+	 * gets the access flags.
+	 */
 	public short getAccessFlags() {
 		return accessFlags;
 	}
 
+	/**
+	 * sets the access flags.
+	 */
 	public void setAccessFlags(int accessFlags) {
 		this.accessFlags = (short)accessFlags;
 	}
 
+	/**
+	 * gets the method name.
+	 */
 	public ConstantUtf8 getName() {
 		return name;
 	}
 
+	/**
+	 * gets the method descriptor.
+	 */
 	public ConstantUtf8 getDescriptor() {
 		return descriptor;
 	}
 
+	/**
+	 * adds an attribute.
+	 * 
+	 * @param attr an attribute
+	 */
 	public void addAttribute(Attribute attr) {
 		attributes.add(attr);
 	}

@@ -22,10 +22,20 @@ import net.morilib.syaro.classfile.ConstantMethodref;
 import net.morilib.syaro.classfile.GatheredConstantPool;
 import net.morilib.syaro.classfile.Mnemonic;
 
+/**
+ * This class represents an Java VM instruction invokevirtual.
+ * 
+ * @author Yuichiro MORIGUCHI
+ */
 public class Invokevirtual extends Mnemonic {
 
 	private ConstantMethodref method;
 
+	/**
+	 * constructs a invokevirtual.
+	 * 
+	 * @param method method reference
+	 */
 	public Invokevirtual(ConstantMethodref method) {
 		super(182);
 		this.method = method;

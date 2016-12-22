@@ -19,8 +19,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
+ * This class represents a constant pool.
+ * 
  * @author Yuichiro MORIGUCHI
- *
  */
 public abstract class ConstantPool implements ClassInfo {
 
@@ -41,18 +42,36 @@ public abstract class ConstantPool implements ClassInfo {
 
 	private byte tag;
 
+	/**
+	 * constructs a constant pool.
+	 * 
+	 * @param tag tag number
+	 */
 	protected ConstantPool(byte tag) {
 		this.tag = tag;
 	}
 
+	/**
+	 * gets the tag number.
+	 */
 	public byte getTag() {
 		return tag;
 	}
 
+	/**
+	 * generates a part of classfile about this constant pool.
+	 * 
+	 * @param gathered container of constant pools
+	 * @param ous the output stream
+	 * @throws IOException
+	 */
 	protected abstract void generatePoolCode(
 			GatheredConstantPool gathered,
 			DataOutputStream ous) throws IOException;
 
+	/* (non-Javadoc)
+	 * @see net.morilib.syaro.classfile.ClassInfo#generateCode(net.morilib.syaro.classfile.GatheredConstantPool, java.io.DataOutputStream)
+	 */
 	@Override
 	public final void generateCode(GatheredConstantPool gathered,
 			DataOutputStream ous) throws IOException {

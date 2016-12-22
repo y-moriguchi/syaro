@@ -19,36 +19,59 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
+ * This class represents a constant pool of method reference.
+ * 
  * @author Yuichiro MORIGUCHI
- *
  */
 public class ConstantMethodref extends ConstantPool {
 
 	private ConstantClass classInfo;
 	private ConstantNameAndType nameAndTypeInfo;
 
+	/**
+	 * constructs a constant pool of method reference.
+	 */
 	public ConstantMethodref() {
 		super(CONSTANT_Methodref);
 	}
 
+	/**
+	 * constructs a constant pool of method reference.
+	 * 
+	 * @param classname class name
+	 * @param methodname method name
+	 * @param type method descriptor
+	 */
 	public ConstantMethodref(String classname, String methodname, String type) {
 		super(CONSTANT_Methodref);
 		classInfo = new ConstantClass(classname);
 		nameAndTypeInfo = new ConstantNameAndType(methodname, type);
 	}
 
+	/**
+	 * gets the class info.
+	 */
 	public ClassInfo getClassInfo() {
 		return classInfo;
 	}
 
+	/**
+	 * sets the class info.
+	 */
 	public void setClassInfo(ConstantClass classInfo) {
 		this.classInfo = classInfo;
 	}
 
+	/**
+	 * gets the name and type info.
+	 */
 	public ConstantNameAndType getNameAndTypeInfo() {
 		return nameAndTypeInfo;
 	}
 
+	/**
+	 * sets the name and type info.
+	 */
 	public void setNameAndTypeInfo(ConstantNameAndType nameAndTypeInfo) {
 		this.nameAndTypeInfo = nameAndTypeInfo;
 	}

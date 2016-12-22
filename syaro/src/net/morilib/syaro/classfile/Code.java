@@ -22,8 +22,9 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * This class represents codes of a method.
+ * 
  * @author Yuichiro MORIGUCHI
- *
  */
 public class Code extends Attribute {
 
@@ -34,37 +35,65 @@ public class Code extends Attribute {
 	private List<Attribute> attributes = new ArrayList<Attribute>();
 
 	/**
-	 * 
+	 * constructs a code info.
 	 */
 	public Code() {
 		super("Code");
 	}
 
+	/**
+	 * gets the size of stack.
+	 */
 	public short getMaxStack() {
 		return maxStack;
 	}
 
+	/**
+	 * sets the size of stack.
+	 */
 	public void setMaxStack(int maxStack) {
 		this.maxStack = (short)maxStack;
 	}
 
+	/**
+	 * get the number of local variables.
+	 */
 	public short getMaxLocals() {
 		return maxLocals;
 	}
 
+	/**
+	 * set the number of local variables.
+	 */
 	public void setMaxLocals(int maxLocals) {
 		this.maxLocals = (short)maxLocals;
 	}
 
+	/**
+	 * add an instruction.
+	 * 
+	 * @param code the instruction
+	 * @return the number at which the code added in the list
+	 */
 	public int addCode(Mnemonic code) {
 		this.code.add(code);
-		return this.code.size();
+		return this.code.size() - 1;
 	}
 
+	/**
+	 * add an exception table.
+	 * 
+	 * @param ex exception table.
+	 */
 	public void addExceptionTable(ExceptionTable ex) {
 		exceptionTable.add(ex);
 	}
 
+	/**
+	 * add an attribute.
+	 * 
+	 * @param attr attribute
+	 */
 	public void addAttribute(Attribute attr) {
 		attributes.add(attr);
 	}

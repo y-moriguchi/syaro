@@ -19,36 +19,59 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
+ * This class represents a constant pool of field reference.
+ * 
  * @author Yuichiro MORIGUCHI
- *
  */
 public class ConstantFieldref extends ConstantPool {
 
 	private ConstantClass classInfo;
 	private ConstantNameAndType nameAndTypeInfo;
 
+	/**
+	 * constructs a constant pool of field reference.
+	 */
 	public ConstantFieldref() {
 		super(CONSTANT_Fieldref);
 	}
 
+	/**
+	 * constructs a constant pool of field reference.
+	 * 
+	 * @param classname class name
+	 * @param fieldname field name
+	 * @param type descriptor
+	 */
 	public ConstantFieldref(String classname, String fieldname, String type) {
 		super(CONSTANT_Fieldref);
 		classInfo = new ConstantClass(classname);
 		nameAndTypeInfo = new ConstantNameAndType(fieldname, type);
 	}
 
+	/**
+	 * gets the class info.
+	 */
 	public ClassInfo getClassInfo() {
 		return classInfo;
 	}
 
+	/**
+	 * sets the class info.
+	 */
 	public void setClassInfo(ConstantClass classInfo) {
 		this.classInfo = classInfo;
 	}
 
+	/**
+	 * gets the name and type info.
+	 */
 	public ConstantNameAndType getNameAndTypeInfo() {
 		return nameAndTypeInfo;
 	}
 
+	/**
+	 * sets the name and type info.
+	 */
 	public void setNameAndTypeInfo(ConstantNameAndType nameAndTypeInfo) {
 		this.nameAndTypeInfo = nameAndTypeInfo;
 	}

@@ -19,8 +19,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
+ * This class represents a constant pool of name and type.
+ * 
  * @author Yuichiro MORIGUCHI
- *
  */
 public class ConstantNameAndType extends ConstantPool {
 
@@ -28,7 +29,10 @@ public class ConstantNameAndType extends ConstantPool {
 	private ConstantUtf8 descriptor;
 
 	/**
+	 * constructs a constant pool of name and type.
 	 * 
+	 * @param name name
+	 * @param desc descriptor
 	 */
 	public ConstantNameAndType(String name, String desc) {
 		super(CONSTANT_NameAndType);
@@ -36,10 +40,16 @@ public class ConstantNameAndType extends ConstantPool {
 		this.descriptor = new ConstantUtf8(desc);
 	}
 
+	/**
+	 * gets the name.
+	 */
 	public ConstantUtf8 getName() {
 		return name;
 	}
 
+	/**
+	 * gets the descriptor.
+	 */
 	public ConstantUtf8 getDescriptor() {
 		return descriptor;
 	}

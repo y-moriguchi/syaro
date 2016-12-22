@@ -22,10 +22,20 @@ import net.morilib.syaro.classfile.ConstantPool;
 import net.morilib.syaro.classfile.GatheredConstantPool;
 import net.morilib.syaro.classfile.Mnemonic;
 
+/**
+ * This class represents an Java VM instruction ldc2_w.
+ * 
+ * @author Yuichiro MORIGUCHI
+ */
 public class Ldc2W extends Mnemonic {
 
 	private ConstantPool constant;
 
+	/**
+	 * constructs a ldc2_w.
+	 * 
+	 * @param constant a constant pool
+	 */
 	public Ldc2W(ConstantPool constant) {
 		super(20);
 		this.constant = constant;

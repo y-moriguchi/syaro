@@ -19,18 +19,27 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
+ * This class represents a constant pool of class.
+ * 
  * @author Yuichiro MORIGUCHI
- *
  */
 public class ConstantClass extends ConstantPool {
 
 	private ConstantUtf8 name;
 
+	/**
+	 * constructs a constant pool of class.
+	 * 
+	 * @param name class name
+	 */
 	public ConstantClass(String name) {
 		super(CONSTANT_Class);
 		this.name = new ConstantUtf8(name);
 	}
 
+	/**
+	 * get the class name.
+	 */
 	public ConstantUtf8 getName() {
 		return name;
 	}

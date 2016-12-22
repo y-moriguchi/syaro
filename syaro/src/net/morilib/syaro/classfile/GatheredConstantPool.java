@@ -22,8 +22,9 @@ import java.util.List;
 import java.util.Map;
 
 /**
+ * This class represents a container of constant pools.
+ * 
  * @author Yuichiro MORIGUCHI
- *
  */
 public class GatheredConstantPool {
 
@@ -31,6 +32,11 @@ public class GatheredConstantPool {
 	private List<ConstantPool> poolList = new ArrayList<ConstantPool>();
 	private int maxIndex = 1;
 
+	/**
+	 * adds a constant pool to this container.
+	 * 
+	 * @param pool a constant pool
+	 */
 	public void putConstantPool(ConstantPool pool) {
 		if(!poolMap.containsKey(pool)) {
 			poolList.add(pool);
@@ -38,6 +44,12 @@ public class GatheredConstantPool {
 		}
 	}
 
+	/**
+	 * gets the index of the constant pool.
+	 * 
+	 * @param pool constant pool
+	 * @return the index
+	 */
 	public int getIndex(ConstantPool pool) {
 		if(poolMap.containsKey(pool)) {
 			return poolMap.get(pool);
@@ -46,10 +58,16 @@ public class GatheredConstantPool {
 		}
 	}
 
+	/**
+	 * gets the constant pools.
+	 */
 	public List<ConstantPool> getConstatPools() {
 		return Collections.unmodifiableList(poolList);
 	}
 
+	/**
+	 * gets the maximum index.
+	 */
 	public int getMaxIndex() {
 		return maxIndex;
 	}

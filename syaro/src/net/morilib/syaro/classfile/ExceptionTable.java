@@ -19,8 +19,9 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
+ * This class represents an exception table.
+ * 
  * @author Yuichiro MORIGUCHI
- *
  */
 public class ExceptionTable implements ClassInfo {
 
@@ -29,34 +30,58 @@ public class ExceptionTable implements ClassInfo {
 	private short handlerPc;
 	private ConstantClass catchType;
 
+	/**
+	 * gets the start pc.
+	 */
 	public short getStartPc() {
 		return startPc;
 	}
 
+	/**
+	 * sets the start pc.
+	 */
 	public void setStartPc(short startPc) {
 		this.startPc = startPc;
 	}
 
+	/**
+	 * gets the end pc.
+	 */
 	public short getEndPc() {
 		return endPc;
 	}
 
+	/**
+	 * sets the end pc.
+	 */
 	public void setEndPc(short endPc) {
 		this.endPc = endPc;
 	}
 
+	/**
+	 * gets the handler pc.
+	 */
 	public short getHandlerPc() {
 		return handlerPc;
 	}
 
+	/**
+	 * sets the handler pc.
+	 */
 	public void setHandlerPc(short handlerPc) {
 		this.handlerPc = handlerPc;
 	}
 
+	/**
+	 * gets the class info of catch type.
+	 */
 	public ClassInfo getCatchType() {
 		return catchType;
 	}
 
+	/**
+	 * sets the class info of catch type.
+	 */
 	public void setCatchType(ConstantClass catchType) {
 		this.catchType = catchType;
 	}

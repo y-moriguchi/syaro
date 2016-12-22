@@ -19,21 +19,25 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
+ * This class represents a constant pool of double value.
+ * 
  * @author Yuichiro MORIGUCHI
- *
  */
 public class ConstantDouble extends ConstantPool {
 
 	private double value;
 
 	/**
-	 * 
+	 * constructs a constant pool of double value.
 	 */
 	public ConstantDouble(double value) {
 		super(CONSTANT_Double);
 		this.value = value;
 	}
 
+	/**
+	 * gets the double value.
+	 */
 	public double getValue() {
 		return value;
 	}

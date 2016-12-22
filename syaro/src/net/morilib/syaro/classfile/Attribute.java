@@ -20,32 +20,63 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
+ * This class represents class file attributes.
+ * 
  * @author Yuichiro MORIGUCHI
- *
  */
 public abstract class Attribute implements ClassInfo {
 
 	private ConstantUtf8 attributeName;
 
+	/**
+	 * constructs an attribute.
+	 * 
+	 * @param str the attribute name
+	 */
 	protected Attribute(String str) {
 		attributeName = new ConstantUtf8(str);
 	}
 
+	/**
+	 * get the attribute name.
+	 */
 	public ConstantUtf8 getAttributeName() {
 		return attributeName;
 	}
 
+	/**
+	 * gathers constant pools of this attribute.
+	 * 
+	 * @param gathered container of constant pools
+	 */
 	protected abstract void gatherConstantPoolAttribute(GatheredConstantPool gathered);
 
+	/**
+	 * gathers constant pools.
+	 * 
+	 * @see net.morilib.syaro.classfile.ClassInfo#gatherConstantPool(net.morilib.syaro.classfile.GatheredConstantPool)
+	 */
 	@Override
 	public final void gatherConstantPool(GatheredConstantPool gathered) {
 		attributeName.gatherConstantPool(gathered);
 		gatherConstantPoolAttribute(gathered);
 	}
 
+	/**
+	 * generates a part of classfile about this attributes.
+	 * 
+	 * @param gathered container of constant pools
+	 * @param ous an output stream
+	 * @throws IOException
+	 */
 	protected abstract void generateAttributeCode(GatheredConstantPool gathered,
 			DataOutputStream ous) throws IOException;
 
+	/**
+	 * generates a part of classfile.
+	 * 
+	 * @see net.morilib.syaro.classfile.ClassInfo#generateCode(net.morilib.syaro.classfile.GatheredConstantPool, java.io.DataOutputStream)
+	 */
 	@Override
 	public final void generateCode(GatheredConstantPool gathered,
 			DataOutputStream ous) throws IOException {

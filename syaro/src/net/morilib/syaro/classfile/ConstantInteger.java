@@ -19,21 +19,25 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
+ * This class represents a constant pool of int value.
+ * 
  * @author Yuichiro MORIGUCHI
- *
  */
 public class ConstantInteger extends ConstantPool {
 
 	private int value;
 
 	/**
-	 * 
+	 * constructs a constant pool of int value.
 	 */
 	public ConstantInteger(int value) {
 		super(CONSTANT_Integer);
 		this.value = value;
 	}
 
+	/**
+	 * gets the int value.
+	 */
 	public int getValue() {
 		return value;
 	}

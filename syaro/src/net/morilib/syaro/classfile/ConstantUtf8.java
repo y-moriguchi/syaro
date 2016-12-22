@@ -20,18 +20,25 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
+ * This class represents a constant pool of Utf8 string.
+ * 
  * @author Yuichiro MORIGUCHI
- *
  */
 public class ConstantUtf8 extends ConstantPool {
 
 	private String string;
 
+	/**
+	 * constructs a constant pool of Utf8 string.
+	 */
 	public ConstantUtf8(String str) {
 		super(CONSTANT_Utf8);
 		this.string = str;
 	}
 
+	/**
+	 * get the string.
+	 */
 	public String getString() {
 		return string;
 	}

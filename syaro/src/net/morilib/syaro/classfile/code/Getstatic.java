@@ -22,10 +22,20 @@ import net.morilib.syaro.classfile.ConstantFieldref;
 import net.morilib.syaro.classfile.GatheredConstantPool;
 import net.morilib.syaro.classfile.Mnemonic;
 
+/**
+ * This class represents an Java VM instruction getstatic.
+ * 
+ * @author Yuichiro MORIGUCHI
+ */
 public class Getstatic extends Mnemonic {
 
 	private ConstantFieldref field;
 
+	/**
+	 * constructs a getstatic.
+	 * 
+	 * @param field field reference
+	 */
 	public Getstatic(ConstantFieldref field) {
 		super(178);
 		this.field = field;

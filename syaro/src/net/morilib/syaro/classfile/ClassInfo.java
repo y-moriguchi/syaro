@@ -19,13 +19,26 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 
 /**
+ * This interface represents an information about a classfile.
+ * 
  * @author Yuichiro MORIGUCHI
- *
  */
 public interface ClassInfo {
 
+	/**
+	 * gathers constant pools in this information.
+	 * 
+	 * @param gathered a container of constant pool
+	 */
 	public void gatherConstantPool(GatheredConstantPool gathered);
 
+	/**
+	 * generates a part of the classfile about this information.
+	 * 
+	 * @param gathered a container of constant pool
+	 * @param ous an output stream
+	 * @throws IOException
+	 */
 	public void generateCode(GatheredConstantPool gathered,
 			DataOutputStream ous) throws IOException;
 
