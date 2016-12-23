@@ -41,21 +41,20 @@ public class LdcW extends Mnemonic {
 		this.constant = constant;
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.classfile.ClassInfo#gatherConstantPool(net.morilib.syaro.classfile.GatheredConstantPool)
-	 */
 	@Override
 	public void gatherConstantPool(GatheredConstantPool gathered) {
 		constant.gatherConstantPool(gathered);
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.classfile.Mnemonic#generateMnemonicCode(net.morilib.syaro.classfile.GatheredConstantPool, java.io.DataOutputStream)
-	 */
 	@Override
 	protected void generateMnemonicCode(GatheredConstantPool gathered,
 			DataOutputStream ous) throws IOException {
 		ous.writeShort(gathered.getIndex(constant));
+	}
+
+	@Override
+	protected int getByteLength() {
+		return 3;
 	}
 
 }

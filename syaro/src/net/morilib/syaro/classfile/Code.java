@@ -33,6 +33,7 @@ public class Code extends Attribute {
 	private List<Mnemonic> code = new ArrayList<Mnemonic>();
 	private List<ExceptionTable> exceptionTable = new ArrayList<ExceptionTable>();
 	private List<Attribute> attributes = new ArrayList<Attribute>();
+	private List<Integer> address = new ArrayList<Integer>();
 
 	/**
 	 * constructs a code info.
@@ -56,30 +57,65 @@ public class Code extends Attribute {
 	}
 
 	/**
-	 * get the number of local variables.
+	 * gets the number of local variables.
 	 */
 	public short getMaxLocals() {
 		return maxLocals;
 	}
 
 	/**
-	 * set the number of local variables.
+	 * sets the number of local variables.
 	 */
 	public void setMaxLocals(int maxLocals) {
 		this.maxLocals = (short)maxLocals;
 	}
 
 	/**
-	 * add an instruction.
+	 * adds an instruction.
 	 * 
 	 * @param code the instruction
-	 * @return the number at which the code added in the list
+	 * @return the index at which the code added in the list
 	 */
 	public int addCode(Mnemonic code) {
 		this.code.add(code);
+		if(address.size() > 0) {
+			address.add(getCurrentAddress() + code.getByteLength());
+		} else {
+			address.add(code.getByteLength());
+		}
 		return this.code.size() - 1;
 	}
 
+	/**
+	 * gets the instruction indicated by the index.
+	 * 
+	 * @param index the index of instructions
+	 * @return the instruction
+	 */
+	public Mnemonic getCode(int index) {
+		return code.get(index);
+	}
+
+	/**
+	 * gets the address of the code indicated by the index.
+	 * 
+	 * @param index the index at which the code added in the list
+	 * @return the address
+	 */
+	public int getAddress(int index) {
+		return address.get(index) - code.get(index).getByteLength();
+	}
+
+	/**
+	 * gets current address of this codes.
+	 */
+	public int getCurrentAddress() {
+		if(address.size() > 0) {
+			return address.get(address.size() - 1);
+		} else {
+			return 0;
+		}
+	}
 	/**
 	 * add an exception table.
 	 * 
@@ -98,9 +134,6 @@ public class Code extends Attribute {
 		attributes.add(attr);
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.classfile.ClassInfo#gatherConstantPool(net.morilib.syaro.classfile.GatheredConstantPool)
-	 */
 	@Override
 	protected void gatherConstantPoolAttribute(GatheredConstantPool gathered) {
 		for(Mnemonic m : code) {
@@ -114,9 +147,6 @@ public class Code extends Attribute {
 		}
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.classfile.Attribute#generateAttributeCode(net.morilib.syaro.classfile.GatheredConstantPool, java.io.DataOutputStream)
-	 */
 	@Override
 	protected void generateAttributeCode(GatheredConstantPool gathered,
 			DataOutputStream ous) throws IOException {

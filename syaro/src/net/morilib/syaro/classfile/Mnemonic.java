@@ -31,19 +31,18 @@ public abstract class Mnemonic implements ClassInfo {
 			super(code);
 		}
 
-		/* (non-Javadoc)
-		 * @see net.morilib.syaro.classfile.ClassInfo#gatherConstantPool(net.morilib.syaro.classfile.GatheredConstantPool)
-		 */
 		@Override
 		public void gatherConstantPool(GatheredConstantPool gathered) {
 		}
 
-		/* (non-Javadoc)
-		 * @see net.morilib.syaro.classfile.ClassInfo#generateCode(net.morilib.syaro.classfile.GatheredConstantPool, java.io.DataOutputStream)
-		 */
 		@Override
 		protected void generateMnemonicCode(GatheredConstantPool gathered,
 				DataOutputStream ous) throws IOException {
+		}
+
+		@Override
+		protected int getByteLength() {
+			return 1;
 		}
 
 	}
@@ -108,6 +107,21 @@ public abstract class Mnemonic implements ClassInfo {
 	 */
 	public static Mnemonic INEG = new Single(116);
 
+	/**
+	 * The instruction nop.
+	 */
+	public static Mnemonic NOP = new Single(0);
+
+	/**
+	 * The instruction dup.
+	 */
+	public static Mnemonic DUP = new Single(89);
+
+	/**
+	 * The instruction pop.
+	 */
+	public static Mnemonic POP = new Single(87);
+
 	private byte opcode;
 
 	/**
@@ -129,6 +143,13 @@ public abstract class Mnemonic implements ClassInfo {
 	protected abstract void generateMnemonicCode(
 			GatheredConstantPool gathered,
 			DataOutputStream ous) throws IOException;
+
+	/**
+	 * gets the byte length of this instruction.
+	 * 
+	 * @return byte length
+	 */
+	protected abstract int getByteLength();
 
 	/* (non-Javadoc)
 	 * @see net.morilib.syaro.classfile.ClassInfo#generateCode(net.morilib.syaro.classfile.GatheredConstantPool, java.io.DataOutputStream)

@@ -18,38 +18,92 @@ package net.morilib.syaro.classfile.code;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
-import net.morilib.syaro.classfile.ConstantPool;
 import net.morilib.syaro.classfile.GatheredConstantPool;
 import net.morilib.syaro.classfile.Mnemonic;
 
 /**
- * This class represents an Java VM instruction ldc2_w.
+ * This class represents an Java VM instruction if&gt;cond&lt;.
  * 
  * @author Yuichiro MORIGUCHI
  */
-public class Ldc2W extends Mnemonic {
-
-	private ConstantPool constant;
+public class If extends Mnemonic {
 
 	/**
-	 * constructs a ldc2_w.
+	 * This enum represents a condition of the instruction if.
 	 * 
-	 * @param constant a constant pool
+	 * @author Yuichiro MORIGUCHI
 	 */
-	public Ldc2W(ConstantPool constant) {
-		super(20);
-		this.constant = constant;
+	public static enum Cond {
+
+		/**
+		 * represents equals to 0.
+		 */
+		EQ(153),
+
+		/**
+		 * represents not equals to 0.
+		 */
+		NE(154),
+
+		/**
+		 * represents less than 0.
+		 */
+		LT(155),
+
+		/**
+		 * represents greater than or equals to 0.
+		 */
+		GE(156),
+
+		/**
+		 * represents greater than 0.
+		 */
+		GT(157),
+
+		/**
+		 * represents less than or equals to 0.
+		 */
+		LE(158);
+		private int opcode;
+		private Cond(int c) {
+			opcode = c;
+		}
+	}
+
+	private short offset;
+
+	/**
+	 * constructs an if&gt;cond&lt; instruction.
+	 * 
+	 * @param cond condition
+	 * @param offset offset address to execute
+	 */
+	public If(Cond cond) {
+		super(cond.opcode);
+	}
+
+	/**
+	 * gets the offset address.
+	 */
+	public short getOffset() {
+		return offset;
+	}
+
+	/**
+	 * sets the offset address.
+	 */
+	public void setOffset(int offset) {
+		this.offset = (short)offset;
 	}
 
 	@Override
 	public void gatherConstantPool(GatheredConstantPool gathered) {
-		constant.gatherConstantPool(gathered);
 	}
 
 	@Override
 	protected void generateMnemonicCode(GatheredConstantPool gathered,
 			DataOutputStream ous) throws IOException {
-		ous.writeShort(gathered.getIndex(constant));
+		ous.writeShort(offset);
 	}
 
 	@Override

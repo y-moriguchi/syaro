@@ -41,21 +41,20 @@ public class Invokestatic extends Mnemonic {
 		this.method = method;
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.classfile.ClassInfo#gatherConstantPool(net.morilib.syaro.classfile.GatheredConstantPool)
-	 */
 	@Override
 	public void gatherConstantPool(GatheredConstantPool gathered) {
 		method.gatherConstantPool(gathered);
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.classfile.ClassInfo#generateCode(net.morilib.syaro.classfile.GatheredConstantPool, java.io.DataOutputStream)
-	 */
 	@Override
 	protected void generateMnemonicCode(GatheredConstantPool gathered,
 			DataOutputStream ous) throws IOException {
 		ous.writeShort(gathered.getIndex(method));
+	}
+
+	@Override
+	protected int getByteLength() {
+		return 3;
 	}
 
 }

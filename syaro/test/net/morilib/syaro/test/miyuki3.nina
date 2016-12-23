@@ -1,0 +1,228 @@
+#
+# Copyright (c) 2016, Yuichiro MORIGUCHI
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# * Redistributions of source code must retain the above copyright notice, 
+#   this list of conditions and the following disclaimer.
+# * Redistributions in binary form must reproduce the above copyright notice, 
+#   this list of conditions and the following disclaimer in the documentation 
+#   and/or other materials provided with the distribution.
+# * Neither the name of the Yuichiro MORIGUCHI nor the names of its contributors 
+#   may be used to endorse or promote products derived from this software 
+#   without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL Yuichiro MORIGUCHI BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+--------------------------
+a high order calculator
+
+@author Yuichiro MORIGUCHI
+--------------------------
+#machine DFABuilder
+#option targetLanguage=Java
+#label VAR=/[A-Za-z][A-Za-z0-9]*/
+#label LAHEADVAR=/?=[A-Za-z][A-Za-z0-9]*[ \t]*=/
+#label S=[\s]
+#package net.morilib.syaro.test
+%{
+import java.io.FileOutputStream;
+import java.io.StringReader;
+import net.morilib.syaro.classfile.*;
+import net.morilib.syaro.classfile.code.*;
+%}
+ *S*        @@@@@@@@@@@
+ * >-{expr}->         @
+ ***        @@@@@@@@@@@
+-- expr --
+ *S*        @@@@@@@@@@@
+ * >-{lior}->         @
+ ***        @@@@@@@@@@@
+-- lior --
+                    +-${S}-+              +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@            *^******v*        @@@@@@@@@@@@
+ * >-{land}->%% = _e;       >---"\|\|"--->        >-{land}->lior($A); >-(A)
+ ***        @@@@@@@@@@@@@@@@@            **********        @@@@@@@@@@@@
+-- land --
+                    +-${S}-+            +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@          *^******v*        @@@@@@@@@@@@
+ * >-{bior}->%% = _e;       >---"&&"--->        >-{bior}->land($A); >-(A)
+ ***        @@@@@@@@@@@@@@@@@          **********        @@@@@@@@@@@@
+-- bior --
+                    +-${S}-+                        +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@              ***     *^******v*        @@@@@@@@@@@
+ * >-{bxor}->%% = _e;       >-/?=\|[^\|=]/-> >-'|'->        >-{bxor}->bior($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@              ***     **********        @@@@@@@@@@@
+-- bxor --
+                    +-${S}-+              +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@            *^******v*        @@@@@@@@@@@
+ * >-{band}->%% = _e;       >---"^/!="--->        >-{band}->bxor($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@            **********        @@@@@@@@@@@
+-- band --
+                    +-${S}-+                      +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@            ***     *^******v*        @@@@@@@@@@@
+ * >-{shft}->%% = _e;       >-/?=&[^&=]/-> >-'&'->        >-{shft}->band($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@            ***     **********        @@@@@@@@@@@
+-- shft --
+                    +-${S}-+                 +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@               *^******v*        @@@@@@@@@@@@@
+ * >-{poly}->%% = _e;       >-+-">>/!="----->        >-{poly}->rshift($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@ |             **********        @@@@@@@@@@@@@
+                              |              +-${S}-+
+                              |             *^******v*        @@@@@@@@@@@@@
+                              +-"<</!="----->        >-{poly}->lshift($A);>-(A)
+                                            **********        @@@@@@@@@@@@@
+-- poly --
+                    +-${S}-+            +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@          *^******v*        @@@@@@@@@@
+ * >-{term}->%% = _e;       >-+-"+/!="->        >-{term}->add($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@ |        **********        @@@@@@@@@@
+                              |         +-${S}-+
+                              |        *^******v*        @@@@@@@@@@
+                              +-"-/!="->        >-{term}->sub($A);>-(A)
+                                       **********        @@@@@@@@@@
+-- term --
+                     +-${S}-+            +-${S}-+
+ *S*         @A<AST>@^@@@@@@v@          *^******v*         @@@@@@@@@@
+ * >-{unary}->%% = _e;       >-+-"*/!="->        >-{unary}->mul($A);>-(A)
+ ***         @@@@@@@@@@@@@@@@@ |        **********         @@@@@@@@@@
+                               |          +-${S}-+
+                               |         *^******v*         @@@@@@@@@@
+                               +-"\//!="->        >-{unary}->div($A);>-(A)
+                               |         **********         @@@@@@@@@@
+                               |         +-${S}-+
+                               |        *^******v*         @@@@@@@@@@
+                               +-"%/!="->        >-{unary}->mod($A);>-(A)
+                                        **********         @@@@@@@@@@
+-- unary --
+    +-${S}-+         +-${S}-+
+ *S*^******v*       *^******v*        @@@@@@@@@@@
+ *          >-+-"-"->        >-{elem}->uminus();@
+ ************ |     **********        @@@@@@@@@@@
+              |      +-${S}-+
+              |     *^******v*        @@@@@@@@@@@
+              +-"+"->        >-{elem}->         @
+              |     **********        @@@@@@@@@@@
+              |      +-${S}-+
+              |     *^******v*        @@@@@@@@@@@
+              +-"~"->        >-{elem}->bnot();  @
+              |     **********        @@@@@@@@@@@
+              |
+              |        @@@
+              +-{elem}-> @
+                       @@@
+-- elem --
+    +-${S}-+
+ *S*^******v*        @@@@@@@@@@@@@@
+ *          >-+-{%d}->konst($int);@
+ ************ |      @@@@@@@@@@@@@@
+              |
+              |     ***        ***     @@@
+              +-'('-> >-{expr}-> >-')'-> @
+                    ***        ***     @@@
+%%
+private static AST _e;
+
+private void konst(Number num) {
+	_e = new IntegerAST(num.intValue());
+}
+
+private void lior(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.ILOR, a, _e);
+}
+
+private void land(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.ILAND, a, _e);
+}
+
+private void bior(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IBOR, a, _e);
+}
+
+private void bxor(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IBXOR, a, _e);
+}
+
+private void band(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IBAND, a, _e);
+}
+
+private void rshift(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.ISHR, a, _e);
+}
+
+private void lshift(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.ISHL, a, _e);
+}
+
+private void add(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IADD, a, _e);
+}
+
+private void sub(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.ISUB, a, _e);
+}
+
+private void mul(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IMUL, a, _e);
+}
+
+private void div(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IDIV, a, _e);
+}
+
+private void mod(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IREM, a, _e);
+}
+
+private void uminus() {
+	_e = new UnaryAST(UnaryAST.Type.INEG, _e);
+}
+
+private void bnot() {
+	_e = new UnaryAST(UnaryAST.Type.IBNOT, _e);
+}
+
+public static void main(String[] args) throws Exception {
+	Classfile cf = new Classfile();
+	MethodInfo mi = new MethodInfo("main", "([Ljava/lang/String;)V");
+	Code code = new Code();
+
+	cf.setMajorVersion(45);
+	cf.setMinorVersion(3);
+	cf.setAccessFlag(Classfile.ACC_PUBLIC);
+	cf.setThisClass(new ConstantClass(args[0]));
+	cf.setSuperClass(new ConstantClass("Ljava/lang/Object;"));
+	mi.setAccessFlags(MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC);
+	code.setMaxStack(1024);
+	code.setMaxLocals(1);
+	code.addCode(new Getstatic(new ConstantFieldref(
+			"java/lang/System", "out", "Ljava/io/PrintStream;")));
+	parseAll(new StringReader(args[1]));
+	_e.putCode(code);
+	code.addCode(new Invokevirtual(new ConstantMethodref(
+			"java/io/PrintStream", "println", "(I)V")));
+	code.addCode(Mnemonic.RETURN);
+	mi.addAttribute(code);
+	cf.addMethod(mi);
+
+	FileOutputStream fs = null;
+	try {
+		fs = new FileOutputStream(args[0] + ".class");
+		cf.generateClassFile(fs);
+	} finally {
+		if(fs != null) {
+			fs.close();
+		}
+	}
+}
