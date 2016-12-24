@@ -16,13 +16,30 @@
 package net.morilib.syaro.test;
 
 import net.morilib.syaro.classfile.Code;
+import net.morilib.syaro.classfile.code.ILoad;
 
 /**
  * @author Yuichiro MORIGUCHI
  *
  */
-public interface AST {
+public class SymbolAST implements AST {
 
-	public void putCode(LocalVariableSpace space, Code code);
+	private String name;
+
+	public SymbolAST(String name) {
+		this.name = name;
+	}
+
+	public String getName() {
+		return name;
+	}
+
+	/* (non-Javadoc)
+	 * @see net.morilib.syaro.test.AST#putCode(net.morilib.syaro.classfile.Code)
+	 */
+	@Override
+	public void putCode(LocalVariableSpace space, Code code) {
+		code.addCode(new ILoad(space.getIndex(name)));
+	}
 
 }

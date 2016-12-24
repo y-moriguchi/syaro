@@ -33,7 +33,7 @@ a high order calculator
 #option targetLanguage=Java
 #label VAR=/[A-Za-z][A-Za-z0-9]*/
 #label LAHEADVAR=/?=[A-Za-z][A-Za-z0-9]*[ \t]*=/
-#label S=[\s]
+#label S=[ \t]
 #package net.morilib.syaro.test
 %{
 import java.io.FileOutputStream;
@@ -41,13 +41,60 @@ import java.io.StringReader;
 import net.morilib.syaro.classfile.*;
 import net.morilib.syaro.classfile.code.*;
 %}
- *S*        @@@@@@@@@@@
- * >-{expr}->         @
- ***        @@@@@@@@@@@
+    +-[\s]-+                         +-${S}-+        +-[\s]-+
+ *S*^******v*        @@@@@@@@@@@@@@ @^@@@@@@v@      @^@@@@@@v@
+ *          >-{expr}->putresult();>->        >-[\n]->        @
+ ************        @^@@@@@@@@@@@@ @@@@@@@@@@      @v@@@@@@@@
+                      +-{expr}-----------------------+
 -- expr --
  *S*        @@@@@@@@@@@
- * >-{lior}->         @
+ * >-{asgn}->         @
  ***        @@@@@@@@@@@
+-- asgn --
+             +-${S}-+         +-${S}-+
+ *S*        @^@@@@@@v@       *^******v* *AA<AST>**        @@@@@@@@@@@@@@@@@@@@
+ * >-{lior}->        >-+-"="->        >->%% = _e;>-{asgn}->asgn(${AA}, null);@
+ ***        @@@@@@@@@@ |     ********** **********        @@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AB<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"+="->        >->%% = _e;>-{asgn}->asgn(${AB}, Mnemonic.IADD);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AC<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"-="->        >->%% = _e;>-{asgn}->asgn(${AC}, Mnemonic.ISUB);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AD<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"*="->        >->%% = _e;>-{asgn}->asgn(${AD}, Mnemonic.IMUL);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AE<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"/="->        >->%% = _e;>-{asgn}->asgn(${AE}, Mnemonic.IDIV);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AF<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"%="->        >->%% = _e;>-{asgn}->asgn(${AF}, Mnemonic.IREM);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |        +-${S}-+
+                       |       *^******v* *AG<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"<<="->        >->%% = _e;>-{asgn}->asgn(${AG}, Mnemonic.ISHL);@
+                       |       ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |        +-${S}-+
+                       |       *^******v* *AH<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-">>="->        >->%% = _e;>-{asgn}->asgn(${AH}, Mnemonic.ISHR);@
+                       |       ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AI<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"&="->        >->%% = _e;>-{asgn}->asgn(${AI}, Mnemonic.IAND);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AJ<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"^="->        >->%% = _e;>-{asgn}->asgn(${AJ}, Mnemonic.IXOR);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |        +-${S}-+
+                       |       *^******v* *AK<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"\|="->        >->%% = _e;>-{asgn}->asgn(${AK}, Mnemonic.IOR);@
+                               ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@
 -- lior --
                     +-${S}-+              +-${S}-+
  *S*        @A<AST>@^@@@@@@v@            *^******v*        @@@@@@@@@@@@
@@ -107,20 +154,41 @@ import net.morilib.syaro.classfile.code.*;
 -- unary --
     +-${S}-+         +-${S}-+
  *S*^******v*       *^******v*        @@@@@@@@@@@
- *          >-+-"-"->        >-{elem}->uminus();@
+ *          >-+-"-"->        >-{prex}->uminus();@
  ************ |     **********        @@@@@@@@@@@
               |      +-${S}-+
               |     *^******v*        @@@@@@@@@@@
-              +-"+"->        >-{elem}->         @
+              +-"+"->        >-{prex}->         @
               |     **********        @@@@@@@@@@@
               |      +-${S}-+
               |     *^******v*        @@@@@@@@@@@
-              +-"~"->        >-{elem}->bnot();  @
+              +-"~"->        >-{prex}->bnot();  @
               |     **********        @@@@@@@@@@@
+              |      +-${S}-+
+              |     *^******v*        @@@@@@@@@@@
+              +-"!"->        >-{prex}->lnot();  @
+              |     **********        @@@@@@@@@@@
+              |       +-${S}-+
+              |      *^******v*        @@@@@@@@@@@
+              +-"++"->        >-{prex}->incpre();@
+              |      **********        @@@@@@@@@@@
+              |       +-${S}-+
+              |      *^******v*        @@@@@@@@@@@
+              +-"--"->        >-{prex}->decpre();@
+              |      **********        @@@@@@@@@@@
               |
               |        @@@
-              +-{elem}-> @
+              +-{prex}-> @
                        @@@
+-- prex --
+             +-${S}-+
+ *S*        @^@@@@@@v@        @@@@@@@@@@@@
+ * >-{elem}->        >-+-"++"->incpost();@
+ ***        @@@@@@@@@@ |      @@@@@@@@@@@@
+                       |
+                       |      @@@@@@@@@@@@
+                       +-"--"->decpost();@
+                              @@@@@@@@@@@@
 -- elem --
     +-${S}-+
  *S*^******v*        @@@@@@@@@@@@@@
@@ -129,9 +197,27 @@ import net.morilib.syaro.classfile.code.*;
               |
               |     ***        ***     @@@
               +-'('-> >-{expr}-> >-')'-> @
-                    ***        ***     @@@
+              |     ***        ***     @@@
+              |
+              |        @@@@@@@@@@@@@@@@@@@@@@@@@@
+              +-${VAR}->var($buffer.toString());@
+                       @@@@@@@@@@@@@@@@@@@@@@@@@@
 %%
-private static AST _e;
+private LocalVariableSpace local = new LocalVariableSpace();
+private Code code;
+private AST _e;
+
+private void putresult() {
+	code.addCode(new Getstatic(new ConstantFieldref(
+			"java/lang/System", "out", "Ljava/io/PrintStream;")));
+	_e.putCode(local, code);
+	code.addCode(new Invokevirtual(new ConstantMethodref(
+			"java/io/PrintStream", "println", "(I)V")));
+}
+
+private void asgn(AST a, Mnemonic op) {
+	_e = new AssignAST(op, a, _e);
+}
 
 private void konst(Number num) {
 	_e = new IntegerAST(num.intValue());
@@ -193,27 +279,59 @@ private void bnot() {
 	_e = new UnaryAST(UnaryAST.Type.IBNOT, _e);
 }
 
+private void lnot() {
+	_e = new UnaryAST(UnaryAST.Type.ILNOT, _e);
+}
+
+private void incpre() {
+	_e = new IncDecAST(true, true, _e);
+}
+
+private void decpre() {
+	_e = new IncDecAST(false, true, _e);
+}
+
+private void incpost() {
+	_e = new IncDecAST(true, false, _e);
+}
+
+private void decpost() {
+	_e = new IncDecAST(false, false, _e);
+}
+
+private void var(String name) {
+	local.putVariable(name);
+	_e = new SymbolAST(name);
+}
+
 public static void main(String[] args) throws Exception {
 	Classfile cf = new Classfile();
 	MethodInfo mi = new MethodInfo("main", "([Ljava/lang/String;)V");
-	Code code = new Code();
+	Miyuki4 parser = new Miyuki4();
+	Goto gt = new Goto(), gb = new Goto();
+	int jp, np;
 
+	parser.code = new Code();
 	cf.setMajorVersion(45);
 	cf.setMinorVersion(3);
 	cf.setAccessFlag(Classfile.ACC_PUBLIC);
 	cf.setThisClass(new ConstantClass(args[0]));
 	cf.setSuperClass(new ConstantClass("Ljava/lang/Object;"));
 	mi.setAccessFlags(MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC);
-	code.setMaxStack(1024);
-	code.setMaxLocals(1);
-	code.addCode(new Getstatic(new ConstantFieldref(
-			"java/lang/System", "out", "Ljava/io/PrintStream;")));
-	parseAll(new StringReader(args[1]));
-	_e.putCode(new LocalVariableSpace(), code);
-	code.addCode(new Invokevirtual(new ConstantMethodref(
-			"java/io/PrintStream", "println", "(I)V")));
-	code.addCode(Mnemonic.RETURN);
-	mi.addAttribute(code);
+	jp = parser.code.addCode(gt);
+	np = parser.code.addCode(Mnemonic.NOP);
+	parser.parse(System.in);
+	parser.code.addCode(Mnemonic.RETURN);
+	gt.setOffset(parser.code.getCurrentOffset(jp));
+	for(int i = 1; i < parser.local.getMax(); i++) {
+		parser.code.addCode(new IConst(0));
+		parser.code.addCode(new IStore(i));
+	}
+	gb.setOffset(parser.code.getAddress(np) - parser.code.getCurrentAddress());
+	parser.code.addCode(gb);
+	parser.code.setMaxStack(1024);
+	parser.code.setMaxLocals(parser.local.getMax());
+	mi.addAttribute(parser.code);
 	cf.addMethod(mi);
 
 	FileOutputStream fs = null;

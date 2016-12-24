@@ -35,7 +35,7 @@ public class IntegerAST implements AST {
 	 * @see net.morilib.syaro.test.AST#putCode(net.morilib.syaro.classfile.Code)
 	 */
 	@Override
-	public void putCode(Code code) {
+	public void putCode(LocalVariableSpace space, Code code) {
 		code.addCode(new LdcW(new ConstantInteger(value)));
 	}
 

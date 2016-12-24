@@ -18,6 +18,9 @@ package net.morilib.syaro.test;
 import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.ConstantInteger;
 import net.morilib.syaro.classfile.Mnemonic;
+import net.morilib.syaro.classfile.code.Goto;
+import net.morilib.syaro.classfile.code.IConst;
+import net.morilib.syaro.classfile.code.If;
 import net.morilib.syaro.classfile.code.LdcW;
 
 /**
@@ -28,7 +31,8 @@ public class UnaryAST implements AST {
 
 	public static enum Type {
 		INEG(Mnemonic.INEG),
-		IBNOT(null);
+		IBNOT(null),
+		ILNOT(null);
 		private Mnemonic mnemonic;
 		private Type(Mnemonic m) {
 			mnemonic = m;
@@ -55,16 +59,27 @@ public class UnaryAST implements AST {
 	 * @see net.morilib.syaro.test.AST#putCode(net.morilib.syaro.classfile.Code)
 	 */
 	@Override
-	public void putCode(Code code) {
+	public void putCode(LocalVariableSpace space, Code code) {
+		int lbl0, lbl1;
+
 		if(type.mnemonic != null) {
-			node.putCode(code);
+			node.putCode(space, code);
 			code.addCode(type.mnemonic);
 		} else {
 			switch(type) {
 			case IBNOT:
-				node.putCode(code);
+				node.putCode(space, code);
 				code.addCode(new LdcW(new ConstantInteger(0xffffffff)));
 				code.addCode(Mnemonic.IXOR);
+				break;
+			case ILNOT:
+				node.putCode(space, code);
+				lbl0 = code.addCode(new If(If.Cond.EQ));
+				code.addCode(new IConst(1));
+				lbl1 = code.addCode(new Goto());
+				((If)code.getCode(lbl0)).setOffset(code.getCurrentOffset(lbl0));
+				code.addCode(new IConst(0));
+				((Goto)code.getCode(lbl1)).setOffset(code.getCurrentOffset(lbl1));
 				break;
 			default: throw new RuntimeException();
 			}

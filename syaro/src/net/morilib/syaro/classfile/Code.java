@@ -107,6 +107,16 @@ public class Code extends Attribute {
 	}
 
 	/**
+	 * gets the offset from address indicated by the index to current address.
+	 * 
+	 * @param index the index of instruction
+	 * @return the offset
+	 */
+	public int getCurrentOffset(int index) {
+		return getCurrentAddress() - getAddress(index);
+	}
+
+	/**
 	 * gets current address of this codes.
 	 */
 	public int getCurrentAddress() {

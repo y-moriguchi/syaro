@@ -134,6 +134,13 @@ public abstract class Mnemonic implements ClassInfo {
 	}
 
 	/**
+	 * gets the opcode of this instruction.
+	 */
+	public byte getOpcode() {
+		return opcode;
+	}
+
+	/**
 	 * generates a part of classfile about this instruction.
 	 * 
 	 * @param gathered container of constant pools

@@ -345,18 +345,18 @@ public  class Miyuki2   {
 
 	int elem_execaction(int  $c) {
 		switch(STATE) {
-		case 1:
+		case 0:
 			break;
 		case 2:
 			break;
-		case 5:
-			break;
-		case 0:
-			break;
-		case 4:
-			break;
 		case 3:
 			konst($int);
+			break;
+		case 1:
+			break;
+		case 5:
+			break;
+		case 4:
 			break;
 		}
 		return 1;
@@ -421,20 +421,20 @@ public  class Miyuki2   {
 		__lookahead_ok = true;
 		switch(STATE) {
 		case 0:
-			if(($c == '~')) {
+			if(($c == '-')) {
 				LOOKAHEAD_COMMIT();
 				STATE = 1;
 				return 1;
-			} else if(($c == '+')) {
+			} else if(($c == '~')) {
 				LOOKAHEAD_COMMIT();
 				STATE = 2;
 				return 1;
-			} else if(($c >= 9 && $c <= '\n') || ($c == ' ')) {
-				STATE = 0;
-				return 1;
-			} else if(($c == '-')) {
+			} else if(($c == '+')) {
 				LOOKAHEAD_COMMIT();
 				STATE = 3;
+				return 1;
+			} else if(($c >= 9 && $c <= '\n') || ($c == ' ')) {
+				STATE = 0;
 				return 1;
 			} else if($c >= 0) {
 				__stkpush(4, ENGINE_elem);
@@ -493,23 +493,23 @@ public  class Miyuki2   {
 
 	int unary_execaction(int  $c) {
 		switch(STATE) {
-		case 6:
-			break;
-		case 5:
-			uminus();
-			break;
 		case 0:
-			break;
-		case 2:
-			break;
-		case 3:
 			break;
 		case 1:
 			break;
-		case 7:
+		case 2:
+			break;
+		case 6:
 			bnot();
 			break;
 		case 4:
+			break;
+		case 3:
+			break;
+		case 5:
+			break;
+		case 7:
+			uminus();
 			break;
 		}
 		return 1;
@@ -662,28 +662,28 @@ public  class Miyuki2   {
 
 	int shft_execaction(int  $c) {
 		switch(STATE) {
-		case 9:
-			lshift(((AST)(__stv[__slen - 1][1])));
-			break;
-		case 0:
-			break;
 		case 1:
 			(__stv[__slen - 1][1]) = _e;
 			break;
-		case 8:
+		case 0:
 			break;
 		case 3:
 			break;
-		case 7:
+		case 4:
 			break;
 		case 2:
-			break;
-		case 5:
 			break;
 		case 6:
 			rshift(((AST)(__stv[__slen - 1][1])));
 			break;
-		case 4:
+		case 7:
+			break;
+		case 8:
+			break;
+		case 9:
+			lshift(((AST)(__stv[__slen - 1][1])));
+			break;
+		case 5:
 			break;
 		}
 		return 1;
@@ -813,21 +813,21 @@ public  class Miyuki2   {
 
 	int band_execaction(int  $c) {
 		switch(STATE) {
-		case 2:
+		case 0:
 			break;
 		case 1:
 			(__stv[__slen - 1][1]) = _e;
 			break;
 		case 4:
 			break;
+		case 5:
+			break;
 		case 6:
 			band(((AST)(__stv[__slen - 1][1])));
 			break;
+		case 2:
+			break;
 		case 3:
-			break;
-		case 5:
-			break;
-		case 0:
 			break;
 		}
 		return 1;
@@ -899,7 +899,7 @@ public  class Miyuki2   {
 			}
 			return 0;
 		case 1:
-			if((__l__ && $c == '*')) {
+			if((__l__ && $c == '/')) {
 				LOOKAHEAD($c);
 				STATE = 2;
 				return 1;
@@ -907,7 +907,7 @@ public  class Miyuki2   {
 				LOOKAHEAD($c);
 				STATE = 3;
 				return 1;
-			} else if((__l__ && $c == '/')) {
+			} else if((__l__ && $c == '*')) {
 				LOOKAHEAD($c);
 				STATE = 4;
 				return 1;
@@ -989,31 +989,31 @@ public  class Miyuki2   {
 
 	int term_execaction(int  $c) {
 		switch(STATE) {
-		case 3:
-			break;
-		case 6:
-			div(((AST)(__stv[__slen - 1][1])));
-			break;
-		case 10:
-			mul(((AST)(__stv[__slen - 1][1])));
-			break;
 		case 8:
 			mod(((AST)(__stv[__slen - 1][1])));
+			break;
+		case 10:
+			div(((AST)(__stv[__slen - 1][1])));
 			break;
 		case 1:
 			(__stv[__slen - 1][1]) = _e;
 			break;
-		case 2:
+		case 9:
+			break;
+		case 6:
+			mul(((AST)(__stv[__slen - 1][1])));
 			break;
 		case 0:
+			break;
+		case 2:
 			break;
 		case 4:
 			break;
 		case 7:
 			break;
-		case 9:
-			break;
 		case 5:
+			break;
+		case 3:
 			break;
 		}
 		return 1;
@@ -1088,11 +1088,11 @@ public  class Miyuki2   {
 			}
 			return 0;
 		case 1:
-			if((__l__ && $c == '+')) {
+			if((__l__ && $c == '-')) {
 				LOOKAHEAD($c);
 				STATE = 2;
 				return 1;
-			} else if((__l__ && $c == '-')) {
+			} else if((__l__ && $c == '+')) {
 				LOOKAHEAD($c);
 				STATE = 3;
 				return 1;
@@ -1153,24 +1153,24 @@ public  class Miyuki2   {
 
 	int poly_execaction(int  $c) {
 		switch(STATE) {
+		case 1:
+			(__stv[__slen - 1][1]) = _e;
+			break;
+		case 0:
+			break;
+		case 5:
+			add(((AST)(__stv[__slen - 1][1])));
+			break;
+		case 2:
+			break;
 		case 3:
 			break;
 		case 4:
 			break;
-		case 7:
-			add(((AST)(__stv[__slen - 1][1])));
-			break;
-		case 0:
-			break;
-		case 1:
-			(__stv[__slen - 1][1]) = _e;
-			break;
-		case 2:
-			break;
-		case 5:
-			sub(((AST)(__stv[__slen - 1][1])));
-			break;
 		case 6:
+			break;
+		case 7:
+			sub(((AST)(__stv[__slen - 1][1])));
 			break;
 		}
 		return 1;
@@ -1283,14 +1283,14 @@ public  class Miyuki2   {
 
 	int bxor_execaction(int  $c) {
 		switch(STATE) {
-		case 4:
-			bxor(((AST)(__stv[__slen - 1][1])));
+		case 2:
 			break;
 		case 3:
 			break;
 		case 0:
 			break;
-		case 2:
+		case 4:
+			bxor(((AST)(__stv[__slen - 1][1])));
 			break;
 		case 1:
 			(__stv[__slen - 1][1]) = _e;
@@ -1459,9 +1459,9 @@ public  class Miyuki2   {
 
 	int miyuki2_execaction(int  $c) {
 		switch(STATE) {
-		case 0:
-			break;
 		case 1:
+			break;
+		case 0:
 			break;
 		}
 		return 1;
@@ -1589,12 +1589,7 @@ public  class Miyuki2   {
 
 	int bior_execaction(int  $c) {
 		switch(STATE) {
-		case 5:
-			break;
 		case 0:
-			break;
-		case 6:
-			bior(((AST)(__stv[__slen - 1][1])));
 			break;
 		case 3:
 			break;
@@ -1604,6 +1599,11 @@ public  class Miyuki2   {
 			break;
 		case 1:
 			(__stv[__slen - 1][1]) = _e;
+			break;
+		case 6:
+			bior(((AST)(__stv[__slen - 1][1])));
+			break;
+		case 5:
 			break;
 		}
 		return 1;
@@ -1993,7 +1993,7 @@ public static void main(String[] args) throws Exception {
 	code.addCode(new Getstatic(new ConstantFieldref(
 			"java/lang/System", "out", "Ljava/io/PrintStream;")));
 	parseAll(new StringReader(args[1]));
-	_e.putCode(code);
+	_e.putCode(new LocalVariableSpace(), code);
 	code.addCode(new Invokevirtual(new ConstantMethodref(
 			"java/io/PrintStream", "println", "(I)V")));
 	code.addCode(Mnemonic.RETURN);

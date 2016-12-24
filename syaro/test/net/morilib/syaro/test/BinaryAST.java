@@ -72,18 +72,18 @@ public class BinaryAST implements AST {
 	 * @see net.morilib.syaro.test.AST#putCode(net.morilib.syaro.classfile.Code)
 	 */
 	@Override
-	public void putCode(Code code) {
+	public void putCode(LocalVariableSpace space, Code code) {
 		if(type.mnemonic != null) {
-			left.putCode(code);
-			right.putCode(code);
+			left.putCode(space, code);
+			right.putCode(space, code);
 			code.addCode(type.mnemonic);
 		} else {
 			switch(type) {
 			case ILOR:
-				putCodeLogical(this, code, Type.ILOR, If.Cond.NE);
+				putCodeLogical(this, space, code, Type.ILOR, If.Cond.NE);
 				break;
 			case ILAND:
-				putCodeLogical(this, code, Type.ILAND, If.Cond.EQ);
+				putCodeLogical(this, space, code, Type.ILAND, If.Cond.EQ);
 				break;
 			default:
 				throw new RuntimeException();
@@ -91,8 +91,8 @@ public class BinaryAST implements AST {
 		}
 	}
 
-	private static void putCodeLogical(AST bnode, Code code, Type tp,
-			If.Cond cond) {
+	private static void putCodeLogical(AST bnode,LocalVariableSpace space,
+			Code code, Type tp, If.Cond cond) {
 		List<Integer> labels = new ArrayList<Integer>();
 		AST node = bnode;
 		int caddr;
@@ -104,13 +104,13 @@ public class BinaryAST implements AST {
 			} else if(!((BinaryAST)node).type.equals(tp)) {
 				break;
 			}
-			((BinaryAST)node).left.putCode(code);
+			((BinaryAST)node).left.putCode(space, code);
 			code.addCode(Mnemonic.DUP);
 			labels.add(code.addCode(new If(cond)));
 			code.addCode(Mnemonic.POP);
 			node = ((BinaryAST)node).right;
 		}
-		node.putCode(code);
+		node.putCode(space, code);
 		caddr = code.getCurrentAddress();
 		for(int idx : labels) {
 			xif = (If)code.getCode(idx);

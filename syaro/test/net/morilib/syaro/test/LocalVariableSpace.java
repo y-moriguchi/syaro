@@ -15,14 +15,30 @@
  */
 package net.morilib.syaro.test;
 
-import net.morilib.syaro.classfile.Code;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * @author Yuichiro MORIGUCHI
  *
  */
-public interface AST {
+public class LocalVariableSpace {
 
-	public void putCode(LocalVariableSpace space, Code code);
+	private Map<String, Integer> space = new HashMap<String, Integer>();
+	private int max = 1;
+
+	public void putVariable(String var) {
+		if(!space.containsKey(var)) {
+			space.put(var, max++);
+		}
+	}
+
+	public int getMax() {
+		return max;
+	}
+
+	public int getIndex(String var) {
+		return space.get(var);
+	}
 
 }
