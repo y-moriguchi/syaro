@@ -20,7 +20,10 @@ import java.util.List;
 
 import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.Mnemonic;
+import net.morilib.syaro.classfile.code.Goto;
+import net.morilib.syaro.classfile.code.IConst;
 import net.morilib.syaro.classfile.code.If;
+import net.morilib.syaro.classfile.code.IfIcmp;
 
 /**
  * @author Yuichiro MORIGUCHI
@@ -31,6 +34,12 @@ public class BinaryAST implements AST {
 	public static enum Type {
 		ILOR(null),
 		ILAND(null),
+		IEQ(null),
+		INE(null),
+		ILT(null),
+		IGE(null),
+		IGT(null),
+		ILE(null),
 		IBOR(Mnemonic.IOR),
 		IBXOR(Mnemonic.IXOR),
 		IBAND(Mnemonic.IAND),
@@ -85,6 +94,24 @@ public class BinaryAST implements AST {
 			case ILAND:
 				putCodeLogical(this, space, code, Type.ILAND, If.Cond.EQ);
 				break;
+			case IEQ:
+				putCodeCompare(this, space, code, IfIcmp.Cond.EQ);
+				break;
+			case INE:
+				putCodeCompare(this, space, code, IfIcmp.Cond.NE);
+				break;
+			case ILT:
+				putCodeCompare(this, space, code, IfIcmp.Cond.LT);
+				break;
+			case ILE:
+				putCodeCompare(this, space, code, IfIcmp.Cond.LE);
+				break;
+			case IGT:
+				putCodeCompare(this, space, code, IfIcmp.Cond.GT);
+				break;
+			case IGE:
+				putCodeCompare(this, space, code, IfIcmp.Cond.GE);
+				break;
 			default:
 				throw new RuntimeException();
 			}
@@ -116,6 +143,26 @@ public class BinaryAST implements AST {
 			xif = (If)code.getCode(idx);
 			xif.setOffset(caddr - code.getAddress(idx));
 		}
+	}
+
+	private static void putCodeCompare(BinaryAST bnode,
+			LocalVariableSpace space,
+			Code code,
+			IfIcmp.Cond cond) {
+		int ifa, gta;
+		IfIcmp _if;
+		Goto _gt;
+
+		bnode.left.putCode(space, code);
+		bnode.right.putCode(space, code);
+		_if = new IfIcmp(cond);
+		ifa = code.addCode(_if);
+		code.addCode(new IConst(0));
+		_gt = new Goto();
+		gta = code.addCode(_gt);
+		_if.setOffset(code.getCurrentOffset(ifa));
+		code.addCode(new IConst(1));
+		_gt.setOffset(code.getCurrentOffset(gta));
 	}
 
 }
