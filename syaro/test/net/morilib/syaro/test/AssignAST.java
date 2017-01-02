@@ -53,21 +53,20 @@ public class AssignAST implements AST {
 		return space.getIndex(((SymbolAST)ast).getName());
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.test.AST#putCode(net.morilib.syaro.classfile.Code)
-	 */
 	@Override
-	public void putCode(LocalVariableSpace space, Code code) {
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code) {
 		int idx;
 
 		idx = getLocalIndex(space, left);
 		if(operate == null) {
-			right.putCode(space, code);
+			right.putCode(functions, space, code);
 			code.addCode(Mnemonic.DUP);
 			code.addCode(new IStore(idx));
 		} else {
-			left.putCode(space, code);
-			right.putCode(space, code);
+			left.putCode(functions, space, code);
+			right.putCode(functions, space, code);
 			code.addCode(operate);
 			code.addCode(Mnemonic.DUP);
 			code.addCode(new IStore(idx));

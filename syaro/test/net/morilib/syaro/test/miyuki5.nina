@@ -46,9 +46,9 @@ import net.morilib.syaro.classfile.code.*;
  @@@@@@@@@@            @@@@@@@@@@@
 -- stmtlist --
          +----------+
- @S@@@@@@v@        @^@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
- @        >-{stmt}->_s.putCode(local, code, null, -1, null);@
- @v@@@@@@^@        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ @S@@@@@@v@        @^@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ @        >-{stmt}->_s.putCode(functions, local, code, null, -1, null);@
+ @v@@@@@@^@        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
   +-${S}-+
 -- stmt --
     +-${S}-+          +-${S}-+       +-${S}-+                     +-${S}-+
@@ -314,6 +314,7 @@ import net.morilib.syaro.classfile.code.*;
               +-${VAR}->var($buffer.toString());@
                        @@@@@@@@@@@@@@@@@@@@@@@@@@
 %%
+private FunctionSpace functions;
 private LocalVariableSpace local = new LocalVariableSpace();
 private Code code;
 private SAST _s;
@@ -488,6 +489,7 @@ public static void main(String[] args) throws Exception {
 	int jp, np;
 
 	parser.code = new Code();
+	parser.functions = new FunctionSpace(args[0]);
 	cf.setMajorVersion(45);
 	cf.setMinorVersion(3);
 	cf.setAccessFlag(Classfile.ACC_PUBLIC);

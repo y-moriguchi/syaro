@@ -23,6 +23,8 @@ import net.morilib.syaro.classfile.Code;
  */
 public interface AST {
 
-	public void putCode(LocalVariableSpace space, Code code);
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code);
 
 }

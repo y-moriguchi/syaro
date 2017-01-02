@@ -77,40 +77,39 @@ public class BinaryAST implements AST {
 		return right;
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.test.AST#putCode(net.morilib.syaro.classfile.Code)
-	 */
 	@Override
-	public void putCode(LocalVariableSpace space, Code code) {
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code) {
 		if(type.mnemonic != null) {
-			left.putCode(space, code);
-			right.putCode(space, code);
+			left.putCode(functions, space, code);
+			right.putCode(functions, space, code);
 			code.addCode(type.mnemonic);
 		} else {
 			switch(type) {
 			case ILOR:
-				putCodeLogical(this, space, code, Type.ILOR, If.Cond.NE);
+				putCodeLogical(this, functions, space, code, Type.ILOR, If.Cond.NE);
 				break;
 			case ILAND:
-				putCodeLogical(this, space, code, Type.ILAND, If.Cond.EQ);
+				putCodeLogical(this, functions, space, code, Type.ILAND, If.Cond.EQ);
 				break;
 			case IEQ:
-				putCodeCompare(this, space, code, IfIcmp.Cond.EQ);
+				putCodeCompare(this, functions, space, code, IfIcmp.Cond.EQ);
 				break;
 			case INE:
-				putCodeCompare(this, space, code, IfIcmp.Cond.NE);
+				putCodeCompare(this, functions, space, code, IfIcmp.Cond.NE);
 				break;
 			case ILT:
-				putCodeCompare(this, space, code, IfIcmp.Cond.LT);
+				putCodeCompare(this, functions, space, code, IfIcmp.Cond.LT);
 				break;
 			case ILE:
-				putCodeCompare(this, space, code, IfIcmp.Cond.LE);
+				putCodeCompare(this, functions, space, code, IfIcmp.Cond.LE);
 				break;
 			case IGT:
-				putCodeCompare(this, space, code, IfIcmp.Cond.GT);
+				putCodeCompare(this, functions, space, code, IfIcmp.Cond.GT);
 				break;
 			case IGE:
-				putCodeCompare(this, space, code, IfIcmp.Cond.GE);
+				putCodeCompare(this, functions, space, code, IfIcmp.Cond.GE);
 				break;
 			default:
 				throw new RuntimeException();
@@ -118,7 +117,9 @@ public class BinaryAST implements AST {
 		}
 	}
 
-	private static void putCodeLogical(AST bnode,LocalVariableSpace space,
+	private static void putCodeLogical(AST bnode,
+			FunctionSpace functions,
+			LocalVariableSpace space,
 			Code code, Type tp, If.Cond cond) {
 		List<Integer> labels = new ArrayList<Integer>();
 		AST node = bnode;
@@ -131,13 +132,13 @@ public class BinaryAST implements AST {
 			} else if(!((BinaryAST)node).type.equals(tp)) {
 				break;
 			}
-			((BinaryAST)node).left.putCode(space, code);
+			((BinaryAST)node).left.putCode(functions, space, code);
 			code.addCode(Mnemonic.DUP);
 			labels.add(code.addCode(new If(cond)));
 			code.addCode(Mnemonic.POP);
 			node = ((BinaryAST)node).right;
 		}
-		node.putCode(space, code);
+		node.putCode(functions, space, code);
 		caddr = code.getCurrentAddress();
 		for(int idx : labels) {
 			xif = (If)code.getCode(idx);
@@ -146,6 +147,7 @@ public class BinaryAST implements AST {
 	}
 
 	private static void putCodeCompare(BinaryAST bnode,
+			FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code,
 			IfIcmp.Cond cond) {
@@ -153,8 +155,8 @@ public class BinaryAST implements AST {
 		IfIcmp _if;
 		Goto _gt;
 
-		bnode.left.putCode(space, code);
-		bnode.right.putCode(space, code);
+		bnode.left.putCode(functions, space, code);
+		bnode.right.putCode(functions, space, code);
 		_if = new IfIcmp(cond);
 		ifa = code.addCode(_if);
 		code.addCode(new IConst(0));

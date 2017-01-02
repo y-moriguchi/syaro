@@ -37,7 +37,9 @@ public class DoAST implements SAST {
 	}
 
 	@Override
-	public void putCode(LocalVariableSpace space, Code code,
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code,
 			List<Integer> breakIndices,
 			int continueAddress,
 			List<Integer> continueIndices) {
@@ -46,8 +48,8 @@ public class DoAST implements SAST {
 		If _if;
 
 		addr = code.getCurrentAddress();
-		statement.putCode(space, code, brk, addr, null);
-		condition.putCode(space, code);
+		statement.putCode(functions, space, code, brk, addr, null);
+		condition.putCode(functions, space, code);
 		_if = new If(If.Cond.NE);
 		_if.setOffset(addr - code.getCurrentAddress());
 		code.addCode(_if);

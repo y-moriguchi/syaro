@@ -38,7 +38,9 @@ public class IfAST implements SAST {
 	}
 
 	@Override
-	public void putCode(LocalVariableSpace space, Code code,
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code,
 			List<Integer> breakIndices,
 			int continueAddress,
 			List<Integer> continueIndices) {
@@ -47,20 +49,23 @@ public class IfAST implements SAST {
 		Goto _gt;
 
 		if(elseClause != null) {
-			condition.putCode(space, code);
+			condition.putCode(functions, space, code);
 			_if = new If(If.Cond.EQ);
 			ifa = code.addCode(_if);
-			ifClause.putCode(space, code, breakIndices, continueAddress, continueIndices);
+			ifClause.putCode(functions, space,
+					code, breakIndices, continueAddress, continueIndices);
 			_gt = new Goto();
 			gta = code.addCode(_gt);
 			_if.setOffset(code.getCurrentOffset(ifa));
-			elseClause.putCode(space, code, breakIndices, continueAddress, continueIndices);
+			elseClause.putCode(functions, space,
+					code, breakIndices, continueAddress, continueIndices);
 			_gt.setOffset(code.getCurrentOffset(gta));
 		} else {
-			condition.putCode(space, code);
+			condition.putCode(functions, space, code);
 			_if = new If(If.Cond.EQ);
 			ifa = code.addCode(_if);
-			ifClause.putCode(space, code, breakIndices, continueAddress, continueIndices);
+			ifClause.putCode(functions, space,
+					code, breakIndices, continueAddress, continueIndices);
 			_if.setOffset(code.getCurrentOffset(ifa));
 		}
 	}

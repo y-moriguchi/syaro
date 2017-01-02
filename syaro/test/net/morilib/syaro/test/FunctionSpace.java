@@ -15,21 +15,37 @@
  */
 package net.morilib.syaro.test;
 
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
-import net.morilib.syaro.classfile.Code;
 
 /**
  * @author Yuichiro MORIGUCHI
  *
  */
-public interface SAST {
+public class FunctionSpace {
 
-	public void putCode(FunctionSpace functions,
-			LocalVariableSpace space,
-			Code code,
-			List<Integer> breakIndices,
-			int continueAddress,
-			List<Integer> continueIndices);
+	private String classname;
+	private Map<String, FunctionDefinition> space =
+			new HashMap<String, FunctionDefinition>();
+
+	public FunctionSpace(String classname) {
+		this.classname = classname;
+	}
+
+	public String getClassname() {
+		return classname;
+	}
+
+	public void putSpace(String name, FunctionDefinition def) {
+		space.put(name, def);
+	}
+
+	public FunctionDefinition getDefinition(String name) {
+		if(!space.containsKey(name)) {
+			throw new RuntimeException("function " + name + " is not defined");
+		}
+		return space.get(name);
+	}
 
 }

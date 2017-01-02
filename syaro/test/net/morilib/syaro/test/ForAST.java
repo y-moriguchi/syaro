@@ -42,7 +42,9 @@ public class ForAST implements SAST {
 	}
 
 	@Override
-	public void putCode(LocalVariableSpace space, Code code,
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code,
 			List<Integer> breakIndices,
 			int continueAddress,
 			List<Integer> continueIndices) {
@@ -52,17 +54,17 @@ public class ForAST implements SAST {
 		If _if;
 		Goto _gt;
 
-		initialize.putCode(space, code);
+		initialize.putCode(functions, space, code);
 		code.addCode(Mnemonic.POP);
 		addr = code.getCurrentAddress();
-		condition.putCode(space, code);
+		condition.putCode(functions, space, code);
 		_if = new If(If.Cond.EQ);
 		ifa = code.addCode(_if);
-		statement.putCode(space, code, brk, -1, cnt);
+		statement.putCode(functions, space, code, brk, -1, cnt);
 		for(int x : cnt) {
 			((Goto)code.getCode(x)).setOffset(code.getCurrentOffset(x));
 		}
-		inclement.putCode(space, code);
+		inclement.putCode(functions, space, code);
 		code.addCode(Mnemonic.POP);
 		_gt = new Goto();
 		_gt.setOffset(addr - code.getCurrentAddress());

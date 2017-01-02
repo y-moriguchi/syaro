@@ -191,7 +191,7 @@ public static void main(String[] args) throws Exception {
 	code.addCode(new Getstatic(new ConstantFieldref(
 			"java/lang/System", "out", "Ljava/io/PrintStream;")));
 	parseAll(new StringReader(args[1]));
-	_e.putCode(new LocalVariableSpace(), code);
+	_e.putCode(new FunctionSpace(args[0]), new LocalVariableSpace(), code);
 	code.addCode(new Invokevirtual(new ConstantMethodref(
 			"java/io/PrintStream", "println", "(I)V")));
 	code.addCode(Mnemonic.RETURN);

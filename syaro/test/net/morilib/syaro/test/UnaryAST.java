@@ -55,25 +55,24 @@ public class UnaryAST implements AST {
 		return node;
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.test.AST#putCode(net.morilib.syaro.classfile.Code)
-	 */
 	@Override
-	public void putCode(LocalVariableSpace space, Code code) {
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code) {
 		int lbl0, lbl1;
 
 		if(type.mnemonic != null) {
-			node.putCode(space, code);
+			node.putCode(functions, space, code);
 			code.addCode(type.mnemonic);
 		} else {
 			switch(type) {
 			case IBNOT:
-				node.putCode(space, code);
+				node.putCode(functions, space, code);
 				code.addCode(new LdcW(new ConstantInteger(0xffffffff)));
 				code.addCode(Mnemonic.IXOR);
 				break;
 			case ILNOT:
-				node.putCode(space, code);
+				node.putCode(functions, space, code);
 				lbl0 = code.addCode(new If(If.Cond.EQ));
 				code.addCode(new IConst(1));
 				lbl1 = code.addCode(new Goto());

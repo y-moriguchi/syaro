@@ -18,31 +18,34 @@ package net.morilib.syaro.test;
 import java.util.ArrayList;
 import java.util.List;
 
-import net.morilib.syaro.classfile.Code;
+public class FunctionDefinition {
 
-/**
- * @author Yuichiro MORIGUCHI
- *
- */
-public class BlockAST implements SAST {
+	private VariableType returnType;
+	private List<VariableType> argumentTypes;
 
-	private List<SAST> block = new ArrayList<SAST>();
-
-	public void addStatement(SAST stmt) {
-		block.add(stmt);
+	public FunctionDefinition(VariableType ret, List<VariableType> args) {
+		this.returnType = ret;
+		this.argumentTypes = new ArrayList<VariableType>(args);
 	}
 
-	@Override
-	public void putCode(FunctionSpace functions,
-			LocalVariableSpace space,
-			Code code,
-			List<Integer> breakIndices,
-			int continueAddress,
-			List<Integer> continueIndices) {
-		for(SAST s : block) {
-			s.putCode(functions, space,
-					code, breakIndices, continueAddress, continueIndices);
+	public VariableType getReturnType() {
+		return returnType;
+	}
+
+	public List<VariableType> getArgumentTypes() {
+		return argumentTypes;
+	}
+
+	public String getDescriptor() {
+		StringBuilder b = new StringBuilder();
+
+		b.append("(");
+		for(VariableType v : argumentTypes) {
+			b.append(v.getDescriptor());
 		}
+		b.append(")");
+		b.append(returnType.getDescriptor());
+		return b.toString();
 	}
 
 }

@@ -27,7 +27,9 @@ import net.morilib.syaro.classfile.code.Goto;
 public class BreakAST implements SAST {
 
 	@Override
-	public void putCode(LocalVariableSpace space, Code code,
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code,
 			List<Integer> breakIndices,
 			int continueAddress,
 			List<Integer> continueIndices) {

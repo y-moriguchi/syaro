@@ -15,21 +15,27 @@
  */
 package net.morilib.syaro.test;
 
-import java.util.List;
-
-import net.morilib.syaro.classfile.Code;
-
 /**
  * @author Yuichiro MORIGUCHI
  *
  */
-public interface SAST {
+public enum Primitive implements VariableType {
 
-	public void putCode(FunctionSpace functions,
-			LocalVariableSpace space,
-			Code code,
-			List<Integer> breakIndices,
-			int continueAddress,
-			List<Integer> continueIndices);
+	INT("I"),
+	DOUBLE("D");
+
+	private String descriptor;
+
+	private Primitive(String desc) {
+		this.descriptor = desc;
+	}
+
+	/* (non-Javadoc)
+	 * @see net.morilib.syaro.test.VariableType#getDescriptor()
+	 */
+	@Override
+	public String getDescriptor() {
+		return descriptor;
+	}
 
 }

@@ -47,21 +47,20 @@ public class IncDecAST implements AST {
 		return space.getIndex(((SymbolAST)ast).getName());
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.test.AST#putCode(net.morilib.syaro.classfile.Code)
-	 */
 	@Override
-	public void putCode(LocalVariableSpace space, Code code) {
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code) {
 		Mnemonic val = new IConst(isInc ? 1 : -1);
 
 		if(isPre) {
-			node.putCode(space, code);
+			node.putCode(functions, space, code);
 			code.addCode(val);
 			code.addCode(Mnemonic.IADD);
 			code.addCode(Mnemonic.DUP);
 			code.addCode(new IStore(getLocalIndex(space, node)));
 		} else {
-			node.putCode(space, code);
+			node.putCode(functions, space, code);
 			code.addCode(Mnemonic.DUP);
 			code.addCode(val);
 			code.addCode(Mnemonic.IADD);

@@ -33,7 +33,7 @@ a high order calculator
 #option targetLanguage=Java
 #label VAR=/[A-Za-z][A-Za-z0-9]*/
 #label LAHEADVAR=/?=[A-Za-z][A-Za-z0-9]*[ \t]*=/
-#label S=[ \t]
+#label S=[ \t\n]
 #package net.morilib.syaro.test
 %{
 import java.io.FileOutputStream;
@@ -41,11 +41,96 @@ import java.io.StringReader;
 import net.morilib.syaro.classfile.*;
 import net.morilib.syaro.classfile.code.*;
 %}
-    +-[\s]-+                         +-${S}-+        +-[\s]-+
- *S*^******v*        @@@@@@@@@@@@@@ @^@@@@@@v@      @^@@@@@@v@
- *          >-{expr}->putresult();>->        >-[\n]->        @
- ************        @^@@@@@@@@@@@@ @@@@@@@@@@      @v@@@@@@@@
-                      +-{expr}-----------------------+
+ @S@@@@@@@@            @@@@@@@@@@@
+ @        >-{stmtlist}->         @
+ @@@@@@@@@@            @@@@@@@@@@@
+-- stmtlist --
+         +----------+
+ @S@@@@@@v@        @^@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ @        >-{stmt}->_s.putCode(functions, local, code, null, -1, null);@
+ @v@@@@@@^@        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  +-${S}-+
+-- stmt --
+    +-${S}-+          +-${S}-+       +-${S}-+                     +-${S}-+
+ *S*^******v*        *^******v*     *^******v*        *LIF<AST>* *^******v*     ***
+ *          >-+-"if"->        >-'('->        >-{expr}->%% = _e;>->        >-')'-> >-{stmt}-(IF1)
+ ************ |      **********     **********        ********** **********     ***
+              |        +-${S}-+
+              |       *^******v*        *LEL<SAST>*        @@@@@@@@@@@@@@@@@@@@
+              | (IF1)->        >-"else"->%% = _s; >-{stmt}->endif($LIF, $LEL);@
+              |       *v********        ***********        @@@@@@@@@@@@@@@@@@@@
+              |        |
+              |        | @@@@@@@@@@@@@@
+              |        +->endif($LIF);@
+              |          @@@@@@@@@@@@@@
+              |          +-${S}-+                  +-${S}-+
+              |         *^******v*     ***        *^******v*
+              +-"while"->        >-'('-> >-{expr}->        >-')'-(WH1)
+              |         **********     ***        **********
+              |
+              |       *WX<AST>**        @@@@@@@@@@@@@
+              | (WH1)->%% = _e;>-{stmt}->endwh($WX);@
+              |       **********        @@@@@@@@@@@@@
+              |                  +-${S}-+           +-${S}-+                  +-${S}-+
+              |      ***        *^******v*         *^******v*     ***        *^******v*
+              +-"do"-> >-{stmt}->        >-"while"->        >-'('-> >-{expr}->        >-')'-(DO1)
+              |      ***        **********         **********     ***        **********
+              |        +-${S}-+
+              |       *^******v*     @@@@@@@@@@
+              | (DO1)->        >-';'->enddo();@
+              |       **********     @@@@@@@@@@
+              |        +-${S}-+         +-${S}-+          +-${S}-+       +-${S}-+
+              |       *^******v***     *^******v*        *^******v*     *^******v*
+              +-"for"->_e = null;>-'('->        >-{expr}->        >-';'->        >-(FO1)
+              |       ************     *v********        **********     *^********
+              |                         |                                |
+              |                         |     ***********                |
+              |                         +-';'->         >----------------+
+              |                               ***********
+              |                     +-${S}-+          +-${S}-+       +-${S}-+
+              |       *FE<AST>**** *^******v*        *^******v*     *^******v*
+              | (FO1)->%% = _e;  >->        >-{expr}->        >-';'->        >-(FO2)
+              |       *_e = null;* *v********        **********     *^********
+              |       ************  |                                |
+              |                     |     ***********                |
+              |                     +-';'->         >----------------+
+              |                           ***********
+              |                     +-${S}-+          +-${S}-+       +-${S}-+
+              |       *FI<AST>**** *^******v*        *^******v*     *^******v*
+              | (FO2)->%% = _e;  >->        >-{expr}->        >-')'->        >-(FO3)
+              |       *_e = null;* *v********        **********     *^********
+              |       ************  |                                |
+              |                     |     ***********                |
+              |                     +-')'->         >----------------+
+              |                           ***********
+              |
+              |       *FS<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@
+              | (FO3)->%% = _e;>-{stmt}->endfor($FE, $FI, $FS);@
+              |       **********        @@@@@@@@@@@@@@@@@@@@@@@@
+              |          +-${S}-+
+              |         *^******v*     @@@@@@@@@@@
+              +-"break"->        >-';'->_break();@
+              |         **********     @@@@@@@@@@@
+              |             +-${S}-+
+              |            *^******v*     @@@@@@@@@@@@@@
+              +-"continue"->        >-';'->_continue();@
+              |            **********     @@@@@@@@@@@@@@
+              |                       +-${S}-+
+              |     *BL<BlockAST>*** *^******v*        ************
+              +-"{"->%% = beginb();>->        >-{stmt}->addb($BL);*
+              |     **************** *v******^*        *v**********
+              |                       |      +----------+
+              |                       |     @@@@@@@@@@@@
+              |                       +-'}'->endb($BL);@
+              |                             @@@@@@@@@@@@
+              |          +-${S}-+          +-${S}-+
+              |         *^******v*        *^******v*     @@@@@@@@@@
+              +-"print"->        >-{expr}->        >-';'->print();@
+              |         **********        **********     @@@@@@@@@@
+              |         +-${S}-+
+              |        *^******v*     @@@@@@@@@@@
+              +-{expr}->        >-';'->simple();@
+                       **********     @@@@@@@@@@@
 -- expr --
  *S*        @@@@@@@@@@@
  * >-{asgn}->         @
@@ -118,8 +203,34 @@ import net.morilib.syaro.classfile.code.*;
 -- band --
                     +-${S}-+                      +-${S}-+
  *S*        @A<AST>@^@@@@@@v@            ***     *^******v*        @@@@@@@@@@@
- * >-{shft}->%% = _e;       >-/?=&[^&=]/-> >-'&'->        >-{shft}->band($A);>-(A)
+ * >-{loeq}->%% = _e;       >-/?=&[^&=]/-> >-'&'->        >-{loeq}->band($A);>-(A)
  ***        @@@@@@@@@@@@@@@@@            ***     **********        @@@@@@@@@@@
+-- loeq --
+                    +-${S}-+              +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@            *^******v*        @@@@@@@@@@
+ * >-{lcmp}->%% = _e;       >-+-"=="----->        >-{lcmp}->leq($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@ |          **********        @@@@@@@@@@
+                              |           +-${S}-+
+                              |          *^******v*        @@@@@@@@@@
+                              +-"!="----->        >-{lcmp}->lne($A);>-(A)
+                                         **********        @@@@@@@@@@
+-- lcmp --
+                    +-${S}-+                                +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@               ***            *^******v*        @@@@@@@@@@
+ * >-{shft}->%% = _e;       >-/?=[<>][^<>]/-> >-+-"<"------>        >-{shft}->llt($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@               *** |          **********        @@@@@@@@@@
+                                                |           +-${S}-+
+                                                |          *^******v*        @@@@@@@@@@
+                                                +-"<="----->        >-{shft}->lle($A);>-(A)
+                                                |          **********        @@@@@@@@@@
+                                                |           +-${S}-+
+                                                |          *^******v*        @@@@@@@@@@
+                                                +-">"------>        >-{shft}->lgt($A);>-(A)
+                                                |          **********        @@@@@@@@@@
+                                                |           +-${S}-+
+                                                |          *^******v*        @@@@@@@@@@
+                                                +-">="----->        >-{shft}->lge($A);>-(A)
+                                                           **********        @@@@@@@@@@
 -- shft --
                     +-${S}-+                 +-${S}-+
  *S*        @A<AST>@^@@@@@@v@               *^******v*        @@@@@@@@@@@@@
@@ -188,7 +299,15 @@ import net.morilib.syaro.classfile.code.*;
                        |
                        |      @@@@@@@@@@@@
                        +-"--"->decpost();@
-                              @@@@@@@@@@@@
+                       |      @@@@@@@@@@@@
+                       |                  +-${S}-+              +-${S}-+
+                       |     *AR<CallAST>*^******v* ***        *^******v******
+                       +-'('->%% = begincall();   >-> >-{expr}->addcall($AR);*
+                             *v******************** *^*        *v**v**********
+                              |                      +--','-----+  |
+                              |     @@@@@@@@@@@@@                  |
+                              +-')'->call($AR); <-')'--------------+
+                                    @@@@@@@@@@@@@
 -- elem --
     +-${S}-+
  *S*^******v*        @@@@@@@@@@@@@@
@@ -206,15 +325,8 @@ import net.morilib.syaro.classfile.code.*;
 private FunctionSpace functions;
 private LocalVariableSpace local = new LocalVariableSpace();
 private Code code;
+private SAST _s;
 private AST _e;
-
-private void putresult() {
-	code.addCode(new Getstatic(new ConstantFieldref(
-			"java/lang/System", "out", "Ljava/io/PrintStream;")));
-	_e.putCode(functions, local, code);
-	code.addCode(new Invokevirtual(new ConstantMethodref(
-			"java/io/PrintStream", "println", "(I)V")));
-}
 
 private void asgn(AST a, Mnemonic op) {
 	_e = new AssignAST(op, a, _e);
@@ -242,6 +354,30 @@ private void bxor(AST a) {
 
 private void band(AST a) {
 	_e = new BinaryAST(BinaryAST.Type.IBAND, a, _e);
+}
+
+private void leq(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IEQ, a, _e);
+}
+
+private void lne(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.INE, a, _e);
+}
+
+private void llt(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.ILT, a, _e);
+}
+
+private void lle(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.ILE, a, _e);
+}
+
+private void lgt(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IGT, a, _e);
+}
+
+private void lge(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IGE, a, _e);
 }
 
 private void rshift(AST a) {
@@ -300,26 +436,143 @@ private void decpost() {
 	_e = new IncDecAST(false, false, _e);
 }
 
+private CallAST begincall() {
+	return new CallAST(_e);
+}
+
+private void addcall(CallAST call) {
+	call.addArgument(_e);
+}
+
+private void call(CallAST call) {
+	_e = call;
+}
+
 private void var(String name) {
 	local.putVariable(name);
 	_e = new SymbolAST(name);
 }
 
+private void endif(AST expr) {
+	_s = new IfAST(expr, _s, null);
+}
+
+private void endif(AST expr, SAST _if) {
+	_s = new IfAST(expr, _if, _s);
+}
+
+private void _break() {
+	_s = new BreakAST();
+}
+
+private void _continue() {
+	_s = new ContinueAST();
+}
+
+private void endwh(AST expr) {
+	_s = new WhileAST(expr, _s);
+}
+
+private void enddo() {
+	_s = new DoAST(_e, _s);
+}
+
+private void endfor(AST fe, AST fi, AST fs) {
+	_s = new ForAST(fe, fi, fs, _s);
+}
+
+private BlockAST beginb() {
+	return new BlockAST();
+}
+
+private void addb(BlockAST s) {
+	s.addStatement(_s);
+}
+
+private void endb(BlockAST s) {
+	_s = s;
+}
+
+private void print() {
+	_s = new PrintAST(_e);
+}
+
+private void simple() {
+	_s = new SimpleAST(_e);
+}
+
+private static FunctionSpace newFunctionSpace(String name) {
+	FunctionSpace space = new FunctionSpace(name);
+	FunctionDefinition def;
+
+	def = new FunctionDefinition(Primitive.INT, new java.util.ArrayList<VariableType>());
+	space.putSpace("getchar", def);
+	return space;
+}
+
+private static void addBuiltIn(Classfile cf) {
+	MethodInfo mi;
+	Code cd;
+
+	mi = new MethodInfo("getchar", "()I");
+	mi.setAccessFlags(MethodInfo.ACC_PUBLIC);
+	cd = new Code();
+	cd.addCode(new Getstatic(new ConstantFieldref(
+			"java/lang/System", "in", "Ljava/io/InputStream;")));
+	cd.addCode(new Invokevirtual(new ConstantMethodref(
+			"java/io/InputStream", "read", "()I")));
+	cd.addCode(Mnemonic.IRETURN);
+	cd.setMaxStack(128);
+	cd.setMaxLocals(1);
+	mi.addAttribute(cd);
+	cf.addMethod(mi);
+}
+
+private static void addBootStrap(String name, Classfile cf) {
+	MethodInfo mi;
+	Code cd;
+
+	mi = new MethodInfo("<init>", "()V");
+	mi.setAccessFlags(MethodInfo.ACC_PUBLIC);
+	cd = new Code();
+	cd.addCode(new ALoad(0));
+	cd.addCode(new Invokespecial(new ConstantMethodref("java/lang/Object", "<init>", "()V")));
+	cd.addCode(Mnemonic.RETURN);
+	cd.setMaxStack(128);
+	cd.setMaxLocals(1);
+	mi.addAttribute(cd);
+	cf.addMethod(mi);
+
+	mi = new MethodInfo("main", "([Ljava/lang/String;)V");
+	mi.setAccessFlags(MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC);
+	cd = new Code();
+	cd.addCode(new New(new ConstantClass(name)));
+	cd.addCode(Mnemonic.DUP);
+	cd.addCode(Mnemonic.DUP);
+	cd.addCode(new Invokespecial(new ConstantMethodref(name, "<init>", "()V")));
+	cd.addCode(new Invokevirtual(new ConstantMethodref(name, "main", "()V")));
+	cd.addCode(Mnemonic.RETURN);
+	cd.setMaxStack(128);
+	cd.setMaxLocals(1);
+	mi.addAttribute(cd);
+	cf.addMethod(mi);
+}
+
 public static void main(String[] args) throws Exception {
 	Classfile cf = new Classfile();
-	MethodInfo mi = new MethodInfo("main", "([Ljava/lang/String;)V");
-	Miyuki4 parser = new Miyuki4();
+	MethodInfo mi = new MethodInfo("main", "()V");
+	Miyuki6 parser = new Miyuki6();
 	Goto gt = new Goto(), gb = new Goto();
 	int jp, np;
 
 	parser.code = new Code();
-	parser.functions = new FunctionSpace(args[0]);
+	parser.functions = newFunctionSpace(args[0]);
 	cf.setMajorVersion(45);
 	cf.setMinorVersion(3);
 	cf.setAccessFlag(Classfile.ACC_PUBLIC);
 	cf.setThisClass(new ConstantClass(args[0]));
-	cf.setSuperClass(new ConstantClass("Ljava/lang/Object;"));
-	mi.setAccessFlags(MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC);
+	cf.setSuperClass(new ConstantClass("java/lang/Object"));
+	mi.setAccessFlags(MethodInfo.ACC_PUBLIC);
 	jp = parser.code.addCode(gt);
 	np = parser.code.addCode(Mnemonic.NOP);
 	parser.parse(System.in);
@@ -335,6 +588,9 @@ public static void main(String[] args) throws Exception {
 	parser.code.setMaxLocals(parser.local.getMax());
 	mi.addAttribute(parser.code);
 	cf.addMethod(mi);
+
+	addBuiltIn(cf);
+	addBootStrap(args[0], cf);
 
 	FileOutputStream fs = null;
 	try {

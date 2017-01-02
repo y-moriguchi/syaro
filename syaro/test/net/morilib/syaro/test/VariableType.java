@@ -15,21 +15,12 @@
  */
 package net.morilib.syaro.test;
 
-import java.util.List;
-
-import net.morilib.syaro.classfile.Code;
-
 /**
  * @author Yuichiro MORIGUCHI
  *
  */
-public interface SAST {
+public interface VariableType {
 
-	public void putCode(FunctionSpace functions,
-			LocalVariableSpace space,
-			Code code,
-			List<Integer> breakIndices,
-			int continueAddress,
-			List<Integer> continueIndices);
+	public String getDescriptor();
 
 }

@@ -34,11 +34,10 @@ public class SymbolAST implements AST {
 		return name;
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.test.AST#putCode(net.morilib.syaro.classfile.Code)
-	 */
 	@Override
-	public void putCode(LocalVariableSpace space, Code code) {
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code) {
 		code.addCode(new ILoad(space.getIndex(name)));
 	}
 

@@ -30,7 +30,9 @@ public class ContinueAST implements SAST {
 	 * @see net.morilib.syaro.test.AST#putCode(net.morilib.syaro.test.LocalVariableSpace, net.morilib.syaro.classfile.Code)
 	 */
 	@Override
-	public void putCode(LocalVariableSpace space, Code code,
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code,
 			List<Integer> breakIndices,
 			int continueAddress,
 			List<Integer> continueIndices) {

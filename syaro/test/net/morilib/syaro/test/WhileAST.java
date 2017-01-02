@@ -36,11 +36,10 @@ public class WhileAST implements SAST {
 		statement = stmt;
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.test.AST#putCode(net.morilib.syaro.test.LocalVariableSpace, net.morilib.syaro.classfile.Code)
-	 */
 	@Override
-	public void putCode(LocalVariableSpace space, Code code,
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code,
 			List<Integer> breakIndices,
 			int continueAddress,
 			List<Integer> continueIndices) {
@@ -50,10 +49,10 @@ public class WhileAST implements SAST {
 		Goto _gt;
 
 		addr = code.getCurrentAddress();
-		condition.putCode(space, code);
+		condition.putCode(functions, space, code);
 		_if = new If(If.Cond.EQ);
 		ifa = code.addCode(_if);
-		statement.putCode(space, code, brk, addr, null);
+		statement.putCode(functions, space, code, brk, addr, null);
 		_gt = new Goto();
 		_gt.setOffset(addr - code.getCurrentAddress());
 		code.addCode(_gt);

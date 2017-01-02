@@ -298,11 +298,11 @@ public  class Miyuki4   {
 			}
 			return 0;
 		case 1:
-			if((__l__ && $c == '<')) {
+			if((__l__ && $c == '>')) {
 				LOOKAHEAD($c);
 				STATE = 2;
 				return 1;
-			} else if((__l__ && $c == '>')) {
+			} else if((__l__ && $c == '<')) {
 				LOOKAHEAD($c);
 				STATE = 3;
 				return 1;
@@ -312,7 +312,7 @@ public  class Miyuki4   {
 			}
 			return 0;
 		case 3:
-			if((__l__ && $c == '>')) {
+			if((__l__ && $c == '<')) {
 				LOOKAHEAD($c);
 				STATE = 4;
 				return 1;
@@ -339,7 +339,7 @@ public  class Miyuki4   {
 				STATE = 1;
 				return 1;
 		case 2:
-			if((__l__ && $c == '<')) {
+			if((__l__ && $c == '>')) {
 				LOOKAHEAD($c);
 				STATE = 7;
 				return 1;
@@ -377,28 +377,28 @@ public  class Miyuki4   {
 
 	int shft_execaction(int  $c) {
 		switch(STATE) {
-		case 6:
-			rshift(((AST)(__stv[__slen - 1][1])));
-			break;
-		case 3:
-			break;
-		case 9:
-			lshift(((AST)(__stv[__slen - 1][1])));
-			break;
-		case 4:
+		case 8:
 			break;
 		case 2:
 			break;
 		case 7:
 			break;
-		case 1:
-			(__stv[__slen - 1][1]) = _e;
-			break;
-		case 0:
+		case 3:
 			break;
 		case 5:
 			break;
-		case 8:
+		case 0:
+			break;
+		case 4:
+			break;
+		case 1:
+			(__stv[__slen - 1][1]) = _e;
+			break;
+		case 6:
+			lshift(((AST)(__stv[__slen - 1][1])));
+			break;
+		case 9:
+			rshift(((AST)(__stv[__slen - 1][1])));
 			break;
 		}
 		return 1;
@@ -511,17 +511,17 @@ public  class Miyuki4   {
 
 	int bxor_execaction(int  $c) {
 		switch(STATE) {
-		case 3:
-			break;
 		case 0:
 			break;
 		case 2:
 			break;
-		case 1:
-			(__stv[__slen - 1][1]) = _e;
-			break;
 		case 4:
 			bxor(((AST)(__stv[__slen - 1][1])));
+			break;
+		case 3:
+			break;
+		case 1:
+			(__stv[__slen - 1][1]) = _e;
 			break;
 		}
 		return 1;
@@ -657,24 +657,24 @@ public  class Miyuki4   {
 
 	int poly_execaction(int  $c) {
 		switch(STATE) {
-		case 1:
-			(__stv[__slen - 1][1]) = _e;
-			break;
-		case 0:
-			break;
-		case 5:
-			sub(((AST)(__stv[__slen - 1][1])));
+		case 2:
 			break;
 		case 3:
 			break;
 		case 7:
 			add(((AST)(__stv[__slen - 1][1])));
 			break;
-		case 2:
+		case 1:
+			(__stv[__slen - 1][1]) = _e;
+			break;
+		case 4:
+			break;
+		case 0:
 			break;
 		case 6:
 			break;
-		case 4:
+		case 5:
+			sub(((AST)(__stv[__slen - 1][1])));
 			break;
 		}
 		return 1;
@@ -787,15 +787,15 @@ public  class Miyuki4   {
 
 	int land_execaction(int  $c) {
 		switch(STATE) {
-		case 2:
-			break;
-		case 0:
+		case 4:
+			land(((AST)(__stv[__slen - 1][1])));
 			break;
 		case 1:
 			(__stv[__slen - 1][1]) = _e;
 			break;
-		case 4:
-			land(((AST)(__stv[__slen - 1][1])));
+		case 0:
+			break;
+		case 2:
 			break;
 		case 3:
 			break;
@@ -911,16 +911,16 @@ public  class Miyuki4   {
 
 	int prex_execaction(int  $c) {
 		switch(STATE) {
-		case 0:
+		case 4:
+			decpost();
 			break;
-		case 1:
+		case 0:
 			break;
 		case 2:
 			break;
-		case 3:
+		case 1:
 			break;
-		case 4:
-			decpost();
+		case 3:
 			break;
 		case 5:
 			incpost();
@@ -1006,9 +1006,9 @@ public  class Miyuki4   {
 
 	int expr_execaction(int  $c) {
 		switch(STATE) {
-		case 0:
-			break;
 		case 1:
+			break;
+		case 0:
 			break;
 		}
 		return 1;
@@ -1079,15 +1079,15 @@ public  class Miyuki4   {
 			}
 			return 0;
 		case 1:
-			if((__l__ && $c == '*')) {
+			if((__l__ && $c == '^')) {
 				LOOKAHEAD($c);
 				STATE = 2;
 				return 1;
-			} else if((__l__ && $c == '>')) {
+			} else if((__l__ && $c == '*')) {
 				LOOKAHEAD($c);
 				STATE = 3;
 				return 1;
-			} else if((__l__ && $c == '%')) {
+			} else if((__l__ && $c == '>')) {
 				LOOKAHEAD($c);
 				STATE = 4;
 				return 1;
@@ -1095,36 +1095,36 @@ public  class Miyuki4   {
 				LOOKAHEAD($c);
 				STATE = 5;
 				return 1;
-			} else if((__l__ && $c == '^')) {
+			} else if((__l__ && $c == '|')) {
 				LOOKAHEAD($c);
 				STATE = 6;
 				return 1;
-			} else if((__l__ && $c == '+')) {
+			} else if((__l__ && $c == '%')) {
 				LOOKAHEAD($c);
 				STATE = 7;
 				return 1;
-			} else if((__l__ && $c == '&')) {
+			} else if((__l__ && $c == '+')) {
 				LOOKAHEAD($c);
 				STATE = 8;
 				return 1;
-			} else if((__l__ && $c == '|')) {
+			} else if((__l__ && $c == '<')) {
 				LOOKAHEAD($c);
 				STATE = 9;
 				return 1;
-			} else if((__l__ && $c == '<')) {
+			} else if((__l__ && $c == '-')) {
 				LOOKAHEAD($c);
 				STATE = 10;
 				return 1;
-			} else if((__l__ && $c == '-')) {
+			} else if((__l__ && $c == '&')) {
 				LOOKAHEAD($c);
 				STATE = 11;
+				return 1;
+			} else if(($c == 9) || ($c == ' ')) {
+				STATE = 1;
 				return 1;
 			} else if(($c == '=')) {
 				LOOKAHEAD_COMMIT();
 				STATE = 12;
-				return 1;
-			} else if(($c == 9) || ($c == ' ')) {
-				STATE = 1;
 				return 1;
 			}
 			return 0;
@@ -1178,41 +1178,41 @@ public  class Miyuki4   {
 		case 17:
 			return 0;
 		case 10:
-			if((__l__ && $c == '<')) {
-				LOOKAHEAD($c);
+			if(($c == '=')) {
+				LOOKAHEAD_COMMIT();
 				STATE = 18;
 				return 1;
 			}
 			return 0;
 		case 18:
-			if(($c == '=')) {
-				LOOKAHEAD_COMMIT();
-				STATE = 19;
-				return 1;
-			}
-			return 0;
-		case 19:
 			if(($c == 9) || ($c == ' ')) {
-				STATE = 19;
+				STATE = 18;
 				return 1;
 			} else if($c < 0) {
-				STATE = 20;
+				STATE = 19;
 				return 1;
 			} else if($c >= 0) {
 				UNGET($c);
-				STATE = 20;
+				STATE = 19;
 				return 1;
 			}
-		case 20:
+		case 19:
 			if($c >= 0) {
-				__stkpush(21, ENGINE_asgn);
+				__stkpush(20, ENGINE_asgn);
 				STATE = 0;
 				return NINA_ACCEPT;
 			}
 			return 0;
-		case 21:
+		case 20:
 			return 0;
 		case 9:
+			if((__l__ && $c == '<')) {
+				LOOKAHEAD($c);
+				STATE = 21;
+				return 1;
+			}
+			return 0;
+		case 21:
 			if(($c == '=')) {
 				LOOKAHEAD_COMMIT();
 				STATE = 22;
@@ -1353,41 +1353,41 @@ public  class Miyuki4   {
 		case 36:
 			return 0;
 		case 4:
-			if(($c == '=')) {
-				LOOKAHEAD_COMMIT();
+			if((__l__ && $c == '>')) {
+				LOOKAHEAD($c);
 				STATE = 37;
 				return 1;
 			}
 			return 0;
 		case 37:
-			if(($c == 9) || ($c == ' ')) {
-				STATE = 37;
-				return 1;
-			} else if($c < 0) {
-				STATE = 38;
-				return 1;
-			} else if($c >= 0) {
-				UNGET($c);
+			if(($c == '=')) {
+				LOOKAHEAD_COMMIT();
 				STATE = 38;
 				return 1;
 			}
+			return 0;
 		case 38:
+			if(($c == 9) || ($c == ' ')) {
+				STATE = 38;
+				return 1;
+			} else if($c < 0) {
+				STATE = 39;
+				return 1;
+			} else if($c >= 0) {
+				UNGET($c);
+				STATE = 39;
+				return 1;
+			}
+		case 39:
 			if($c >= 0) {
-				__stkpush(39, ENGINE_asgn);
+				__stkpush(40, ENGINE_asgn);
 				STATE = 0;
 				return NINA_ACCEPT;
 			}
 			return 0;
-		case 39:
+		case 40:
 			return 0;
 		case 3:
-			if((__l__ && $c == '>')) {
-				LOOKAHEAD($c);
-				STATE = 40;
-				return 1;
-			}
-			return 0;
-		case 40:
 			if(($c == '=')) {
 				LOOKAHEAD_COMMIT();
 				STATE = 41;
@@ -1451,11 +1451,11 @@ public  class Miyuki4   {
 		return (STATE == 17 ||
 				STATE == 1 ||
 				STATE == 33 ||
-				STATE == 21 ||
-				STATE == 39 ||
+				STATE == 20 ||
 				STATE == 36 ||
 				STATE == 43 ||
 				STATE == 24 ||
+				STATE == 40 ||
 				STATE == 27 ||
 				STATE == 46 ||
 				STATE == 14 ||
@@ -1464,121 +1464,121 @@ public  class Miyuki4   {
 
 	int asgn_execaction(int  $c) {
 		switch(STATE) {
-		case 21:
-			asgn(((AST)(__stv[__slen - 1][20])), Mnemonic.ISHL);
+		case 19:
+			(__stv[__slen - 1][19]) = _e;
 			break;
-		case 39:
-			asgn(((AST)(__stv[__slen - 1][38])), Mnemonic.IREM);
-			break;
-		case 10:
-			break;
-		case 28:
-			break;
-		case 9:
+		case 3:
 			break;
 		case 30:
-			asgn(((AST)(__stv[__slen - 1][29])), Mnemonic.IADD);
+			asgn(((AST)(__stv[__slen - 1][29])), Mnemonic.IREM);
 			break;
-		case 42:
-			(__stv[__slen - 1][42]) = _e;
-			break;
-		case 25:
+		case 38:
 			break;
 		case 20:
-			(__stv[__slen - 1][20]) = _e;
-			break;
-		case 12:
-			break;
-		case 41:
-			break;
-		case 43:
-			asgn(((AST)(__stv[__slen - 1][42])), Mnemonic.ISHR);
-			break;
-		case 23:
-			(__stv[__slen - 1][23]) = _e;
-			break;
-		case 40:
-			break;
-		case 5:
-			break;
-		case 2:
-			break;
-		case 46:
-			asgn(((AST)(__stv[__slen - 1][45])), Mnemonic.IMUL);
-			break;
-		case 6:
-			break;
-		case 7:
-			break;
-		case 18:
+			asgn(((AST)(__stv[__slen - 1][19])), Mnemonic.ISUB);
 			break;
 		case 14:
 			asgn(((AST)(__stv[__slen - 1][13])), null);
 			break;
-		case 0:
-			break;
-		case 34:
-			break;
-		case 44:
-			break;
-		case 8:
-			break;
-		case 31:
-			break;
-		case 11:
-			break;
-		case 45:
-			(__stv[__slen - 1][45]) = _e;
-			break;
-		case 4:
-			break;
-		case 16:
-			(__stv[__slen - 1][16]) = _e;
-			break;
-		case 19:
-			break;
-		case 22:
-			break;
 		case 13:
 			(__stv[__slen - 1][13]) = _e;
 			break;
-		case 38:
-			(__stv[__slen - 1][38]) = _e;
-			break;
-		case 3:
-			break;
-		case 35:
-			(__stv[__slen - 1][35]) = _e;
-			break;
-		case 36:
-			asgn(((AST)(__stv[__slen - 1][35])), Mnemonic.IDIV);
+		case 37:
 			break;
 		case 27:
-			asgn(((AST)(__stv[__slen - 1][26])), Mnemonic.IAND);
+			asgn(((AST)(__stv[__slen - 1][26])), Mnemonic.IADD);
 			break;
-		case 29:
-			(__stv[__slen - 1][29]) = _e;
+		case 9:
 			break;
-		case 15:
+		case 33:
+			asgn(((AST)(__stv[__slen - 1][32])), Mnemonic.IOR);
 			break;
-		case 26:
-			(__stv[__slen - 1][26]) = _e;
+		case 1:
 			break;
 		case 32:
 			(__stv[__slen - 1][32]) = _e;
 			break;
-		case 37:
+		case 43:
+			asgn(((AST)(__stv[__slen - 1][42])), Mnemonic.IMUL);
+			break;
+		case 2:
+			break;
+		case 31:
+			break;
+		case 35:
+			(__stv[__slen - 1][35]) = _e;
+			break;
+		case 26:
+			(__stv[__slen - 1][26]) = _e;
 			break;
 		case 17:
-			asgn(((AST)(__stv[__slen - 1][16])), Mnemonic.ISUB);
+			asgn(((AST)(__stv[__slen - 1][16])), Mnemonic.IAND);
+			break;
+		case 36:
+			asgn(((AST)(__stv[__slen - 1][35])), Mnemonic.IDIV);
+			break;
+		case 42:
+			(__stv[__slen - 1][42]) = _e;
+			break;
+		case 41:
+			break;
+		case 15:
+			break;
+		case 22:
+			break;
+		case 23:
+			(__stv[__slen - 1][23]) = _e;
+			break;
+		case 10:
+			break;
+		case 39:
+			(__stv[__slen - 1][39]) = _e;
+			break;
+		case 21:
+			break;
+		case 18:
+			break;
+		case 16:
+			(__stv[__slen - 1][16]) = _e;
+			break;
+		case 45:
+			(__stv[__slen - 1][45]) = _e;
+			break;
+		case 29:
+			(__stv[__slen - 1][29]) = _e;
+			break;
+		case 46:
+			asgn(((AST)(__stv[__slen - 1][45])), Mnemonic.IXOR);
 			break;
 		case 24:
-			asgn(((AST)(__stv[__slen - 1][23])), Mnemonic.IOR);
+			asgn(((AST)(__stv[__slen - 1][23])), Mnemonic.ISHL);
 			break;
-		case 1:
+		case 25:
 			break;
-		case 33:
-			asgn(((AST)(__stv[__slen - 1][32])), Mnemonic.IXOR);
+		case 0:
+			break;
+		case 5:
+			break;
+		case 44:
+			break;
+		case 12:
+			break;
+		case 7:
+			break;
+		case 40:
+			asgn(((AST)(__stv[__slen - 1][39])), Mnemonic.ISHR);
+			break;
+		case 28:
+			break;
+		case 6:
+			break;
+		case 34:
+			break;
+		case 4:
+			break;
+		case 8:
+			break;
+		case 11:
 			break;
 		}
 		return 1;
@@ -1586,15 +1586,15 @@ public  class Miyuki4   {
 
 	boolean asgn_isend() {
 		return (STATE == 34 ||
-				STATE == 19 ||
-				STATE == 37 ||
+				STATE == 18 ||
+				STATE == 38 ||
 				STATE == 22 ||
 				STATE == 25 ||
 				STATE == 41 ||
 				STATE == 12 ||
 				STATE == 28 ||
-				STATE == 31 ||
 				STATE == 44 ||
+				STATE == 31 ||
 				STATE == 15);
 	}
 
@@ -1635,11 +1635,11 @@ public  class Miyuki4   {
 		boolean isDead() {
 		return (STATE == 17 ||
 				STATE == 33 ||
-				STATE == 21 ||
-				STATE == 39 ||
+				STATE == 20 ||
 				STATE == 36 ||
 				STATE == 43 ||
 				STATE == 24 ||
+				STATE == 40 ||
 				STATE == 27 ||
 				STATE == 46 ||
 				STATE == 14 ||
@@ -1726,16 +1726,16 @@ public  class Miyuki4   {
 
 	int bior_execaction(int  $c) {
 		switch(STATE) {
-		case 0:
-			break;
 		case 1:
 			(__stv[__slen - 1][1]) = _e;
 			break;
+		case 0:
+			break;
 		case 5:
 			break;
-		case 4:
-			break;
 		case 3:
+			break;
+		case 4:
 			break;
 		case 6:
 			bior(((AST)(__stv[__slen - 1][1])));
@@ -1805,134 +1805,134 @@ public  class Miyuki4   {
 		__lookahead_ok = true;
 		switch(STATE) {
 		case 0:
-			if(($c >= '0' && $c <= '9')) {
-				$buffer = new StringBuffer();UNGET($c);
-				STATE = 1;
-				return 1;
-			} else if(($c == '(')) {
-				STATE = 2;
-				return 1;
-			} else if(($c == 9) || ($c == ' ')) {
+			if(($c == 9) || ($c == ' ')) {
 				STATE = 0;
 				return 1;
 			} else if(($c >= 'A' && $c <= 'Z') || ($c >= 'a' && $c <= 'z')) {
 				UNGET($c);$buffer = new StringBuffer();
+				STATE = 1;
+				return 1;
+			} else if(($c >= '0' && $c <= '9')) {
+				$buffer = new StringBuffer();UNGET($c);
+				STATE = 2;
+				return 1;
+			} else if(($c == '(')) {
 				STATE = 3;
 				return 1;
 			}
 			return 0;
 		case 3:
-			if(($c >= 'A' && $c <= 'Z') || ($c >= 'a' && $c <= 'z')) {
-				$buffer.append((char)$c);
-				STATE = 4;
-				return 1;
-			}
-			return 0;
-		case 4:
-			if(($c >= '0' && $c <= '9') || ($c >= 'A' && $c <= 'Z') || ($c >= 'a' && $c <= 'z')) {
-				$buffer.append((char)$c);
-				STATE = 5;
-				return 1;
-			} else if(($c >= 0 && $c <= '/') || ($c >= ':' && $c <= '@') || ($c >= '[' && $c <= '`') || ($c >= '{' && $c <= 2147483647)) {
-				UNGET($c);
-				STATE = 6;
-				return 1;
-			} else if($c < 0) {
-				
-				STATE = 6;
-				return 1;
-			}
-			return 0;
-		case 6:
-			return 0;
-		case 5:
-			if(($c >= '0' && $c <= '9') || ($c >= 'A' && $c <= 'Z') || ($c >= 'a' && $c <= 'z')) {
-				$buffer.append((char)$c);
-				STATE = 5;
-				return 1;
-			} else if(($c >= 0 && $c <= '/') || ($c >= ':' && $c <= '@') || ($c >= '[' && $c <= '`') || ($c >= '{' && $c <= 2147483647)) {
-				UNGET($c);
-				STATE = 6;
-				return 1;
-			} else if($c < 0) {
-				
-				STATE = 6;
-				return 1;
-			}
-			return 0;
-		case 2:
 			if($c >= 0) {
-				__stkpush(7, ENGINE_expr);
+				__stkpush(4, ENGINE_expr);
 				STATE = 0;
 				return NINA_ACCEPT;
 			}
 			return 0;
-		case 7:
+		case 4:
 			if(($c == ')')) {
+				STATE = 5;
+				return 1;
+			}
+			return 0;
+		case 5:
+			return 0;
+		case 2:
+			if(($c >= '0' && $c <= '9')) {
+				$buffer.append((char)$c);
+				STATE = 2;
+				return 1;
+			} else if($c < 0) {
+				$int=Integer.parseInt($buffer.toString(), 10);
+				STATE = 6;
+				return 1;
+			} else if($c >= 0) {
+				$int=Integer.parseInt($buffer.toString(), 10);UNGET($c);
+				STATE = 6;
+				return 1;
+			}
+		case 6:
+			return 0;
+		case 1:
+			if(($c >= 'A' && $c <= 'Z') || ($c >= 'a' && $c <= 'z')) {
+				$buffer.append((char)$c);
+				STATE = 7;
+				return 1;
+			}
+			return 0;
+		case 7:
+			if(($c >= 0 && $c <= '/') || ($c >= ':' && $c <= '@') || ($c >= '[' && $c <= '`') || ($c >= '{' && $c <= 2147483647)) {
+				UNGET($c);
+				STATE = 8;
+				return 1;
+			} else if(($c >= '0' && $c <= '9') || ($c >= 'A' && $c <= 'Z') || ($c >= 'a' && $c <= 'z')) {
+				$buffer.append((char)$c);
+				STATE = 9;
+				return 1;
+			} else if($c < 0) {
+				
+				STATE = 8;
+				return 1;
+			}
+			return 0;
+		case 9:
+			if(($c >= 0 && $c <= '/') || ($c >= ':' && $c <= '@') || ($c >= '[' && $c <= '`') || ($c >= '{' && $c <= 2147483647)) {
+				UNGET($c);
+				STATE = 8;
+				return 1;
+			} else if(($c >= '0' && $c <= '9') || ($c >= 'A' && $c <= 'Z') || ($c >= 'a' && $c <= 'z')) {
+				$buffer.append((char)$c);
+				STATE = 9;
+				return 1;
+			} else if($c < 0) {
+				
 				STATE = 8;
 				return 1;
 			}
 			return 0;
 		case 8:
 			return 0;
-		case 1:
-			if(($c >= '0' && $c <= '9')) {
-				$buffer.append((char)$c);
-				STATE = 1;
-				return 1;
-			} else if($c < 0) {
-				$int=Integer.parseInt($buffer.toString(), 10);
-				STATE = 9;
-				return 1;
-			} else if($c >= 0) {
-				$int=Integer.parseInt($buffer.toString(), 10);UNGET($c);
-				STATE = 9;
-				return 1;
-			}
-		case 9:
-			return 0;
 		}
 		return 0;
 	}
 
 	private boolean elem_accepted() {
-		return (STATE == 6 ||
-				STATE == 8 ||
-				STATE == 9);
+		return (STATE == 5 ||
+				STATE == 6 ||
+				STATE == 8);
 	}
 
 	int elem_execaction(int  $c) {
 		switch(STATE) {
-		case 6:
-			var($buffer.toString());
-			break;
-		case 9:
-			konst($int);
-			break;
-		case 0:
-			break;
-		case 5:
-			break;
-		case 2:
-			break;
-		case 7:
+		case 4:
 			break;
 		case 3:
 			break;
+		case 2:
+			break;
+		case 9:
+			break;
+		case 6:
+			konst($int);
+			break;
 		case 1:
 			break;
-		case 4:
+		case 5:
+			break;
+		case 7:
 			break;
 		case 8:
+			var($buffer.toString());
+			break;
+		case 0:
 			break;
 		}
 		return 1;
 	}
 
 	boolean elem_isend() {
-		return (STATE == 1 ||
-				STATE == 4 ||
-				STATE == 5);
+		return (STATE == 2 ||
+				STATE == 7 ||
+				STATE == 9);
 	}
 
 	private final Engine ENGINE_elem = new Engine() {
@@ -1970,9 +1970,9 @@ public  class Miyuki4   {
 		}
 
 		boolean isDead() {
-		return (STATE == 6 ||
-				STATE == 8 ||
-				STATE == 9);
+		return (STATE == 5 ||
+				STATE == 6 ||
+				STATE == 8);
 		}
 
 		boolean isEmptyTransition() {
@@ -1991,10 +1991,7 @@ public  class Miyuki4   {
 		__lookahead_ok = true;
 		switch(STATE) {
 		case 0:
-			if(($c == 9) || ($c == ' ')) {
-				STATE = 0;
-				return 1;
-			} else if(($c == '+')) {
+			if(($c == '-')) {
 				LOOKAHEAD_COMMIT();
 				STATE = 1;
 				return 1;
@@ -2002,11 +1999,14 @@ public  class Miyuki4   {
 				LOOKAHEAD_COMMIT();
 				STATE = 2;
 				return 1;
+			} else if(($c == 9) || ($c == ' ')) {
+				STATE = 0;
+				return 1;
 			} else if(($c == '!')) {
 				LOOKAHEAD_COMMIT();
 				STATE = 3;
 				return 1;
-			} else if(($c == '-')) {
+			} else if(($c == '+')) {
 				LOOKAHEAD_COMMIT();
 				STATE = 4;
 				return 1;
@@ -2019,12 +2019,12 @@ public  class Miyuki4   {
 		case 5:
 			return 0;
 		case 4:
-			if(($c == 9) || ($c == ' ')) {
-				STATE = 4;
-				return 1;
-			} else if(($c == '-')) {
+			if(($c == '+')) {
 				LOOKAHEAD_COMMIT();
 				STATE = 6;
+				return 1;
+			} else if(($c == 9) || ($c == ' ')) {
+				STATE = 4;
 				return 1;
 			} else if($c >= 0) {
 				__stkpush(7, ENGINE_prex);
@@ -2074,7 +2074,7 @@ public  class Miyuki4   {
 			if(($c == 9) || ($c == ' ')) {
 				STATE = 1;
 				return 1;
-			} else if(($c == '+')) {
+			} else if(($c == '-')) {
 				LOOKAHEAD_COMMIT();
 				STATE = 11;
 				return 1;
@@ -2114,38 +2114,38 @@ public  class Miyuki4   {
 
 	int unary_execaction(int  $c) {
 		switch(STATE) {
-		case 2:
+		case 13:
+			decpre();
 			break;
-		case 3:
-			break;
-		case 7:
-			uminus();
-			break;
-		case 11:
-			break;
-		case 5:
+		case 4:
 			break;
 		case 6:
 			break;
-		case 12:
+		case 5:
 			break;
-		case 1:
-			break;
-		case 13:
-			incpre();
-			break;
-		case 0:
-			break;
-		case 4:
+		case 2:
 			break;
 		case 10:
 			bnot();
 			break;
-		case 8:
-			decpre();
+		case 12:
+			uminus();
 			break;
 		case 9:
 			lnot();
+			break;
+		case 1:
+			break;
+		case 7:
+			break;
+		case 3:
+			break;
+		case 8:
+			incpre();
+			break;
+		case 11:
+			break;
+		case 0:
 			break;
 		}
 		return 1;
@@ -2281,19 +2281,19 @@ public  class Miyuki4   {
 		switch(STATE) {
 		case 2:
 			break;
-		case 1:
-			(__stv[__slen - 1][1]) = _e;
+		case 6:
+			band(((AST)(__stv[__slen - 1][1])));
+			break;
+		case 5:
 			break;
 		case 4:
 			break;
 		case 0:
 			break;
+		case 1:
+			(__stv[__slen - 1][1]) = _e;
+			break;
 		case 3:
-			break;
-		case 5:
-			break;
-		case 6:
-			band(((AST)(__stv[__slen - 1][1])));
 			break;
 		}
 		return 1;
@@ -2365,15 +2365,15 @@ public  class Miyuki4   {
 			}
 			return 0;
 		case 1:
-			if((__l__ && $c == '/')) {
+			if((__l__ && $c == '*')) {
 				LOOKAHEAD($c);
 				STATE = 2;
 				return 1;
-			} else if((__l__ && $c == '*')) {
+			} else if((__l__ && $c == '%')) {
 				LOOKAHEAD($c);
 				STATE = 3;
 				return 1;
-			} else if((__l__ && $c == '%')) {
+			} else if((__l__ && $c == '/')) {
 				LOOKAHEAD($c);
 				STATE = 4;
 				return 1;
@@ -2455,31 +2455,31 @@ public  class Miyuki4   {
 
 	int term_execaction(int  $c) {
 		switch(STATE) {
-		case 2:
-			break;
 		case 4:
-			break;
-		case 10:
-			div(((AST)(__stv[__slen - 1][1])));
-			break;
-		case 8:
-			mul(((AST)(__stv[__slen - 1][1])));
-			break;
-		case 6:
-			mod(((AST)(__stv[__slen - 1][1])));
 			break;
 		case 9:
 			break;
+		case 8:
+			mod(((AST)(__stv[__slen - 1][1])));
+			break;
+		case 6:
+			div(((AST)(__stv[__slen - 1][1])));
+			break;
+		case 7:
+			break;
 		case 0:
+			break;
+		case 3:
+			break;
+		case 5:
 			break;
 		case 1:
 			(__stv[__slen - 1][1]) = _e;
 			break;
-		case 5:
+		case 2:
 			break;
-		case 7:
-			break;
-		case 3:
+		case 10:
+			mul(((AST)(__stv[__slen - 1][1])));
 			break;
 		}
 		return 1;
@@ -2594,17 +2594,17 @@ public  class Miyuki4   {
 
 	int lior_execaction(int  $c) {
 		switch(STATE) {
+		case 2:
+			break;
 		case 1:
 			(__stv[__slen - 1][1]) = _e;
-			break;
-		case 0:
-			break;
-		case 3:
 			break;
 		case 4:
 			lior(((AST)(__stv[__slen - 1][1])));
 			break;
-		case 2:
+		case 3:
+			break;
+		case 0:
 			break;
 		}
 		return 1;
@@ -2711,12 +2711,12 @@ public  class Miyuki4   {
 
 	int miyuki4_execaction(int  $c) {
 		switch(STATE) {
+		case 1:
+			putresult();
+			break;
 		case 3:
 			break;
 		case 0:
-			break;
-		case 1:
-			putresult();
 			break;
 		case 2:
 			break;
@@ -3037,6 +3037,7 @@ public  class Miyuki4   {
 	}
 
 	/* @@@-PARSER-CODE-END-@@@ */
+private FunctionSpace functions;
 private LocalVariableSpace local = new LocalVariableSpace();
 private Code code;
 private AST _e;
@@ -3044,7 +3045,7 @@ private AST _e;
 private void putresult() {
 	code.addCode(new Getstatic(new ConstantFieldref(
 			"java/lang/System", "out", "Ljava/io/PrintStream;")));
-	_e.putCode(local, code);
+	_e.putCode(functions, local, code);
 	code.addCode(new Invokevirtual(new ConstantMethodref(
 			"java/io/PrintStream", "println", "(I)V")));
 }
@@ -3146,6 +3147,7 @@ public static void main(String[] args) throws Exception {
 	int jp, np;
 
 	parser.code = new Code();
+	parser.functions = new FunctionSpace(args[0]);
 	cf.setMajorVersion(45);
 	cf.setMinorVersion(3);
 	cf.setAccessFlag(Classfile.ACC_PUBLIC);

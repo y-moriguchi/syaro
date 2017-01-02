@@ -33,11 +33,13 @@ public class SimpleAST implements SAST {
 	}
 
 	@Override
-	public void putCode(LocalVariableSpace space, Code code,
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code,
 			List<Integer> breakIndices,
 			int continueAddress,
 			List<Integer> continueIndices) {
-		expr.putCode(space, code);
+		expr.putCode(functions, space, code);
 		code.addCode(Mnemonic.POP);
 	}
 
