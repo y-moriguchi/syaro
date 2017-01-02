@@ -15,28 +15,36 @@
  */
 package net.morilib.syaro.test;
 
+import java.util.List;
+
+import net.morilib.syaro.classfile.Code;
+import net.morilib.syaro.classfile.Mnemonic;
+
 /**
  * @author Yuichiro MORIGUCHI
  *
  */
-public enum Primitive implements VariableType {
+public class ReturnAST implements SAST {
 
-	VOID("V"),
-	INT("I"),
-	DOUBLE("D");
+	private AST expr;
 
-	private String descriptor;
-
-	private Primitive(String desc) {
-		this.descriptor = desc;
+	public ReturnAST(AST expr) {
+		this.expr = expr;
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.test.VariableType#getDescriptor()
-	 */
 	@Override
-	public String getDescriptor() {
-		return descriptor;
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code,
+			List<Integer> breakIndices,
+			int continueAddress,
+			List<Integer> continueIndices) {
+		if(expr != null) {
+			expr.putCode(functions, space, code);
+			code.addCode(Mnemonic.IRETURN);
+		} else {
+			code.addCode(Mnemonic.RETURN);
+		}
 	}
 
 }
