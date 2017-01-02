@@ -122,6 +122,11 @@ public abstract class Mnemonic implements ClassInfo {
 	 */
 	public static Mnemonic POP = new Single(87);
 
+	/**
+	 * The instruction ireturn.
+	 */
+	public static Mnemonic IRETURN = new Single(172);
+
 	private byte opcode;
 
 	/**
