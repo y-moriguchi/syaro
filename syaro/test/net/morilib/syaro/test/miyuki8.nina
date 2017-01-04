@@ -52,6 +52,15 @@ import net.morilib.syaro.classfile.code.*;
  @v@@@@@@^@       @@@
   +-${S}-+
 -- top --
+                                  +-${S}-+
+  *S*                 ***        *^******v*     @@@@@@@@@@@@@@@@@@
+  * >-+-${LAHEADDECL}-> >-{decl}->        >-';'->globalvardecl();@
+  *** |               ***        **********     @@@@@@@@@@@@@@@@@@
+      |
+      |           @@@
+      +-{funcsub}-> @
+                  @@@
+-- funcsub --
     +-${S}-+               +-${S}-+
  *S*^******v*             *^******v*     *********
  *          >-+-{funcdef}->        >-'{'->func();*
@@ -525,6 +534,10 @@ private void localvardecl() {
 	local.putVariable(declnt.name);
 }
 
+private void globalvardecl() {
+	functions.putGlobal(declnt.name, declnt.type);
+}
+
 private void asgn(AST a, Mnemonic op) {
 	_e = new AssignAST(op, a, _e);
 }
@@ -758,6 +771,18 @@ private static void addBootStrap(String name, Classfile cf) {
 	cf.addMethod(mi);
 }
 
+private static void addFields(FunctionSpace fs, Classfile cf) {
+	java.util.Map<String, VariableType> map;
+	FieldInfo fi;
+
+	map = fs.getGlobalMap();
+	for(java.util.Map.Entry<String, VariableType> e : map.entrySet()) {
+		fi = new FieldInfo(e.getKey(), e.getValue().getDescriptor());
+		fi.setAccessFlags(FieldInfo.ACC_PUBLIC);
+		cf.addField(fi);
+	}
+}
+
 public static void main(String[] args) throws Exception {
 	Classfile cf = new Classfile();
 	MethodInfo mi = new MethodInfo("main", "()V");
@@ -777,6 +802,7 @@ public static void main(String[] args) throws Exception {
 
 	addBuiltIn(cf);
 	addBootStrap(args[0], cf);
+	addFields(parser.functions, cf);
 
 	mn = parser.functions.getDefinition("main");
 	if(!mn.getReturnType().equals(Primitive.VOID)) {

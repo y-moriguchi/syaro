@@ -39,8 +39,12 @@ public class SimpleAST implements SAST {
 			List<Integer> breakIndices,
 			int continueAddress,
 			List<Integer> continueIndices) {
-		expr.putCode(functions, space, code);
-		code.addCode(Mnemonic.POP);
+		if(expr instanceof CallAST && ((CallAST)expr).isSubroutine(functions)) {
+			((CallAST)expr).putCodeSimple(functions, space, code);
+		} else {
+			expr.putCode(functions, space, code);
+			code.addCode(Mnemonic.POP);
+		}
 	}
 
 }

@@ -16,9 +16,12 @@
 package net.morilib.syaro.test;
 
 import net.morilib.syaro.classfile.Code;
+import net.morilib.syaro.classfile.ConstantFieldref;
 import net.morilib.syaro.classfile.Mnemonic;
+import net.morilib.syaro.classfile.code.ALoad;
 import net.morilib.syaro.classfile.code.IConst;
 import net.morilib.syaro.classfile.code.IStore;
+import net.morilib.syaro.classfile.code.Putfield;
 
 /**
  * @author Yuichiro MORIGUCHI
@@ -40,11 +43,31 @@ public class IncDecAST implements AST {
 		return node;
 	}
 
-	private int getLocalIndex(LocalVariableSpace space, AST ast) {
+	private String getVarName(AST ast) {
 		if(!(ast instanceof SymbolAST)) {
 			throw new RuntimeException("not a lvalue");
 		}
-		return space.getIndex(((SymbolAST)ast).getName());
+		return ((SymbolAST)ast).getName();
+	}
+
+	private int getLocalIndex(LocalVariableSpace space, AST ast) {
+		return space.getIndex(getVarName(ast));
+	}
+
+	private void setVar(FunctionSpace functions, int idx, Code code) {
+		VariableType type;
+		String name;
+
+		if(idx >= 0) {
+			code.addCode(new IStore(idx));
+		} else {
+			code.addCode(new ALoad(0));
+			code.addCode(Mnemonic.SWAP);
+			name = getVarName(node);
+			type = functions.getGlobal(name);
+			code.addCode(new Putfield(new ConstantFieldref(
+					functions.getClassname(), name, type.getDescriptor())));
+		}
 	}
 
 	@Override
@@ -52,19 +75,21 @@ public class IncDecAST implements AST {
 			LocalVariableSpace space,
 			Code code) {
 		Mnemonic val = new IConst(isInc ? 1 : -1);
+		int idx;
 
+		idx = getLocalIndex(space, node);
 		if(isPre) {
 			node.putCode(functions, space, code);
 			code.addCode(val);
 			code.addCode(Mnemonic.IADD);
 			code.addCode(Mnemonic.DUP);
-			code.addCode(new IStore(getLocalIndex(space, node)));
+			setVar(functions, idx, code);
 		} else {
 			node.putCode(functions, space, code);
 			code.addCode(Mnemonic.DUP);
 			code.addCode(val);
 			code.addCode(Mnemonic.IADD);
-			code.addCode(new IStore(getLocalIndex(space, node)));
+			setVar(functions, idx, code);
 		}
 	}
 

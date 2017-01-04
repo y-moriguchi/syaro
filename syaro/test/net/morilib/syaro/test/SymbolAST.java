@@ -16,6 +16,9 @@
 package net.morilib.syaro.test;
 
 import net.morilib.syaro.classfile.Code;
+import net.morilib.syaro.classfile.ConstantFieldref;
+import net.morilib.syaro.classfile.code.ALoad;
+import net.morilib.syaro.classfile.code.Getfield;
 import net.morilib.syaro.classfile.code.ILoad;
 
 /**
@@ -38,7 +41,17 @@ public class SymbolAST implements AST {
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
-		code.addCode(new ILoad(space.getIndex(name)));
+		VariableType type;
+		int idx = space.getIndex(name);
+
+		if(idx >= 0) {
+			code.addCode(new ILoad(idx));
+		} else {
+			code.addCode(new ALoad(0));
+			type = functions.getGlobal(name);
+			code.addCode(new Getfield(new ConstantFieldref(
+					functions.getClassname(), name, type.getDescriptor())));
+		}
 	}
 
 }

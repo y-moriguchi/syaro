@@ -28,6 +28,7 @@ public class FunctionSpace {
 	private String classname;
 	private Map<String, FunctionDefinition> space =
 			new HashMap<String, FunctionDefinition>();
+	private Map<String, VariableType> global = new HashMap<String, VariableType>();
 
 	public FunctionSpace(String classname) {
 		this.classname = classname;
@@ -46,6 +47,21 @@ public class FunctionSpace {
 			throw new RuntimeException("function " + name + " is not defined");
 		}
 		return space.get(name);
+	}
+
+	public void putGlobal(String name, VariableType type) {
+		global.put(name, type);
+	}
+
+	public VariableType getGlobal(String name) {
+		if(!global.containsKey(name)) {
+			throw new RuntimeException("variable " + name + "is not defined");
+		}
+		return global.get(name);
+	}
+
+	public Map<String, VariableType> getGlobalMap() {
+		return new HashMap<String, VariableType>(global);
 	}
 
 }

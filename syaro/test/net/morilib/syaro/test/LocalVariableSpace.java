@@ -38,7 +38,9 @@ public class LocalVariableSpace {
 	}
 
 	public int getIndex(String var) {
-		return space.get(var);
+		Integer res = space.get(var);
+
+		return res != null ? res : -1;
 	}
 
 }

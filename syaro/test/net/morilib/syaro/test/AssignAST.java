@@ -16,8 +16,11 @@
 package net.morilib.syaro.test;
 
 import net.morilib.syaro.classfile.Code;
+import net.morilib.syaro.classfile.ConstantFieldref;
 import net.morilib.syaro.classfile.Mnemonic;
+import net.morilib.syaro.classfile.code.ALoad;
 import net.morilib.syaro.classfile.code.IStore;
+import net.morilib.syaro.classfile.code.Putfield;
 
 /**
  * @author Yuichiro MORIGUCHI
@@ -46,11 +49,31 @@ public class AssignAST implements AST {
 		return right;
 	}
 
-	private int getLocalIndex(LocalVariableSpace space, AST ast) {
+	private String getVarName(AST ast) {
 		if(!(ast instanceof SymbolAST)) {
 			throw new RuntimeException("not a lvalue");
 		}
-		return space.getIndex(((SymbolAST)ast).getName());
+		return ((SymbolAST)ast).getName();
+	}
+
+	private int getLocalIndex(LocalVariableSpace space, AST ast) {
+		return space.getIndex(getVarName(ast));
+	}
+
+	private void setVar(FunctionSpace functions, int idx, Code code) {
+		VariableType type;
+		String name;
+
+		if(idx >= 0) {
+			code.addCode(new IStore(idx));
+		} else {
+			code.addCode(new ALoad(0));
+			code.addCode(Mnemonic.SWAP);
+			name = getVarName(left);
+			type = functions.getGlobal(name);
+			code.addCode(new Putfield(new ConstantFieldref(
+					functions.getClassname(), name, type.getDescriptor())));
+		}
 	}
 
 	@Override
@@ -63,13 +86,13 @@ public class AssignAST implements AST {
 		if(operate == null) {
 			right.putCode(functions, space, code);
 			code.addCode(Mnemonic.DUP);
-			code.addCode(new IStore(idx));
+			setVar(functions, idx, code);
 		} else {
 			left.putCode(functions, space, code);
 			right.putCode(functions, space, code);
 			code.addCode(operate);
 			code.addCode(Mnemonic.DUP);
-			code.addCode(new IStore(idx));
+			setVar(functions, idx, code);
 		}
 	}
 

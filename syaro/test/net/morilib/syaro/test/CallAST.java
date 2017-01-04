@@ -54,8 +54,14 @@ public class CallAST implements AST {
 		return ((SymbolAST)ast).getName();
 	}
 
-	@Override
-	public void putCode(FunctionSpace functions,
+	public boolean isSubroutine(FunctionSpace functions) {
+		FunctionDefinition func;
+
+		func = getFunction(functions, callee);
+		return func.getReturnType().equals(Primitive.VOID);
+	}
+
+	public void putCodeSimple(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
 		FunctionDefinition func;
@@ -70,6 +76,19 @@ public class CallAST implements AST {
 		}
 		code.addCode(new Invokevirtual(new ConstantMethodref(
 				functions.getClassname(), name, desc)));
+	}
+
+	@Override
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code) {
+		FunctionDefinition func;
+
+		func = getFunction(functions, callee);
+		if(func.getReturnType().equals(Primitive.VOID)) {
+			throw new RuntimeException("cannot call subroutine");
+		}
+		putCodeSimple(functions, space, code);
 	}
 
 }
