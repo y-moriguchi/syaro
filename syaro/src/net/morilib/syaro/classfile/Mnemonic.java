@@ -127,6 +127,11 @@ public abstract class Mnemonic implements ClassInfo {
 	 */
 	public static Mnemonic IRETURN = new Single(172);
 
+	/**
+	 * The instruction swap.
+	 */
+	public static Mnemonic SWAP = new Single(95);
+
 	private byte opcode;
 
 	/**

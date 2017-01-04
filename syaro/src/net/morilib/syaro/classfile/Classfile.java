@@ -65,7 +65,7 @@ public class Classfile {
 	private ConstantClass thisClass;
 	private ConstantClass superClass;
 //	private List<ConstantClass> interfaces;
-//	private List<ConstantPool> fields;
+	private List<FieldInfo> fields = new ArrayList<FieldInfo>();
 	private List<MethodInfo> methods = new ArrayList<MethodInfo>();
 //	private List<Attribute> attributes;
 
@@ -147,7 +147,14 @@ public class Classfile {
 	}
 
 	/**
-	 * gets the method info.
+	 * adds the field info.
+	 */
+	public void addField(FieldInfo field) {
+		fields.add(field);
+	}
+
+	/**
+	 * adds the method info.
 	 */
 	public void addMethod(MethodInfo method) {
 		methods.add(method);
@@ -165,9 +172,13 @@ public class Classfile {
 
 		thisClass.gatherConstantPool(gathered);
 		superClass.gatherConstantPool(gathered);
+		for(FieldInfo f : fields) {
+			f.gatherConstantPool(gathered);
+		}
 		for(MethodInfo m : methods) {
 			m.gatherConstantPool(gathered);
 		}
+
 		dos.writeInt(magic);
 		dos.writeShort(minorVersion);
 		dos.writeShort(majorVersion);
@@ -179,7 +190,10 @@ public class Classfile {
 		dos.writeShort(gathered.getIndex(thisClass));
 		dos.writeShort(gathered.getIndex(superClass));
 		dos.writeShort(0);
-		dos.writeShort(0);
+		dos.writeShort(fields.size());
+		for(FieldInfo f : fields) {
+			f.generateCode(gathered, dos);
+		}
 		dos.writeShort(methods.size());
 		for(MethodInfo m : methods) {
 			m.generateCode(gathered, dos);
