@@ -45,6 +45,24 @@ public class GatheredConstantPool {
 	}
 
 	/**
+	 * adds a constant pool to this container.
+	 * 
+	 * @param pool a constant pool
+	 */
+	public void putConstantPool(ConstantPool pool, int inclement) {
+		if(inclement < 0) {
+			throw new IllegalArgumentException();
+		} else if(!poolMap.containsKey(pool)) {
+			poolList.add(pool);
+			for(int i = 1; i < inclement; i++) {
+				poolList.add(null);
+			}
+			poolMap.put(pool, maxIndex);
+			maxIndex += inclement;
+		}
+	}
+
+	/**
 	 * gets the index of the constant pool.
 	 * 
 	 * @param pool constant pool

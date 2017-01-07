@@ -132,6 +132,66 @@ public abstract class Mnemonic implements ClassInfo {
 	 */
 	public static Mnemonic SWAP = new Single(95);
 
+	/**
+	 * The instruction i2d.
+	 */
+	public static Mnemonic I2D = new Single(135);
+
+	/**
+	 * The instruction dadd.
+	 */
+	public static Mnemonic DADD = new Single(99);
+
+	/**
+	 * The instruction dsub.
+	 */
+	public static Mnemonic DSUB = new Single(103);
+
+	/**
+	 * The instruction dmul.
+	 */
+	public static Mnemonic DMUL = new Single(107);
+
+	/**
+	 * The instruction ddiv.
+	 */
+	public static Mnemonic DDIV = new Single(111);
+
+	/**
+	 * The instruction drem.
+	 */
+	public static Mnemonic DREM = new Single(115);
+
+	/**
+	 * The instruction dneg.
+	 */
+	public static Mnemonic DNEG = new Single(119);
+
+	/**
+	 * The instruction dcmpg.
+	 */
+	public static Mnemonic DCMPG = new Single(152);
+
+	/**
+	 * The instruction dcmpl.
+	 */
+	public static Mnemonic DCMPL = new Single(151);
+
+	/**
+	 * The instruction dup2.
+	 */
+	public static Mnemonic DUP2 = new Single(92);
+
+	/**
+	 * The instruction dup_x2.
+	 */
+	public static Mnemonic DUP_X2 = new Single(91);
+
+	/**
+	 * The instruction dreturn.
+	 */
+	public static Mnemonic DRETURN = new Single(175);
+
 	private byte opcode;
 
 	/**

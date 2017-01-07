@@ -184,7 +184,9 @@ public class Classfile {
 		dos.writeShort(majorVersion);
 		dos.writeShort(gathered.getMaxIndex());
 		for(ConstantPool c : gathered.getConstatPools()) {
-			c.generateCode(gathered, dos);
+			if(c != null) {
+				c.generateCode(gathered, dos);
+			}
 		}
 		dos.writeShort(accessFlag);
 		dos.writeShort(gathered.getIndex(thisClass));

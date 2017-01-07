@@ -13,50 +13,60 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.morilib.syaro.classfile;
+package net.morilib.syaro.classfile.code;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import net.morilib.syaro.classfile.GatheredConstantPool;
+import net.morilib.syaro.classfile.Mnemonic;
+
 /**
- * This class represents a constant pool of double value.
+ * This class represents a Java VM instruction dconst.
  * 
  * @author Yuichiro MORIGUCHI
  */
-public class ConstantDouble extends ConstantPool {
-
-	private double value;
+public class DConst extends Mnemonic {
 
 	/**
-	 * constructs a constant pool of double value.
+	 * constructs a dconst instruction.
+	 * 
+	 * @param cond condition
+	 * @param value double value which must be 0.0 or 1.0
 	 */
-	public ConstantDouble(double value) {
-		super(CONSTANT_Double);
-		this.value = value;
+	public DConst(double value) {
+		super(getOpcode(value));
+	}
+
+	private static int getOpcode(double v) {
+		if(v != 0.0 && v != 1.0) {
+			throw new IllegalArgumentException("value must be 0.0 or 1.0");
+		} else if(v == 0.0) {
+			return 14;
+		} else {
+			return 15;
+		}
 	}
 
 	/**
-	 * gets the double value.
+	 * gets the value.
 	 */
 	public double getValue() {
-		return value;
+		return getOpcode() == 14 ? 0.0 : 1.0;
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.classfile.ClassInfo#gatherConstantPool(net.morilib.syaro.classfile.GatheredConstantPool)
-	 */
 	@Override
 	public void gatherConstantPool(GatheredConstantPool gathered) {
-		gathered.putConstantPool(this, 2);
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.classfile.ConstantPool#generatePoolCode(net.morilib.syaro.classfile.GatheredConstantPool, java.io.DataOutputStream)
-	 */
 	@Override
-	protected void generatePoolCode(GatheredConstantPool gathered,
+	protected void generateMnemonicCode(GatheredConstantPool gathered,
 			DataOutputStream ous) throws IOException {
-		ous.writeLong(Double.doubleToRawLongBits(value));
+	}
+
+	@Override
+	protected int getByteLength() {
+		return 1;
 	}
 
 }

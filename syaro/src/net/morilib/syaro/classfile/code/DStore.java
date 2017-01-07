@@ -22,34 +22,39 @@ import net.morilib.syaro.classfile.GatheredConstantPool;
 import net.morilib.syaro.classfile.Mnemonic;
 
 /**
- * This class represents a Java VM instruction iconst.
+ * This class represents a Java VM instruction dstore.
  * 
  * @author Yuichiro MORIGUCHI
  */
-public class IConst extends Mnemonic {
+public class DStore extends Mnemonic {
+
+	private short index;
 
 	/**
-	 * constructs an iconst instruction.
+	 * constructs an dstore instruction.
+	 * If the index is greater then 255 then the wide instruction is
+	 * automatically added.
 	 * 
 	 * @param cond condition
-	 * @param value int value between -1 and 5
+	 * @param offset offset address to execute
 	 */
-	public IConst(int value) {
-		super(getOpcode(value));
+	public DStore(int index) {
+		super(getOpcode(index));
+		this.index = (short)index;
 	}
 
-	private static int getOpcode(int v) {
-		if(v < -1 || v > 5) {
-			throw new IllegalArgumentException("value must be between -1 and 5");
+	private static int getOpcode(int index) {
+		if(index < 0 || index > 0xffff) {
+			throw new IllegalArgumentException("index out of range");
 		}
-		return 3 + v;
+		return index < 256 ? 57 : 196;
 	}
 
 	/**
 	 * gets the offset address.
 	 */
-	public int getValue() {
-		return getOpcode() - 3;
+	public short getIndex() {
+		return index;
 	}
 
 	@Override
@@ -59,11 +64,17 @@ public class IConst extends Mnemonic {
 	@Override
 	protected void generateMnemonicCode(GatheredConstantPool gathered,
 			DataOutputStream ous) throws IOException {
+		if(index < 256) {
+			ous.writeByte((byte)index);
+		} else {
+			ous.writeByte((byte)57);
+			ous.writeShort(index);
+		}
 	}
 
 	@Override
 	protected int getByteLength() {
-		return 1;
+		return index < 256 ? 2 : 4;
 	}
 
 }
