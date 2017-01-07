@@ -16,18 +16,18 @@
 package net.morilib.syaro.test;
 
 import net.morilib.syaro.classfile.Code;
-import net.morilib.syaro.classfile.ConstantInteger;
-import net.morilib.syaro.classfile.code.LdcW;
+import net.morilib.syaro.classfile.ConstantDouble;
+import net.morilib.syaro.classfile.code.Ldc2W;
 
 /**
  * @author Yuichiro MORIGUCHI
  *
  */
-public class IntegerAST implements AST {
+public class DoubleAST implements AST {
 
-	private int value;
+	private double value;
 
-	public IntegerAST(int value) {
+	public DoubleAST(double value) {
 		this.value = value;
 	}
 
@@ -35,13 +35,13 @@ public class IntegerAST implements AST {
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
-		code.addCode(new LdcW(new ConstantInteger(value)));
+		code.addCode(new Ldc2W(new ConstantDouble(value)));
 	}
 
 	@Override
 	public VariableType getASTType(FunctionSpace functions,
 			LocalVariableSpace space) {
-		return Primitive.INT;
+		return Primitive.DOUBLE;
 	}
 
 }

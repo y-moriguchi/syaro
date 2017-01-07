@@ -19,6 +19,8 @@ import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.ConstantFieldref;
 import net.morilib.syaro.classfile.Mnemonic;
 import net.morilib.syaro.classfile.code.ALoad;
+import net.morilib.syaro.classfile.code.DConst;
+import net.morilib.syaro.classfile.code.DStore;
 import net.morilib.syaro.classfile.code.IConst;
 import net.morilib.syaro.classfile.code.IStore;
 import net.morilib.syaro.classfile.code.Putfield;
@@ -54,15 +56,25 @@ public class IncDecAST implements AST {
 		return space.getIndex(getVarName(ast));
 	}
 
-	private void setVar(FunctionSpace functions, int idx, Code code) {
+	private void setVar(FunctionSpace functions, LocalVariableSpace space,
+			int idx, Code code) {
 		VariableType type;
 		String name;
 
 		if(idx >= 0) {
-			code.addCode(new IStore(idx));
+			if(node.getASTType(functions, space).equals(Primitive.INT)) {
+				code.addCode(new IStore(idx));
+			} else {
+				code.addCode(new DStore(idx));
+			}
 		} else {
 			code.addCode(new ALoad(0));
-			code.addCode(Mnemonic.SWAP);
+			if(node.getASTType(functions, space).equals(Primitive.INT)) {
+				code.addCode(Mnemonic.SWAP);
+			} else {
+				code.addCode(Mnemonic.DUP_X2);
+				code.addCode(Mnemonic.POP);
+			}
 			name = getVarName(node);
 			type = functions.getGlobal(name);
 			code.addCode(new Putfield(new ConstantFieldref(
@@ -74,23 +86,49 @@ public class IncDecAST implements AST {
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
-		Mnemonic val = new IConst(isInc ? 1 : -1);
+		Mnemonic val;
 		int idx;
 
+		if(node.getASTType(functions, space).equals(Primitive.INT)) {
+			val = new IConst(isInc ? 1 : -1);
+		} else {
+			val = new DConst(1);
+		}
 		idx = getLocalIndex(space, node);
 		if(isPre) {
-			node.putCode(functions, space, code);
-			code.addCode(val);
-			code.addCode(Mnemonic.IADD);
-			code.addCode(Mnemonic.DUP);
-			setVar(functions, idx, code);
+			if(node.getASTType(functions, space).equals(Primitive.INT)) {
+				node.putCode(functions, space, code);
+				code.addCode(val);
+				code.addCode(Mnemonic.IADD);
+				code.addCode(Mnemonic.DUP);
+				setVar(functions, space, idx, code);
+			} else {
+				node.putCode(functions, space, code);
+				code.addCode(val);
+				code.addCode(isInc ? Mnemonic.DADD : Mnemonic.DSUB);
+				code.addCode(Mnemonic.DUP2);
+				setVar(functions, space, idx, code);
+			}
 		} else {
-			node.putCode(functions, space, code);
-			code.addCode(Mnemonic.DUP);
-			code.addCode(val);
-			code.addCode(Mnemonic.IADD);
-			setVar(functions, idx, code);
+			if(node.getASTType(functions, space).equals(Primitive.INT)) {
+				node.putCode(functions, space, code);
+				code.addCode(Mnemonic.DUP);
+				code.addCode(val);
+				code.addCode(Mnemonic.IADD);
+				setVar(functions, space, idx, code);
+			} else {
+				node.putCode(functions, space, code);
+				code.addCode(Mnemonic.DUP2);
+				code.addCode(val);
+				code.addCode(isInc ? Mnemonic.DADD : Mnemonic.DSUB);
+				setVar(functions, space, idx, code);
+			}
 		}
+	}
+
+	public VariableType getASTType(FunctionSpace functions,
+			LocalVariableSpace space) {
+		return node.getASTType(functions, space);
 	}
 
 }

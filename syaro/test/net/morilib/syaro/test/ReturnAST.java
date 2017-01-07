@@ -41,7 +41,19 @@ public class ReturnAST implements SAST {
 			List<Integer> continueIndices) {
 		if(expr != null) {
 			expr.putCode(functions, space, code);
-			code.addCode(Mnemonic.IRETURN);
+			if(space.getThisReturnType().equals(Primitive.INT)) {
+				if(expr.getASTType(functions, space).equals(Primitive.DOUBLE)) {
+					throw new RuntimeException("type mismatch");
+				}
+				code.addCode(Mnemonic.IRETURN);
+			} else if(space.getThisReturnType().equals(Primitive.DOUBLE)) {
+				if(expr.getASTType(functions, space).equals(Primitive.INT)) {
+					code.addCode(Mnemonic.I2D);
+				}
+				code.addCode(Mnemonic.DRETURN);
+			} else {
+				throw new RuntimeException("subroutine must not return value");
+			}
 		} else {
 			code.addCode(Mnemonic.RETURN);
 		}

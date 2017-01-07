@@ -45,8 +45,13 @@ public class PrintAST implements SAST {
 		code.addCode(new Getstatic(new ConstantFieldref(
 				"java/lang/System", "out", "Ljava/io/PrintStream;")));
 		expr.putCode(functions, space, code);
-		code.addCode(new Invokevirtual(new ConstantMethodref(
-				"java/io/PrintStream", "println", "(I)V")));
+		if(expr.getASTType(functions, space).equals(Primitive.INT)) {
+			code.addCode(new Invokevirtual(new ConstantMethodref(
+					"java/io/PrintStream", "println", "(I)V")));
+		} else {
+			code.addCode(new Invokevirtual(new ConstantMethodref(
+					"java/io/PrintStream", "println", "(D)V")));
+		}
 	}
 
 }

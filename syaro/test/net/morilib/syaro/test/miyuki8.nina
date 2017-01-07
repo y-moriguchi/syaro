@@ -242,45 +242,45 @@ import net.morilib.syaro.classfile.code.*;
  * >-{lior}->        >-+-"="->        >->%% = _e;>-{asgn}->asgn(${AA}, null);@
  ***        @@@@@@@@@@ |     ********** **********        @@@@@@@@@@@@@@@@@@@@
                        |       +-${S}-+
-                       |      *^******v* *AB<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                       +-"+="->        >->%% = _e;>-{asgn}->asgn(${AB}, Mnemonic.IADD);@
-                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |      *^******v* *AB<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"+="->        >->%% = _e;>-{asgn}->asgn(${AB}, AssignAST.Type.ADD);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                        |       +-${S}-+
-                       |      *^******v* *AC<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                       +-"-="->        >->%% = _e;>-{asgn}->asgn(${AC}, Mnemonic.ISUB);@
-                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |      *^******v* *AC<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"-="->        >->%% = _e;>-{asgn}->asgn(${AC}, AssignAST.Type.SUB);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                        |       +-${S}-+
-                       |      *^******v* *AD<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                       +-"*="->        >->%% = _e;>-{asgn}->asgn(${AD}, Mnemonic.IMUL);@
-                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |      *^******v* *AD<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"*="->        >->%% = _e;>-{asgn}->asgn(${AD}, AssignAST.Type.MUL);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                        |       +-${S}-+
-                       |      *^******v* *AE<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                       +-"/="->        >->%% = _e;>-{asgn}->asgn(${AE}, Mnemonic.IDIV);@
-                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |      *^******v* *AE<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"/="->        >->%% = _e;>-{asgn}->asgn(${AE}, AssignAST.Type.DIV);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                        |       +-${S}-+
-                       |      *^******v* *AF<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                       +-"%="->        >->%% = _e;>-{asgn}->asgn(${AF}, Mnemonic.IREM);@
-                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |      *^******v* *AF<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"%="->        >->%% = _e;>-{asgn}->asgn(${AF}, AssignAST.Type.REM);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                        |        +-${S}-+
-                       |       *^******v* *AG<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                       +-"<<="->        >->%% = _e;>-{asgn}->asgn(${AG}, Mnemonic.ISHL);@
-                       |       ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       *^******v* *AG<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"<<="->        >->%% = _e;>-{asgn}->asgn(${AG}, AssignAST.Type.SHL);@
+                       |       ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                        |        +-${S}-+
-                       |       *^******v* *AH<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                       +-">>="->        >->%% = _e;>-{asgn}->asgn(${AH}, Mnemonic.ISHR);@
-                       |       ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       *^******v* *AH<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-">>="->        >->%% = _e;>-{asgn}->asgn(${AH}, AssignAST.Type.SHR);@
+                       |       ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                        |       +-${S}-+
-                       |      *^******v* *AI<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                       +-"&="->        >->%% = _e;>-{asgn}->asgn(${AI}, Mnemonic.IAND);@
-                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |      *^******v* *AI<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"&="->        >->%% = _e;>-{asgn}->asgn(${AI}, AssignAST.Type.BAND);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                        |       +-${S}-+
-                       |      *^******v* *AJ<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                       +-"^="->        >->%% = _e;>-{asgn}->asgn(${AJ}, Mnemonic.IXOR);@
-                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |      *^******v* *AJ<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"^="->        >->%% = _e;>-{asgn}->asgn(${AJ}, AssignAST.Type.BXOR);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
                        |        +-${S}-+
-                       |       *^******v* *AK<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@
-                       +-"\|="->        >->%% = _e;>-{asgn}->asgn(${AK}, Mnemonic.IOR);@
-                               ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       *^******v* *AK<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"\|="->        >->%% = _e;>-{asgn}->asgn(${AK}, AssignAST.Type.BOR);@
+                               ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 -- lior --
                     +-${S}-+              +-${S}-+
  *S*        @A<AST>@^@@@@@@v@            *^******v*        @@@@@@@@@@@@
@@ -412,7 +412,7 @@ import net.morilib.syaro.classfile.code.*;
 -- elem --
     +-${S}-+
  *S*^******v*        @@@@@@@@@@@@@@
- *          >-+-{%d}->konst($int);@
+ *          >-+-{%f}->konst($num);@
  ************ |      @@@@@@@@@@@@@@
               |
               |     ***        ***     @@@
@@ -458,6 +458,8 @@ private void decl(String type, String name) {
 	declnt = new NameAndType();
 	if(type.equals("int")) {
 		declnt.type = Primitive.INT;
+	} else if(type.equals("double")) {
+		declnt.type = Primitive.DOUBLE;
 	} else {
 		throw new RuntimeException("unknown type " + type);
 	}
@@ -470,20 +472,21 @@ private void subrdef(String name) {
 	funcnt.name = name;
 }
 
-private void getFuncdef(VariableType t) {
+private void getFuncdef() {
 	java.util.List<VariableType> a = new java.util.ArrayList<VariableType>();
 
 	for(NameAndType x : funcargs) {
 		a.add(x.type);
 	}
-	funcdefobj = new FunctionDefinition(t, a);
+	funcdefobj = new FunctionDefinition(funcnt.type, a);
 }
 
 private void funcbegin() {
+	getFuncdef();
 	functions.putSpace(funcnt.name, funcdefobj);
-	local = new LocalVariableSpace();
+	local = new LocalVariableSpace(funcdefobj.getReturnType());
 	for(NameAndType t : funcargs) {
-		local.putVariable(t.name);
+		local.putVariable(t.name, t.type);
 	}
 	method = new MethodInfo(funcnt.name, funcdefobj.getDescriptor());
 	method.setAccessFlags(MethodInfo.ACC_PUBLIC);
@@ -495,11 +498,26 @@ private void funcbegin() {
 
 private void funcend() {
 	Goto gb = new Goto();
+	int fargs = 0;
 
 	gotoInst.setOffset(code.getCurrentOffset(localStart));
-	for(int i = funcargs.size() + 1; i < local.getMax(); i++) {
-		code.addCode(new IConst(0));
-		code.addCode(new IStore(i));
+	for(NameAndType x : funcargs) {
+		if(x.type.equals(Primitive.DOUBLE)) {
+			fargs += 2;
+		} else {
+			fargs++;
+		}
+	}
+	for(int i = fargs + 1; i < local.getMax(); i++) {
+		if(local.getType(i - fargs) == null) {
+			// do nothing
+		} else if(local.getType(i - fargs).equals(Primitive.INT)) {
+			code.addCode(new IConst(0));
+			code.addCode(new IStore(i));
+		} else {
+			code.addCode(new DConst(0));
+			code.addCode(new DStore(i));
+		}
 	}
 	gb.setOffset(code.getAddress(localRet) - code.getCurrentAddress());
 	code.addCode(gb);
@@ -510,18 +528,21 @@ private void funcend() {
 }
 
 private void func() {
-	getFuncdef(Primitive.INT);
 	funcbegin();
 }
 
 private void endfunc() {
-	code.addCode(new IConst(0));
-	code.addCode(Mnemonic.IRETURN);
+	if(funcdefobj.getReturnType().equals(Primitive.INT)) {
+		code.addCode(new IConst(0));
+		code.addCode(Mnemonic.IRETURN);
+	} else {
+		code.addCode(new DConst(0));
+		code.addCode(Mnemonic.DRETURN);
+	}
 	funcend();
 }
 
 private void subr() {
-	getFuncdef(Primitive.VOID);
 	funcbegin();
 }
 
@@ -538,12 +559,16 @@ private void globalvardecl() {
 	functions.putGlobal(declnt.name, declnt.type);
 }
 
-private void asgn(AST a, Mnemonic op) {
+private void asgn(AST a, AssignAST.Type op) {
 	_e = new AssignAST(op, a, _e);
 }
 
 private void konst(Number num) {
-	_e = new IntegerAST(num.intValue());
+	if(num instanceof Integer) {
+		_e = new IntegerAST(num.intValue());
+	} else {
+		_e = new DoubleAST(num.doubleValue());
+	}
 }
 
 private void lior(AST a) {

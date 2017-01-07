@@ -18,6 +18,7 @@ package net.morilib.syaro.test;
 import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.ConstantInteger;
 import net.morilib.syaro.classfile.Mnemonic;
+import net.morilib.syaro.classfile.code.DConst;
 import net.morilib.syaro.classfile.code.Goto;
 import net.morilib.syaro.classfile.code.IConst;
 import net.morilib.syaro.classfile.code.If;
@@ -30,12 +31,14 @@ import net.morilib.syaro.classfile.code.LdcW;
 public class UnaryAST implements AST {
 
 	public static enum Type {
-		INEG(Mnemonic.INEG),
-		IBNOT(null),
-		ILNOT(null);
+		INEG(Mnemonic.INEG, Mnemonic.DNEG),
+		IBNOT(null, null),
+		ILNOT(null, null);
 		private Mnemonic mnemonic;
-		private Type(Mnemonic m) {
+		private Mnemonic mnemonicDouble;
+		private Type(Mnemonic m, Mnemonic d) {
 			mnemonic = m;
+			mnemonicDouble = d;
 		}
 	}
 
@@ -63,17 +66,28 @@ public class UnaryAST implements AST {
 
 		if(type.mnemonic != null) {
 			node.putCode(functions, space, code);
-			code.addCode(type.mnemonic);
+			if(node.getASTType(functions, space).equals(Primitive.INT)) {
+				code.addCode(type.mnemonic);
+			} else {
+				code.addCode(type.mnemonicDouble);
+			}
 		} else {
 			switch(type) {
 			case IBNOT:
+				if(!node.getASTType(functions, space).equals(Primitive.INT)) {
+					throw new RuntimeException("type mismatch");
+				}
 				node.putCode(functions, space, code);
 				code.addCode(new LdcW(new ConstantInteger(0xffffffff)));
 				code.addCode(Mnemonic.IXOR);
 				break;
 			case ILNOT:
 				node.putCode(functions, space, code);
-				lbl0 = code.addCode(new If(If.Cond.EQ));
+				if(node.getASTType(functions, space).equals(Primitive.DOUBLE)) {
+					code.addCode(new DConst(0.0));
+					code.addCode(Mnemonic.DCMPG);
+				}
+				lbl0 = code.addCode(new If(If.Cond.NE));
 				code.addCode(new IConst(1));
 				lbl1 = code.addCode(new Goto());
 				((If)code.getCode(lbl0)).setOffset(code.getCurrentOffset(lbl0));
@@ -83,6 +97,12 @@ public class UnaryAST implements AST {
 			default: throw new RuntimeException();
 			}
 		}
+	}
+
+	@Override
+	public VariableType getASTType(FunctionSpace functions,
+			LocalVariableSpace space) {
+		return node.getASTType(functions, space);
 	}
 
 }

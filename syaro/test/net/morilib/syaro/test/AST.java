@@ -27,4 +27,7 @@ public interface AST {
 			LocalVariableSpace space,
 			Code code);
 
+	public VariableType getASTType(FunctionSpace functions,
+			LocalVariableSpace space);
+
 }

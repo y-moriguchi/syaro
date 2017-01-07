@@ -20,6 +20,7 @@ import java.util.List;
 
 import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.Mnemonic;
+import net.morilib.syaro.classfile.code.DConst;
 import net.morilib.syaro.classfile.code.Goto;
 import net.morilib.syaro.classfile.code.IConst;
 import net.morilib.syaro.classfile.code.If;
@@ -32,27 +33,29 @@ import net.morilib.syaro.classfile.code.IfIcmp;
 public class BinaryAST implements AST {
 
 	public static enum Type {
-		ILOR(null),
-		ILAND(null),
-		IEQ(null),
-		INE(null),
-		ILT(null),
-		IGE(null),
-		IGT(null),
-		ILE(null),
-		IBOR(Mnemonic.IOR),
-		IBXOR(Mnemonic.IXOR),
-		IBAND(Mnemonic.IAND),
-		ISHR(Mnemonic.ISHR),
-		ISHL(Mnemonic.ISHL),
-		IADD(Mnemonic.IADD),
-		ISUB(Mnemonic.ISUB),
-		IMUL(Mnemonic.IMUL),
-		IDIV(Mnemonic.IDIV),
-		IREM(Mnemonic.IREM);
+		ILOR(null, null),
+		ILAND(null, null),
+		IEQ(null, null),
+		INE(null, null),
+		ILT(null, null),
+		IGE(null, null),
+		IGT(null, null),
+		ILE(null, null),
+		IBOR(Mnemonic.IOR, null),
+		IBXOR(Mnemonic.IXOR, null),
+		IBAND(Mnemonic.IAND, null),
+		ISHR(Mnemonic.ISHR, null),
+		ISHL(Mnemonic.ISHL, null),
+		IADD(Mnemonic.IADD, Mnemonic.DADD),
+		ISUB(Mnemonic.ISUB, Mnemonic.DSUB),
+		IMUL(Mnemonic.IMUL, Mnemonic.DMUL),
+		IDIV(Mnemonic.IDIV, Mnemonic.DDIV),
+		IREM(Mnemonic.IREM, Mnemonic.DREM);
 		private Mnemonic mnemonic;
-		private Type(Mnemonic m) {
+		private Mnemonic mnemonicDouble;
+		private Type(Mnemonic m, Mnemonic d) {
 			mnemonic = m;
+			mnemonicDouble = d;
 		}
 	}
 
@@ -82,9 +85,24 @@ public class BinaryAST implements AST {
 			LocalVariableSpace space,
 			Code code) {
 		if(type.mnemonic != null) {
-			left.putCode(functions, space, code);
-			right.putCode(functions, space, code);
-			code.addCode(type.mnemonic);
+			if(left.getASTType(functions, space).equals(Primitive.INT) &&
+					right.getASTType(functions, space).equals(Primitive.INT)) {
+				left.putCode(functions, space, code);
+				right.putCode(functions, space, code);
+				code.addCode(type.mnemonic);
+			} else if(type.mnemonicDouble == null) {
+				throw new RuntimeException("type mismatch");
+			} else {
+				left.putCode(functions, space, code);
+				if(left.getASTType(functions, space).equals(Primitive.INT)) {
+					code.addCode(Mnemonic.I2D);
+				}
+				right.putCode(functions, space, code);
+				if(right.getASTType(functions, space).equals(Primitive.INT)) {
+					code.addCode(Mnemonic.I2D);
+				}
+				code.addCode(type.mnemonicDouble);
+			}
 		} else {
 			switch(type) {
 			case ILOR:
@@ -133,12 +151,20 @@ public class BinaryAST implements AST {
 				break;
 			}
 			((BinaryAST)node).left.putCode(functions, space, code);
+			if(!((BinaryAST)node).left.equals(Primitive.INT)) {
+				code.addCode(new DConst(0.0));
+				code.addCode(Mnemonic.DCMPG);
+			}
 			code.addCode(Mnemonic.DUP);
 			labels.add(code.addCode(new If(cond)));
 			code.addCode(Mnemonic.POP);
 			node = ((BinaryAST)node).right;
 		}
 		node.putCode(functions, space, code);
+		if(!node.equals(Primitive.INT)) {
+			code.addCode(new DConst(0.0));
+			code.addCode(Mnemonic.DCMPG);
+		}
 		caddr = code.getCurrentAddress();
 		for(int idx : labels) {
 			xif = (If)code.getCode(idx);
@@ -155,8 +181,22 @@ public class BinaryAST implements AST {
 		IfIcmp _if;
 		Goto _gt;
 
-		bnode.left.putCode(functions, space, code);
-		bnode.right.putCode(functions, space, code);
+		if(bnode.left.getASTType(functions, space).equals(Primitive.INT) &&
+				bnode.right.getASTType(functions, space).equals(Primitive.INT)) {
+			bnode.left.putCode(functions, space, code);
+			bnode.right.putCode(functions, space, code);
+		} else {
+			bnode.left.putCode(functions, space, code);
+			if(bnode.left.getASTType(functions, space).equals(Primitive.INT)) {
+				code.addCode(Mnemonic.I2D);
+			}
+			bnode.right.putCode(functions, space, code);
+			if(bnode.right.getASTType(functions, space).equals(Primitive.INT)) {
+				code.addCode(Mnemonic.I2D);
+			}
+			code.addCode(Mnemonic.DCMPG);
+			code.addCode(new IConst(0));
+		}
 		_if = new IfIcmp(cond);
 		ifa = code.addCode(_if);
 		code.addCode(new IConst(0));
@@ -165,6 +205,18 @@ public class BinaryAST implements AST {
 		_if.setOffset(code.getCurrentOffset(ifa));
 		code.addCode(new IConst(1));
 		_gt.setOffset(code.getCurrentOffset(gta));
+	}
+
+	public VariableType getASTType(FunctionSpace functions,
+			LocalVariableSpace space) {
+		if(type.mnemonic == null && type.mnemonicDouble == null) {
+			return Primitive.INT;
+		} else if(left.getASTType(functions, space).equals(Primitive.INT) &&
+				right.getASTType(functions, space).equals(Primitive.INT)) {
+			return Primitive.INT;
+		} else {
+			return Primitive.DOUBLE;
+		}
 	}
 
 }

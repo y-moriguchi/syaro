@@ -15,7 +15,9 @@
  */
 package net.morilib.syaro.test;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -25,11 +27,35 @@ import java.util.Map;
 public class LocalVariableSpace {
 
 	private Map<String, Integer> space = new HashMap<String, Integer>();
+	private Map<String, VariableType> types = new HashMap<String, VariableType>();
+	private List<VariableType> typeList = new ArrayList<VariableType>();
+	private VariableType thisReturnType;
 	private int max = 1;
 
+	public LocalVariableSpace() {
+		this(Primitive.INT);
+	}
+
+	public LocalVariableSpace(VariableType rettype) {
+		this.thisReturnType = rettype;
+	}
+
 	public void putVariable(String var) {
+		putVariable(var, Primitive.INT);
+	}
+
+	public void putVariable(String var, VariableType type) {
 		if(!space.containsKey(var)) {
-			space.put(var, max++);
+			types.put(var, type);
+			if(type.equals(Primitive.DOUBLE)) {
+				space.put(var, max);
+				max += 2;
+				typeList.add(type);
+				typeList.add(null);
+			} else {
+				space.put(var, max++);
+				typeList.add(type);
+			}
 		}
 	}
 
@@ -41,6 +67,18 @@ public class LocalVariableSpace {
 		Integer res = space.get(var);
 
 		return res != null ? res : -1;
+	}
+
+	public VariableType getType(String var) {
+		return types.get(var);
+	}
+
+	public VariableType getType(int idx) {
+		return typeList.get(idx - 1);
+	}
+
+	public VariableType getThisReturnType() {
+		return thisReturnType;
 	}
 
 }

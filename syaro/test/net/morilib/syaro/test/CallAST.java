@@ -20,6 +20,7 @@ import java.util.List;
 
 import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.ConstantMethodref;
+import net.morilib.syaro.classfile.Mnemonic;
 import net.morilib.syaro.classfile.code.ALoad;
 import net.morilib.syaro.classfile.code.Invokevirtual;
 
@@ -65,14 +66,30 @@ public class CallAST implements AST {
 			LocalVariableSpace space,
 			Code code) {
 		FunctionDefinition func;
+		List<VariableType> fvar;
 		String name, desc;
+		AST a;
 
 		name = getName(callee);
 		func = getFunction(functions, callee);
 		desc = func.getDescriptor();
 		code.addCode(new ALoad(0));
-		for(AST a : arguments) {
+		fvar = func.getArgumentTypes();
+		if(fvar.size() != arguments.size()) {
+			throw new RuntimeException("arity is not the same");
+		}
+		for(int i = 0; i < arguments.size(); i++) {
+			a = arguments.get(i);
 			a.putCode(functions, space, code);
+			if(fvar.get(i).equals(Primitive.INT)) {
+				if(!a.getASTType(functions, space).equals(Primitive.INT)) {
+					throw new RuntimeException("type mismatch");
+				}
+			} else {
+				if(a.getASTType(functions, space).equals(Primitive.INT)) {
+					code.addCode(Mnemonic.I2D);
+				}
+			}
 		}
 		code.addCode(new Invokevirtual(new ConstantMethodref(
 				functions.getClassname(), name, desc)));
@@ -89,6 +106,15 @@ public class CallAST implements AST {
 			throw new RuntimeException("cannot call subroutine");
 		}
 		putCodeSimple(functions, space, code);
+	}
+
+	@Override
+	public VariableType getASTType(FunctionSpace functions,
+			LocalVariableSpace space) {
+		FunctionDefinition func;
+
+		func = getFunction(functions, callee);
+		return func.getReturnType();
 	}
 
 }
