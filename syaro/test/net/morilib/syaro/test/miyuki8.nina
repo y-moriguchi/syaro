@@ -31,9 +31,10 @@ a high order calculator
 --------------------------
 #machine DFABuilder
 #option targetLanguage=Java
-#label VAR=/[A-Za-z][A-Za-z0-9]*/
-#label LAHEADVAR=/?=[A-Za-z][A-Za-z0-9]*[ \t]*=/
-#label LAHEADDECL=/?=[A-Za-z][A-Za-z0-9]*[ \t\n]*[A-Za-z][A-Za-z0-9]*[ \t\n]*[,;]/
+#label VAR=/[A-Za-z_][A-Za-z_0-9]*/
+#label LAHEADVAR=/?=[A-Za-z_][A-Za-z_0-9]*[ \t]*=/
+#label LAHEADDECL=/?=[A-Za-z_][A-Za-z_0-9]*[ \t\n]*[A-Za-z_][A-Za-z_0-9]*[ \t\n]*[,;]/
+#label LAHEADCAST=/?=\([ \t\n]*[A-Za-z][A-Za-z0-9]*[ \t\n]*\)[A-Za-z_0-9\.\(]/
 #label S=[ \t\n]
 #package net.morilib.syaro.test
 %{
@@ -353,16 +354,31 @@ import net.morilib.syaro.classfile.code.*;
 -- term --
                      +-${S}-+            +-${S}-+
  *S*         @A<AST>@^@@@@@@v@          *^******v*         @@@@@@@@@@
- * >-{unary}->%% = _e;       >-+-"*/!="->        >-{unary}->mul($A);>-(A)
+ * >-{cast}-->%% = _e;       >-+-"*/!="->        >-{cast}-->mul($A);>-(A)
  ***         @@@@@@@@@@@@@@@@@ |        **********         @@@@@@@@@@
                                |          +-${S}-+
                                |         *^******v*         @@@@@@@@@@
-                               +-"\//!="->        >-{unary}->div($A);>-(A)
+                               +-"\//!="->        >-{cast}-->div($A);>-(A)
                                |         **********         @@@@@@@@@@
                                |         +-${S}-+
                                |        *^******v*         @@@@@@@@@@
-                               +-"%/!="->        >-{unary}->mod($A);>-(A)
+                               +-"%/!="->        >-{cast}-->mod($A);>-(A)
                                         **********         @@@@@@@@@@
+-- cast --
+    +-${S}-+                 +-${S}-+       +-${S}-+
+ *S*^******v*               *^******v*     *^******v*
+ *          >-${LAHEADCAST}->        >-'('->        *
+ *v**********               **********     *v********
+  |                                         |
+  |         @@@                             |
+  +-{unary}-> @                             |
+            @@@                             |
+                                            |
+            +-${VAR}------------------------+
+            |                +-${S}-+
+ *A<String>*v************** *^******v*     ***         @@@@@@@@@@@
+ *%% = $buffer.toString();>->        >-')'-> >-{unary}->cast($A);@
+ ************************** **********     ***         @@@@@@@@@@@
 -- unary --
     +-${S}-+         +-${S}-+
  *S*^******v*       *^******v*        @@@@@@@@@@@
@@ -454,15 +470,19 @@ private void addfuncarg(NameAndType nt) {
 private void endfuncdef() {
 }
 
+private VariableType getTypeFromName(String tname) {
+	if(tname.equals("int")) {
+		return Primitive.INT;
+	} else if(tname.equals("double")) {
+		return Primitive.DOUBLE;
+	} else {
+		throw new RuntimeException("unknown type " + tname);
+	}
+}
+
 private void decl(String type, String name) {
 	declnt = new NameAndType();
-	if(type.equals("int")) {
-		declnt.type = Primitive.INT;
-	} else if(type.equals("double")) {
-		declnt.type = Primitive.DOUBLE;
-	} else {
-		throw new RuntimeException("unknown type " + type);
-	}
+	declnt.type = getTypeFromName(type);
 	declnt.name = name;
 }
 
@@ -641,6 +661,10 @@ private void div(AST a) {
 
 private void mod(AST a) {
 	_e = new BinaryAST(BinaryAST.Type.IREM, a, _e);
+}
+
+private void cast(String tname) {
+	_e = new CastAST(getTypeFromName(tname), _e);
 }
 
 private void uminus() {

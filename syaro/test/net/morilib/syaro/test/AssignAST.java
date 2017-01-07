@@ -59,8 +59,13 @@ public class AssignAST implements AST {
 	}
 
 	public AssignAST(Type op, AST left, AST right) {
-		this.operate = op.mnemonic;
-		this.operateDouble = op.mnemonicDouble;
+		if(op != null) {
+			this.operate = op.mnemonic;
+			this.operateDouble = op.mnemonicDouble;
+		} else {
+			this.operate = null;
+			this.operateDouble = null;
+		}
 		this.left = left;
 		this.right = right;
 	}
