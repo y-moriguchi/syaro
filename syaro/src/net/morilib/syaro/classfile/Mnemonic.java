@@ -192,6 +192,11 @@ public abstract class Mnemonic implements ClassInfo {
 	 */
 	public static Mnemonic DRETURN = new Single(175);
 
+	/**
+	 * The instruction d2i.
+	 */
+	public static Mnemonic D2I = new Single(142);
+
 	private byte opcode;
 
 	/**
