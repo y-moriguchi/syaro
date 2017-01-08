@@ -41,6 +41,9 @@ public class SimpleAST implements SAST {
 			List<Integer> continueIndices) {
 		if(expr instanceof CallAST && ((CallAST)expr).isSubroutine(functions)) {
 			((CallAST)expr).putCodeSimple(functions, space, code);
+		} else if(expr.getASTType(functions, space).equals(Primitive.DOUBLE)) {
+			expr.putCode(functions, space, code);
+			code.addCode(Mnemonic.POP2);
 		} else {
 			expr.putCode(functions, space, code);
 			code.addCode(Mnemonic.POP);

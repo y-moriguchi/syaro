@@ -19,6 +19,7 @@ import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.ConstantFieldref;
 import net.morilib.syaro.classfile.code.ALoad;
 import net.morilib.syaro.classfile.code.DLoad;
+import net.morilib.syaro.classfile.code.FLoad;
 import net.morilib.syaro.classfile.code.Getfield;
 import net.morilib.syaro.classfile.code.ILoad;
 
@@ -49,6 +50,8 @@ public class SymbolAST implements AST {
 			type = space.getType(name);
 			if(type.equals(Primitive.INT)) {
 				code.addCode(new ILoad(idx));
+			} else if(type.equals(Primitive.FLOAT)) {
+				code.addCode(new FLoad(idx));
 			} else {
 				code.addCode(new DLoad(idx));
 			}

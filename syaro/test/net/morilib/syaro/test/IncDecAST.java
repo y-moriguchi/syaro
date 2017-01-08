@@ -16,14 +16,10 @@
 package net.morilib.syaro.test;
 
 import net.morilib.syaro.classfile.Code;
-import net.morilib.syaro.classfile.ConstantFieldref;
 import net.morilib.syaro.classfile.Mnemonic;
-import net.morilib.syaro.classfile.code.ALoad;
 import net.morilib.syaro.classfile.code.DConst;
-import net.morilib.syaro.classfile.code.DStore;
+import net.morilib.syaro.classfile.code.FConst;
 import net.morilib.syaro.classfile.code.IConst;
-import net.morilib.syaro.classfile.code.IStore;
-import net.morilib.syaro.classfile.code.Putfield;
 
 /**
  * @author Yuichiro MORIGUCHI
@@ -45,41 +41,8 @@ public class IncDecAST implements AST {
 		return node;
 	}
 
-	private String getVarName(AST ast) {
-		if(!(ast instanceof SymbolAST)) {
-			throw new RuntimeException("not a lvalue");
-		}
-		return ((SymbolAST)ast).getName();
-	}
-
 	private int getLocalIndex(LocalVariableSpace space, AST ast) {
-		return space.getIndex(getVarName(ast));
-	}
-
-	private void setVar(FunctionSpace functions, LocalVariableSpace space,
-			int idx, Code code) {
-		VariableType type;
-		String name;
-
-		if(idx >= 0) {
-			if(node.getASTType(functions, space).equals(Primitive.INT)) {
-				code.addCode(new IStore(idx));
-			} else {
-				code.addCode(new DStore(idx));
-			}
-		} else {
-			code.addCode(new ALoad(0));
-			if(node.getASTType(functions, space).equals(Primitive.INT)) {
-				code.addCode(Mnemonic.SWAP);
-			} else {
-				code.addCode(Mnemonic.DUP_X2);
-				code.addCode(Mnemonic.POP);
-			}
-			name = getVarName(node);
-			type = functions.getGlobal(name);
-			code.addCode(new Putfield(new ConstantFieldref(
-					functions.getClassname(), name, type.getDescriptor())));
-		}
+		return space.getIndex(Utils.getVarName(ast));
 	}
 
 	@Override
@@ -91,6 +54,8 @@ public class IncDecAST implements AST {
 
 		if(node.getASTType(functions, space).equals(Primitive.INT)) {
 			val = new IConst(isInc ? 1 : -1);
+		} else if(node.getASTType(functions, space).equals(Primitive.INT)) {
+			val = new FConst(1);
 		} else {
 			val = new DConst(1);
 		}
@@ -101,13 +66,18 @@ public class IncDecAST implements AST {
 				code.addCode(val);
 				code.addCode(Mnemonic.IADD);
 				code.addCode(Mnemonic.DUP);
-				setVar(functions, space, idx, code);
+				Utils.setVar(node, functions, space, idx, code);
 			} else {
 				node.putCode(functions, space, code);
 				code.addCode(val);
-				code.addCode(isInc ? Mnemonic.DADD : Mnemonic.DSUB);
-				code.addCode(Mnemonic.DUP2);
-				setVar(functions, space, idx, code);
+				if(node.getASTType(functions, space).equals(Primitive.FLOAT)) {
+					code.addCode(isInc ? Mnemonic.FADD : Mnemonic.FSUB);
+					code.addCode(Mnemonic.DUP);
+				} else {
+					code.addCode(isInc ? Mnemonic.DADD : Mnemonic.DSUB);
+					code.addCode(Mnemonic.DUP2);
+				}
+				Utils.setVar(node, functions, space, idx, code);
 			}
 		} else {
 			if(node.getASTType(functions, space).equals(Primitive.INT)) {
@@ -115,13 +85,19 @@ public class IncDecAST implements AST {
 				code.addCode(Mnemonic.DUP);
 				code.addCode(val);
 				code.addCode(Mnemonic.IADD);
-				setVar(functions, space, idx, code);
+				Utils.setVar(node, functions, space, idx, code);
 			} else {
 				node.putCode(functions, space, code);
-				code.addCode(Mnemonic.DUP2);
-				code.addCode(val);
-				code.addCode(isInc ? Mnemonic.DADD : Mnemonic.DSUB);
-				setVar(functions, space, idx, code);
+				if(node.getASTType(functions, space).equals(Primitive.FLOAT)) {
+					code.addCode(Mnemonic.DUP);
+					code.addCode(val);
+					code.addCode(isInc ? Mnemonic.FADD : Mnemonic.FSUB);
+				} else {
+					code.addCode(Mnemonic.DUP2);
+					code.addCode(val);
+					code.addCode(isInc ? Mnemonic.DADD : Mnemonic.DSUB);
+				}
+				Utils.setVar(node, functions, space, idx, code);
 			}
 		}
 	}

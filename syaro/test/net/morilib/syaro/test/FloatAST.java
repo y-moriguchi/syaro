@@ -15,43 +15,33 @@
  */
 package net.morilib.syaro.test;
 
+import net.morilib.syaro.classfile.Code;
+import net.morilib.syaro.classfile.ConstantFloat;
+import net.morilib.syaro.classfile.code.LdcW;
+
 /**
  * @author Yuichiro MORIGUCHI
  *
  */
-public enum Primitive implements VariableType {
+public class FloatAST implements AST {
 
-	VOID("V", -1),
-	INT("I", 3),
-	FLOAT("F", 5),
-	DOUBLE("D", 6);
+	private float value;
 
-	private String descriptor;
-	private int level;
-
-	private Primitive(String desc, int l) {
-		this.descriptor = desc;
-		this.level = l;
-	}
-
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.test.VariableType#getDescriptor()
-	 */
-	@Override
-	public String getDescriptor() {
-		return descriptor;
-	}
-
-	public boolean isConversible(Primitive p) {
-		if(level < 0 || p.level < 0) {
-			throw new IllegalArgumentException();
-		}
-		return level <= p.level;
+	public FloatAST(float value) {
+		this.value = value;
 	}
 
 	@Override
-	public boolean isPrimitive() {
-		return true;
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code) {
+		code.addCode(new LdcW(new ConstantFloat(value)));
+	}
+
+	@Override
+	public VariableType getASTType(FunctionSpace functions,
+			LocalVariableSpace space) {
+		return Primitive.FLOAT;
 	}
 
 }

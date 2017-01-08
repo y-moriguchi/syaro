@@ -33,29 +33,31 @@ import net.morilib.syaro.classfile.code.IfIcmp;
 public class BinaryAST implements AST {
 
 	public static enum Type {
-		ILOR(null, null),
-		ILAND(null, null),
-		IEQ(null, null),
-		INE(null, null),
-		ILT(null, null),
-		IGE(null, null),
-		IGT(null, null),
-		ILE(null, null),
-		IBOR(Mnemonic.IOR, null),
-		IBXOR(Mnemonic.IXOR, null),
-		IBAND(Mnemonic.IAND, null),
-		ISHR(Mnemonic.ISHR, null),
-		ISHL(Mnemonic.ISHL, null),
-		IADD(Mnemonic.IADD, Mnemonic.DADD),
-		ISUB(Mnemonic.ISUB, Mnemonic.DSUB),
-		IMUL(Mnemonic.IMUL, Mnemonic.DMUL),
-		IDIV(Mnemonic.IDIV, Mnemonic.DDIV),
-		IREM(Mnemonic.IREM, Mnemonic.DREM);
+		ILOR(null, null, null),
+		ILAND(null, null, null),
+		IEQ(null, null, null),
+		INE(null, null, null),
+		ILT(null, null, null),
+		IGE(null, null, null),
+		IGT(null, null, null),
+		ILE(null, null, null),
+		IBOR(Mnemonic.IOR, null, null),
+		IBXOR(Mnemonic.IXOR, null, null),
+		IBAND(Mnemonic.IAND, null, null),
+		ISHR(Mnemonic.ISHR, null, null),
+		ISHL(Mnemonic.ISHL, null, null),
+		IADD(Mnemonic.IADD, Mnemonic.DADD, Mnemonic.FADD),
+		ISUB(Mnemonic.ISUB, Mnemonic.DSUB, Mnemonic.FSUB),
+		IMUL(Mnemonic.IMUL, Mnemonic.DMUL, Mnemonic.FMUL),
+		IDIV(Mnemonic.IDIV, Mnemonic.DDIV, Mnemonic.FDIV),
+		IREM(Mnemonic.IREM, Mnemonic.DREM, Mnemonic.FREM);
 		private Mnemonic mnemonic;
 		private Mnemonic mnemonicDouble;
-		private Type(Mnemonic m, Mnemonic d) {
+		private Mnemonic mnemonicFloat;
+		private Type(Mnemonic m, Mnemonic d, Mnemonic f) {
 			mnemonic = m;
 			mnemonicDouble = d;
+			mnemonicFloat = f;
 		}
 	}
 
@@ -84,23 +86,35 @@ public class BinaryAST implements AST {
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
+		Primitive lp, rp;
+
+		if(!left.getASTType(functions, space).isPrimitive() ||
+				!right.getASTType(functions, space).isPrimitive()) {
+			throw new RuntimeException();
+		}
+		lp = (Primitive)left.getASTType(functions, space);
+		rp = (Primitive)right.getASTType(functions, space);
 		if(type.mnemonic != null) {
-			if(left.getASTType(functions, space).equals(Primitive.INT) &&
-					right.getASTType(functions, space).equals(Primitive.INT)) {
+			if(lp.isConversible(Primitive.INT) && rp.isConversible(Primitive.INT)) {
 				left.putCode(functions, space, code);
 				right.putCode(functions, space, code);
 				code.addCode(type.mnemonic);
+			} else if(type.mnemonicFloat == null) {
+				throw new RuntimeException("type mismatch");
+			} else if(lp.isConversible(Primitive.FLOAT) &&
+					rp.isConversible(Primitive.FLOAT)) {
+				left.putCode(functions, space, code);
+				Utils.putConversionFloat(lp, code);
+				right.putCode(functions, space, code);
+				Utils.putConversionFloat(rp, code);
+				code.addCode(type.mnemonicFloat);
 			} else if(type.mnemonicDouble == null) {
 				throw new RuntimeException("type mismatch");
 			} else {
 				left.putCode(functions, space, code);
-				if(left.getASTType(functions, space).equals(Primitive.INT)) {
-					code.addCode(Mnemonic.I2D);
-				}
+				Utils.putConversionDouble(lp, code);
 				right.putCode(functions, space, code);
-				if(right.getASTType(functions, space).equals(Primitive.INT)) {
-					code.addCode(Mnemonic.I2D);
-				}
+				Utils.putConversionDouble(rp, code);
 				code.addCode(type.mnemonicDouble);
 			}
 		} else {
@@ -180,20 +194,30 @@ public class BinaryAST implements AST {
 		int ifa, gta;
 		IfIcmp _if;
 		Goto _gt;
+		Primitive lp, rp;
 
-		if(bnode.left.getASTType(functions, space).equals(Primitive.INT) &&
-				bnode.right.getASTType(functions, space).equals(Primitive.INT)) {
+		if(!bnode.left.getASTType(functions, space).isPrimitive() ||
+				!bnode.right.getASTType(functions, space).isPrimitive()) {
+			throw new RuntimeException();
+		}
+		lp = (Primitive)bnode.left.getASTType(functions, space);
+		rp = (Primitive)bnode.right.getASTType(functions, space);
+		if(lp.isConversible(Primitive.INT) && rp.isConversible(Primitive.INT)) {
 			bnode.left.putCode(functions, space, code);
 			bnode.right.putCode(functions, space, code);
+		} else if(lp.isConversible(Primitive.FLOAT) &&
+				rp.isConversible(Primitive.FLOAT)) {
+			bnode.left.putCode(functions, space, code);
+			Utils.putConversionFloat(lp, code);
+			bnode.right.putCode(functions, space, code);
+			Utils.putConversionFloat(rp, code);
+			code.addCode(Mnemonic.FCMPG);
+			code.addCode(new IConst(0));
 		} else {
 			bnode.left.putCode(functions, space, code);
-			if(bnode.left.getASTType(functions, space).equals(Primitive.INT)) {
-				code.addCode(Mnemonic.I2D);
-			}
+			Utils.putConversionDouble(lp, code);
 			bnode.right.putCode(functions, space, code);
-			if(bnode.right.getASTType(functions, space).equals(Primitive.INT)) {
-				code.addCode(Mnemonic.I2D);
-			}
+			Utils.putConversionDouble(rp, code);
 			code.addCode(Mnemonic.DCMPG);
 			code.addCode(new IConst(0));
 		}
@@ -209,11 +233,22 @@ public class BinaryAST implements AST {
 
 	public VariableType getASTType(FunctionSpace functions,
 			LocalVariableSpace space) {
+		Primitive lp, rp;
+
+		if(!left.getASTType(functions, space).isPrimitive() ||
+				!right.getASTType(functions, space).isPrimitive()) {
+			throw new RuntimeException();
+		}
+		lp = (Primitive)left.getASTType(functions, space);
+		rp = (Primitive)right.getASTType(functions, space);
 		if(type.mnemonic == null && type.mnemonicDouble == null) {
 			return Primitive.INT;
-		} else if(left.getASTType(functions, space).equals(Primitive.INT) &&
-				right.getASTType(functions, space).equals(Primitive.INT)) {
+		} else if(lp.isConversible(Primitive.INT) &&
+				rp.isConversible(Primitive.INT)) {
 			return Primitive.INT;
+		} else if(lp.isConversible(Primitive.FLOAT) &&
+				rp.isConversible(Primitive.FLOAT)) {
+			return Primitive.FLOAT;
 		} else {
 			return Primitive.DOUBLE;
 		}

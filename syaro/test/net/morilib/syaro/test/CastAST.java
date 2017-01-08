@@ -39,12 +39,22 @@ public class CastAST implements AST {
 
 		node.putCode(functions, space, code);
 		if(ntype.equals(Primitive.INT)) {
-			if(type.equals(Primitive.DOUBLE)) {
+			if(type.equals(Primitive.FLOAT)) {
+				code.addCode(Mnemonic.I2F);
+			} else if(type.equals(Primitive.DOUBLE)) {
 				code.addCode(Mnemonic.I2D);
+			}
+		} else if(ntype.equals(Primitive.FLOAT)) {
+			if(type.equals(Primitive.INT)) {
+				code.addCode(Mnemonic.F2I);
+			} else if(type.equals(Primitive.DOUBLE)) {
+				code.addCode(Mnemonic.F2D);
 			}
 		} else if(ntype.equals(Primitive.DOUBLE)) {
 			if(type.equals(Primitive.INT)) {
 				code.addCode(Mnemonic.D2I);
+			} else if(type.equals(Primitive.FLOAT)) {
+				code.addCode(Mnemonic.D2F);
 			}
 		}
 	}

@@ -20,7 +20,6 @@ import java.util.List;
 
 import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.ConstantMethodref;
-import net.morilib.syaro.classfile.Mnemonic;
 import net.morilib.syaro.classfile.code.ALoad;
 import net.morilib.syaro.classfile.code.Invokevirtual;
 
@@ -68,6 +67,7 @@ public class CallAST implements AST {
 		FunctionDefinition func;
 		List<VariableType> fvar;
 		String name, desc;
+		Primitive ap, fp;
 		AST a;
 
 		name = getName(callee);
@@ -81,13 +81,23 @@ public class CallAST implements AST {
 		for(int i = 0; i < arguments.size(); i++) {
 			a = arguments.get(i);
 			a.putCode(functions, space, code);
-			if(fvar.get(i).equals(Primitive.INT)) {
-				if(!a.getASTType(functions, space).equals(Primitive.INT)) {
+			if(fvar.get(i).isPrimitive()) {
+				if(!a.getASTType(functions, space).isPrimitive()) {
 					throw new RuntimeException("type mismatch");
 				}
-			} else {
-				if(a.getASTType(functions, space).equals(Primitive.INT)) {
-					code.addCode(Mnemonic.I2D);
+				ap = (Primitive)arguments.get(i).getASTType(functions, space);
+				fp = (Primitive)fvar.get(i);
+				if(fp.isConversible(Primitive.INT)) {
+					if(!ap.isConversible(Primitive.INT)) {
+						throw new RuntimeException("type mismatch");
+					}
+				} else if(ap.isConversible(Primitive.FLOAT)) {
+					if(!ap.isConversible(Primitive.FLOAT)) {
+						throw new RuntimeException("type mismatch");
+					}
+					Utils.putConversionFloat(ap, code);
+				} else {
+					Utils.putConversionDouble(ap, code);
 				}
 			}
 		}

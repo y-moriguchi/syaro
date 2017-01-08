@@ -39,20 +39,29 @@ public class ReturnAST implements SAST {
 			List<Integer> breakIndices,
 			int continueAddress,
 			List<Integer> continueIndices) {
+		Primitive ep;
+
 		if(expr != null) {
 			expr.putCode(functions, space, code);
-			if(space.getThisReturnType().equals(Primitive.INT)) {
-				if(expr.getASTType(functions, space).equals(Primitive.DOUBLE)) {
-					throw new RuntimeException("type mismatch");
+			if(space.getThisReturnType().isPrimitive()) {
+				ep = (Primitive)space.getThisReturnType();
+				if(ep.equals(Primitive.INT)) {
+					if(!ep.isConversible(Primitive.INT)) {
+						throw new RuntimeException("type mismatch");
+					}
+					code.addCode(Mnemonic.IRETURN);
+				} else if(ep.equals(Primitive.FLOAT)) {
+					if(!ep.isConversible(Primitive.FLOAT)) {
+						throw new RuntimeException("type mismatch");
+					}
+					Utils.putConversionFloat(ep, code);
+					code.addCode(Mnemonic.FRETURN);
+				} else if(ep.equals(Primitive.DOUBLE)) {
+					Utils.putConversionDouble(ep, code);
+					code.addCode(Mnemonic.DRETURN);
+				} else {
+					throw new RuntimeException("subroutine must not return value");
 				}
-				code.addCode(Mnemonic.IRETURN);
-			} else if(space.getThisReturnType().equals(Primitive.DOUBLE)) {
-				if(expr.getASTType(functions, space).equals(Primitive.INT)) {
-					code.addCode(Mnemonic.I2D);
-				}
-				code.addCode(Mnemonic.DRETURN);
-			} else {
-				throw new RuntimeException("subroutine must not return value");
 			}
 		} else {
 			code.addCode(Mnemonic.RETURN);

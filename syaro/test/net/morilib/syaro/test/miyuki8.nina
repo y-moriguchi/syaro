@@ -427,9 +427,13 @@ import net.morilib.syaro.classfile.code.*;
                                     @@@@@@@@@@@@@
 -- elem --
     +-${S}-+
- *S*^******v*        @@@@@@@@@@@@@@
- *          >-+-{%f}->konst($num);@
- ************ |      @@@@@@@@@@@@@@
+ *S*^******v*        @@@        @@@@@@@@@@@@@@@@@@@
+ *          >-+-{%f}-> >-+-[fF]->konstfloat($num);@
+ ************ |      @@@ |      @@@@@@@@@@@@@@@@@@@
+              |          |
+              |          |      @@@@@@@@@@@@@@
+              |          +------>konst($num);@
+              |                 @@@@@@@@@@@@@@
               |
               |     ***        ***     @@@
               +-'('-> >-{expr}-> >-')'-> @
@@ -473,6 +477,8 @@ private void endfuncdef() {
 private VariableType getTypeFromName(String tname) {
 	if(tname.equals("int")) {
 		return Primitive.INT;
+	} else if(tname.equals("float")) {
+		return Primitive.FLOAT;
 	} else if(tname.equals("double")) {
 		return Primitive.DOUBLE;
 	} else {
@@ -589,6 +595,10 @@ private void konst(Number num) {
 	} else {
 		_e = new DoubleAST(num.doubleValue());
 	}
+}
+
+private void konstfloat(Number num) {
+	_e = new FloatAST(num.floatValue());
 }
 
 private void lior(AST a) {

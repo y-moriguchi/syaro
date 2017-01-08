@@ -23,4 +23,6 @@ public interface VariableType {
 
 	public String getDescriptor();
 
+	public boolean isPrimitive();
+
 }

@@ -16,12 +16,7 @@
 package net.morilib.syaro.test;
 
 import net.morilib.syaro.classfile.Code;
-import net.morilib.syaro.classfile.ConstantFieldref;
 import net.morilib.syaro.classfile.Mnemonic;
-import net.morilib.syaro.classfile.code.ALoad;
-import net.morilib.syaro.classfile.code.DStore;
-import net.morilib.syaro.classfile.code.IStore;
-import net.morilib.syaro.classfile.code.Putfield;
 
 /**
  * @author Yuichiro MORIGUCHI
@@ -30,26 +25,29 @@ import net.morilib.syaro.classfile.code.Putfield;
 public class AssignAST implements AST {
 
 	public static enum Type {
-		BOR(Mnemonic.IOR, null),
-		BXOR(Mnemonic.IXOR, null),
-		BAND(Mnemonic.IAND, null),
-		SHR(Mnemonic.ISHR, null),
-		SHL(Mnemonic.ISHL, null),
-		ADD(Mnemonic.IADD, Mnemonic.DADD),
-		SUB(Mnemonic.ISUB, Mnemonic.DSUB),
-		MUL(Mnemonic.IMUL, Mnemonic.DMUL),
-		DIV(Mnemonic.IDIV, Mnemonic.DDIV),
-		REM(Mnemonic.IREM, Mnemonic.DREM);
+		BOR(Mnemonic.IOR, null, null),
+		BXOR(Mnemonic.IXOR, null, null),
+		BAND(Mnemonic.IAND, null, null),
+		SHR(Mnemonic.ISHR, null, null),
+		SHL(Mnemonic.ISHL, null, null),
+		ADD(Mnemonic.IADD, Mnemonic.DADD, Mnemonic.FADD),
+		SUB(Mnemonic.ISUB, Mnemonic.DSUB, Mnemonic.FSUB),
+		MUL(Mnemonic.IMUL, Mnemonic.DMUL, Mnemonic.FMUL),
+		DIV(Mnemonic.IDIV, Mnemonic.DDIV, Mnemonic.FDIV),
+		REM(Mnemonic.IREM, Mnemonic.DREM, Mnemonic.FREM);
 		private Mnemonic mnemonic;
 		private Mnemonic mnemonicDouble;
-		private Type(Mnemonic m, Mnemonic d) {
+		private Mnemonic mnemonicFloat;
+		private Type(Mnemonic m, Mnemonic d, Mnemonic f) {
 			mnemonic = m;
 			mnemonicDouble = d;
+			mnemonicFloat = f;
 		}
 	}
 
 	private Mnemonic operate;
 	private Mnemonic operateDouble;
+	private Mnemonic operateFloat;
 	private AST left, right;
 
 	public AssignAST(Mnemonic operate, AST left, AST right) {
@@ -62,9 +60,11 @@ public class AssignAST implements AST {
 		if(op != null) {
 			this.operate = op.mnemonic;
 			this.operateDouble = op.mnemonicDouble;
+			this.operateDouble = op.mnemonicFloat;
 		} else {
 			this.operate = null;
 			this.operateDouble = null;
+			this.operateFloat = null;
 		}
 		this.left = left;
 		this.right = right;
@@ -82,84 +82,66 @@ public class AssignAST implements AST {
 		return right;
 	}
 
-	private String getVarName(AST ast) {
-		if(!(ast instanceof SymbolAST)) {
-			throw new RuntimeException("not a lvalue");
-		}
-		return ((SymbolAST)ast).getName();
-	}
-
 	private int getLocalIndex(LocalVariableSpace space, AST ast) {
-		return space.getIndex(getVarName(ast));
-	}
-
-	private void setVar(FunctionSpace functions, LocalVariableSpace space,
-			int idx, Code code) {
-		VariableType type;
-		String name;
-
-		if(idx >= 0) {
-			if(left.getASTType(functions, space).equals(Primitive.INT)) {
-				code.addCode(new IStore(idx));
-			} else {
-				code.addCode(new DStore(idx));
-			}
-		} else {
-			code.addCode(new ALoad(0));
-			if(left.getASTType(functions, space).equals(Primitive.INT)) {
-				code.addCode(Mnemonic.SWAP);
-			} else {
-				code.addCode(Mnemonic.DUP_X2);
-				code.addCode(Mnemonic.POP);
-			}
-			name = getVarName(left);
-			type = functions.getGlobal(name);
-			code.addCode(new Putfield(new ConstantFieldref(
-					functions.getClassname(), name, type.getDescriptor())));
-		}
+		return space.getIndex(Utils.getVarName(ast));
 	}
 
 	@Override
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
+		Primitive lp, rp;
 		int idx;
 
+		if(!left.getASTType(functions, space).isPrimitive() ||
+				!right.getASTType(functions, space).isPrimitive()) {
+			throw new RuntimeException();
+		}
+		lp = (Primitive)left.getASTType(functions, space);
+		rp = (Primitive)right.getASTType(functions, space);
 		idx = getLocalIndex(space, left);
 		if(operate == null) {
 			right.putCode(functions, space, code);
 		} else {
-			if(left.getASTType(functions, space).equals(Primitive.INT) &&
-					right.getASTType(functions, space).equals(Primitive.INT)) {
+			if(lp.isConversible(Primitive.INT) && rp.isConversible(Primitive.INT)) {
 				left.putCode(functions, space, code);
 				right.putCode(functions, space, code);
 				code.addCode(operate);
+			} else if(operateFloat == null) {
+				throw new RuntimeException("type mismatch");
+			} else if(lp.isConversible(Primitive.FLOAT) &&
+					rp.isConversible(Primitive.FLOAT)) {
+				left.putCode(functions, space, code);
+				Utils.putConversionFloat(lp, code);
+				right.putCode(functions, space, code);
+				Utils.putConversionFloat(rp, code);
+				code.addCode(operateFloat);
 			} else if(operateDouble == null) {
 				throw new RuntimeException("type mismatch");
 			} else {
 				left.putCode(functions, space, code);
-				if(left.getASTType(functions, space).equals(Primitive.INT)) {
-					code.addCode(Mnemonic.I2D);
-				}
+				Utils.putConversionDouble(lp, code);
 				right.putCode(functions, space, code);
-				if(right.getASTType(functions, space).equals(Primitive.INT)) {
-					code.addCode(Mnemonic.I2D);
-				}
+				Utils.putConversionDouble(rp, code);
 				code.addCode(operateDouble);
 			}
 		}
-		if(left.getASTType(functions, space).equals(Primitive.INT)) {
-			if(right.getASTType(functions, space).equals(Primitive.DOUBLE)) {
+		if(lp.equals(Primitive.INT)) {
+			if(!rp.isConversible(Primitive.INT)) {
 				throw new RuntimeException("double value can not assign to int");
 			}
 			code.addCode(Mnemonic.DUP);
-		} else {
-			if(right.getASTType(functions, space).equals(Primitive.INT)) {
-				code.addCode(Mnemonic.I2D);
+		} else if(lp.equals(Primitive.FLOAT)) {
+			if(!rp.isConversible(Primitive.FLOAT)) {
+				throw new RuntimeException("double value can not assign to int");
 			}
+			Utils.putConversionFloat(rp, code);
+			code.addCode(Mnemonic.DUP);
+		} else {
+			Utils.putConversionDouble(rp, code);
 			code.addCode(Mnemonic.DUP2);
 		}
-		setVar(functions, space, idx, code);
+		Utils.setVar(left, functions, space, idx, code);
 	}
 
 	public VariableType getASTType(FunctionSpace functions,

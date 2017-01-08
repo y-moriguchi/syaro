@@ -19,6 +19,7 @@ import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.ConstantInteger;
 import net.morilib.syaro.classfile.Mnemonic;
 import net.morilib.syaro.classfile.code.DConst;
+import net.morilib.syaro.classfile.code.FConst;
 import net.morilib.syaro.classfile.code.Goto;
 import net.morilib.syaro.classfile.code.IConst;
 import net.morilib.syaro.classfile.code.If;
@@ -31,14 +32,16 @@ import net.morilib.syaro.classfile.code.LdcW;
 public class UnaryAST implements AST {
 
 	public static enum Type {
-		INEG(Mnemonic.INEG, Mnemonic.DNEG),
-		IBNOT(null, null),
-		ILNOT(null, null);
+		INEG(Mnemonic.INEG, Mnemonic.DNEG, Mnemonic.FNEG),
+		IBNOT(null, null, null),
+		ILNOT(null, null, null);
 		private Mnemonic mnemonic;
 		private Mnemonic mnemonicDouble;
-		private Type(Mnemonic m, Mnemonic d) {
+		private Mnemonic mnemonicFloat;
+		private Type(Mnemonic m, Mnemonic d, Mnemonic f) {
 			mnemonic = m;
 			mnemonicDouble = d;
+			mnemonicFloat = f;
 		}
 	}
 
@@ -68,6 +71,8 @@ public class UnaryAST implements AST {
 			node.putCode(functions, space, code);
 			if(node.getASTType(functions, space).equals(Primitive.INT)) {
 				code.addCode(type.mnemonic);
+			} else if(node.getASTType(functions, space).equals(Primitive.FLOAT)) {
+				code.addCode(type.mnemonicFloat);
 			} else {
 				code.addCode(type.mnemonicDouble);
 			}
@@ -83,7 +88,10 @@ public class UnaryAST implements AST {
 				break;
 			case ILNOT:
 				node.putCode(functions, space, code);
-				if(node.getASTType(functions, space).equals(Primitive.DOUBLE)) {
+				if(node.getASTType(functions, space).equals(Primitive.FLOAT)) {
+					code.addCode(new FConst(0.0));
+					code.addCode(Mnemonic.FCMPG);
+				} else if(node.getASTType(functions, space).equals(Primitive.DOUBLE)) {
 					code.addCode(new DConst(0.0));
 					code.addCode(Mnemonic.DCMPG);
 				}
