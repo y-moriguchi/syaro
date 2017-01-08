@@ -197,6 +197,76 @@ public abstract class Mnemonic implements ClassInfo {
 	 */
 	public static Mnemonic D2I = new Single(142);
 
+	/**
+	 * The instruction fadd.
+	 */
+	public static Mnemonic FADD = new Single(98);
+
+	/**
+	 * The instruction fsub.
+	 */
+	public static Mnemonic FSUB = new Single(102);
+
+	/**
+	 * The instruction fmul.
+	 */
+	public static Mnemonic FMUL = new Single(106);
+
+	/**
+	 * The instruction fdiv.
+	 */
+	public static Mnemonic FDIV = new Single(110);
+
+	/**
+	 * The instruction frem.
+	 */
+	public static Mnemonic FREM = new Single(114);
+
+	/**
+	 * The instruction fneg.
+	 */
+	public static Mnemonic FNEG = new Single(118);
+
+	/**
+	 * The instruction i2f.
+	 */
+	public static Mnemonic I2F = new Single(134);
+
+	/**
+	 * The instruction f2d.
+	 */
+	public static Mnemonic F2D = new Single(141);
+
+	/**
+	 * The instruction fcmpg.
+	 */
+	public static Mnemonic FCMPG = new Single(150);
+
+	/**
+	 * The instruction fcmpl.
+	 */
+	public static Mnemonic FCMPL = new Single(149);
+
+	/**
+	 * The instruction d2f.
+	 */
+	public static Mnemonic D2F = new Single(144);
+
+	/**
+	 * The instruction f2i.
+	 */
+	public static Mnemonic F2I = new Single(139);
+
+	/**
+	 * The instruction freturn.
+	 */
+	public static Mnemonic FRETURN = new Single(174);
+
+	/**
+	 * The instruction pop2.
+	 */
+	public static Mnemonic POP2 = new Single(88);
+
 	private byte opcode;
 
 	/**
