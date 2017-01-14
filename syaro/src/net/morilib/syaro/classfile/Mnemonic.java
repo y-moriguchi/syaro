@@ -253,9 +253,19 @@ public abstract class Mnemonic implements ClassInfo {
 	public static Mnemonic D2F = new Single(144);
 
 	/**
+	 * The instruction d2l.
+	 */
+	public static Mnemonic D2L = new Single(143);
+
+	/**
 	 * The instruction f2i.
 	 */
 	public static Mnemonic F2I = new Single(139);
+
+	/**
+	 * The instruction f2l.
+	 */
+	public static Mnemonic F2L = new Single(140);
 
 	/**
 	 * The instruction freturn.
@@ -268,9 +278,24 @@ public abstract class Mnemonic implements ClassInfo {
 	public static Mnemonic POP2 = new Single(88);
 
 	/**
+	 * The instruction baload.
+	 */
+	public static Mnemonic BALOAD = new Single(51);
+
+	/**
+	 * The instruction saload.
+	 */
+	public static Mnemonic SALOAD = new Single(53);
+
+	/**
 	 * The instruction iaload.
 	 */
 	public static Mnemonic IALOAD = new Single(46);
+
+	/**
+	 * The instruction laload.
+	 */
+	public static Mnemonic LALOAD = new Single(47);
 
 	/**
 	 * The instruction faload.
@@ -298,9 +323,24 @@ public abstract class Mnemonic implements ClassInfo {
 	public static Mnemonic DUP2_X2 = new Single(94);
 
 	/**
+	 * The instruction bastore.
+	 */
+	public static Mnemonic BASTORE = new Single(84);
+
+	/**
+	 * The instruction sastore.
+	 */
+	public static Mnemonic SASTORE = new Single(86);
+
+	/**
 	 * The instruction iastore.
 	 */
 	public static Mnemonic IASTORE = new Single(79);
+
+	/**
+	 * The instruction lastore.
+	 */
+	public static Mnemonic LASTORE = new Single(80);
 
 	/**
 	 * The instruction fastore.
@@ -316,6 +356,106 @@ public abstract class Mnemonic implements ClassInfo {
 	 * The instruction aastore.
 	 */
 	public static Mnemonic AASTORE = new Single(83);
+
+	/**
+	 * The instruction areturn.
+	 */
+	public static Mnemonic ARETURN = new Single(176);
+
+	/**
+	 * The instruction lreturn.
+	 */
+	public static Mnemonic LRETURN = new Single(173);
+
+	/**
+	 * The instruction i2b.
+	 */
+	public static Mnemonic I2B = new Single(145);
+
+	/**
+	 * The instruction i2s.
+	 */
+	public static Mnemonic I2S = new Single(147);
+
+	/**
+	 * The instruction i2l.
+	 */
+	public static Mnemonic I2L = new Single(133);
+
+	/**
+	 * The instruction l2i.
+	 */
+	public static Mnemonic L2I = new Single(136);
+
+	/**
+	 * The instruction l2f.
+	 */
+	public static Mnemonic L2F = new Single(137);
+
+	/**
+	 * The instruction l2d.
+	 */
+	public static Mnemonic L2D = new Single(138);
+
+	/**
+	 * The instruction ladd.
+	 */
+	public static Mnemonic LADD = new Single(97);
+
+	/**
+	 * The instruction lsub.
+	 */
+	public static Mnemonic LSUB = new Single(101);
+
+	/**
+	 * The instruction lmul.
+	 */
+	public static Mnemonic LMUL = new Single(105);
+
+	/**
+	 * The instruction ldiv.
+	 */
+	public static Mnemonic LDIV = new Single(109);
+
+	/**
+	 * The instruction lrem.
+	 */
+	public static Mnemonic LREM = new Single(113);
+
+	/**
+	 * The instruction lneg.
+	 */
+	public static Mnemonic LNEG = new Single(117);
+
+	/**
+	 * The instruction lor.
+	 */
+	public static Mnemonic LOR = new Single(129);
+
+	/**
+	 * The instruction lxor.
+	 */
+	public static Mnemonic LXOR = new Single(131);
+
+	/**
+	 * The instruction land.
+	 */
+	public static Mnemonic LAND = new Single(127);
+
+	/**
+	 * The instruction lshl.
+	 */
+	public static Mnemonic LSHL = new Single(121);
+
+	/**
+	 * The instruction lshr.
+	 */
+	public static Mnemonic LSHR = new Single(123);
+
+	/**
+	 * The instruction lcmp.
+	 */
+	public static Mnemonic LCMP = new Single(148);
 
 	private byte opcode;
 
