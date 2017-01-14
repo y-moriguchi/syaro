@@ -48,6 +48,8 @@ public class NewArrayAST implements AST {
 		t = ((ArrayType)type).getElement();
 		if(t.equals(Primitive.BYTE)) {
 			code.addCode(new NewArray(NewArray.Type.BYTE));
+		} else if(t.equals(Primitive.CHAR)) {
+			code.addCode(new NewArray(NewArray.Type.CHAR));
 		} else if(t.equals(Primitive.SHORT)) {
 			code.addCode(new NewArray(NewArray.Type.SHORT));
 		} else if(t.equals(Primitive.INT)) {

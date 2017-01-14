@@ -23,6 +23,7 @@ public enum Primitive implements VariableType {
 
 	VOID("V", -1),
 	BYTE("B", 1),
+	CHAR("C", 2),
 	SHORT("S", 2),
 	INT("I", 3),
 	LONG("J", 4),
@@ -52,8 +53,11 @@ public enum Primitive implements VariableType {
 			p = (Primitive)t;
 			if(level < 0 || p.level < 0) {
 				throw new IllegalArgumentException();
+			} else if(level == 2 && p.level == 2) {
+				return equals(t);
+			} else {
+				return level <= p.level;
 			}
-			return level <= p.level;
 		} else {
 			return false;
 		}

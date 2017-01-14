@@ -48,7 +48,10 @@ public class PrintAST implements SAST {
 				"java/lang/System", "out", "Ljava/io/PrintStream;")));
 		expr.putCode(functions, space, code);
 		t = expr.getASTType(functions, space);
-		if(t.isConversible(Primitive.INT)) {
+		if(t.equals(Primitive.CHAR)) {
+			code.addCode(new Invokevirtual(new ConstantMethodref(
+					"java/io/PrintStream", "println", "(C)V")));
+		} else if(t.isConversible(Primitive.INT)) {
 			code.addCode(new Invokevirtual(new ConstantMethodref(
 					"java/io/PrintStream", "println", "(I)V")));
 		} else if(t.equals(Primitive.LONG)) {

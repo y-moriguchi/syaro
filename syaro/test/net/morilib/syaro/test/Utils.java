@@ -67,6 +67,8 @@ public class Utils {
 		if(v.isPrimitive()) {
 			if(v.equals(Primitive.BYTE)) {
 				code.addCode(Mnemonic.BALOAD);
+			} else if(v.equals(Primitive.CHAR)) {
+				code.addCode(Mnemonic.CALOAD);
 			} else if(v.equals(Primitive.SHORT)) {
 				code.addCode(Mnemonic.SALOAD);
 			} else if(v.equals(Primitive.INT)) {
@@ -157,6 +159,8 @@ public class Utils {
 			if(v.isPrimitive()) {
 				if(v.equals(Primitive.BYTE)) {
 					code.addCode(Mnemonic.BASTORE);
+				} else if(v.equals(Primitive.CHAR)) {
+					code.addCode(Mnemonic.CASTORE);
 				} else if(v.equals(Primitive.SHORT)) {
 					code.addCode(Mnemonic.SASTORE);
 				} else if(v.equals(Primitive.INT)) {

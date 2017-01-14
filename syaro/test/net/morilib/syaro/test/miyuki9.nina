@@ -486,7 +486,27 @@ import net.morilib.syaro.classfile.code.*;
               |
               |        @@@@@@@@@@@@@@@@@@@@@@@@@@
               +-${VAR}->var($buffer.toString());@
-                       @@@@@@@@@@@@@@@@@@@@@@@@@@
+              |        @@@@@@@@@@@@@@@@@@@@@@@@@@
+              |
+              |      ***
+              +-'\''-> >-+
+                     *** |
+                         |
+                         |          ************      @@@
+                         +-[^\\'\n]->char1($c);>-'\''-> @
+                         |          ************      @@@
+                         |
+                         |      ***               ***************      @@@
+                         +-'\\'-> >-+-[\\bfnrt'"]->charesc1($c);>-'\''-> @
+                                *** |             ***************      @@@
+    +-------------------------------+
+    |     ***                    **************************************************      @@@
+    +-'u'-> >-/[0-9A-Fa-f]{4,4}/->char1(Integer.parseInt($buffer.toString(), 16));>-'\''-> @
+    |     ***                    **************************************************      @^@
+    |                                                                          +----'\''--+
+    |                    ***              *************************************^***********
+    +-[0-9]/'UNGET($c);'-> >-/[0-7]{3,3}/->char1(Integer.parseInt($buffer.toString(), 8));*
+                         ***              *************************************************
 %%
 private static class NameAndType {
 	private VariableType type;
@@ -523,6 +543,8 @@ private void endfuncdef() {
 private VariableType getTypeFromName(String tname) {
 	if(tname.equals("byte")) {
 		return Primitive.BYTE;
+	} else if(tname.equals("char")) {
+		return Primitive.CHAR;
 	} else if(tname.equals("short")) {
 		return Primitive.SHORT;
 	} else if(tname.equals("int")) {
@@ -679,6 +701,34 @@ private void konst(Number num) {
 
 private void konstfloat(Number num) {
 	_e = new FloatAST(num.floatValue());
+}
+
+private void char1(int c) {
+	_e = new CharAST((char)c);
+}
+
+private void charesc1(int c) {
+    switch(c)
+    {
+    case 'b':
+        char1('\b');
+        break;
+    case 'f':
+        char1('\f');
+        break;
+    case 'n':
+        char1('\n');
+        break;
+    case 'r':
+        char1('\r');
+        break;
+    case 't':
+        char1('\t');
+        break;
+    default:
+        char1((char)c);
+        break;
+    }
 }
 
 private void lior(AST a) {

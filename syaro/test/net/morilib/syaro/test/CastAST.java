@@ -43,6 +43,8 @@ public class CastAST implements AST {
 		} else if(ntype.isConversible(Primitive.INT)) {
 			if(type.equals(Primitive.BYTE)) {
 				code.addCode(Mnemonic.I2B);
+			} else if(type.equals(Primitive.CHAR)) {
+				code.addCode(Mnemonic.I2C);
 			} else if(type.equals(Primitive.SHORT)) {
 				code.addCode(Mnemonic.I2S);
 			} else if(type.equals(Primitive.LONG)) {
@@ -56,6 +58,9 @@ public class CastAST implements AST {
 			if(type.equals(Primitive.BYTE)) {
 				code.addCode(Mnemonic.L2I);
 				code.addCode(Mnemonic.I2B);
+			} else if(type.equals(Primitive.CHAR)) {
+				code.addCode(Mnemonic.L2I);
+				code.addCode(Mnemonic.I2C);
 			} else if(type.equals(Primitive.SHORT)) {
 				code.addCode(Mnemonic.L2I);
 				code.addCode(Mnemonic.I2S);
@@ -70,6 +75,9 @@ public class CastAST implements AST {
 			if(type.equals(Primitive.BYTE)) {
 				code.addCode(Mnemonic.F2I);
 				code.addCode(Mnemonic.I2B);
+			} else if(type.equals(Primitive.CHAR)) {
+				code.addCode(Mnemonic.F2I);
+				code.addCode(Mnemonic.I2C);
 			} else if(type.equals(Primitive.SHORT)) {
 				code.addCode(Mnemonic.F2I);
 				code.addCode(Mnemonic.I2S);
@@ -84,6 +92,9 @@ public class CastAST implements AST {
 			if(type.equals(Primitive.BYTE)) {
 				code.addCode(Mnemonic.D2I);
 				code.addCode(Mnemonic.I2B);
+			} else if(type.equals(Primitive.CHAR)) {
+				code.addCode(Mnemonic.D2I);
+				code.addCode(Mnemonic.I2C);
 			} else if(type.equals(Primitive.SHORT)) {
 				code.addCode(Mnemonic.D2I);
 				code.addCode(Mnemonic.I2S);
