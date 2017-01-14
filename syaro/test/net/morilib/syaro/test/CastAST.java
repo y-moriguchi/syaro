@@ -38,7 +38,9 @@ public class CastAST implements AST {
 		VariableType ntype = node.getASTType(functions, space);
 
 		node.putCode(functions, space, code);
-		if(ntype.equals(Primitive.INT)) {
+		if(ntype.isCastable(type)) {
+			throw new RuntimeException("can not cast");
+		} else if(ntype.equals(Primitive.INT)) {
 			if(type.equals(Primitive.FLOAT)) {
 				code.addCode(Mnemonic.I2F);
 			} else if(type.equals(Primitive.DOUBLE)) {

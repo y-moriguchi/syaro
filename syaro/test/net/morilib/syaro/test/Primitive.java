@@ -42,16 +42,28 @@ public enum Primitive implements VariableType {
 		return descriptor;
 	}
 
-	public boolean isConversible(Primitive p) {
-		if(level < 0 || p.level < 0) {
-			throw new IllegalArgumentException();
+	public boolean isConversible(VariableType t) {
+		Primitive p;
+
+		if(t instanceof Primitive) {
+			p = (Primitive)t;
+			if(level < 0 || p.level < 0) {
+				throw new IllegalArgumentException();
+			}
+			return level <= p.level;
+		} else {
+			return false;
 		}
-		return level <= p.level;
 	}
 
 	@Override
 	public boolean isPrimitive() {
 		return true;
+	}
+
+	@Override
+	public boolean isCastable(VariableType type) {
+		return type instanceof Primitive;
 	}
 
 }

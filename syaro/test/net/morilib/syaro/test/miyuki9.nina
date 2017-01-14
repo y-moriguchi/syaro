@@ -1,0 +1,953 @@
+#
+# Copyright (c) 2016, Yuichiro MORIGUCHI
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# * Redistributions of source code must retain the above copyright notice, 
+#   this list of conditions and the following disclaimer.
+# * Redistributions in binary form must reproduce the above copyright notice, 
+#   this list of conditions and the following disclaimer in the documentation 
+#   and/or other materials provided with the distribution.
+# * Neither the name of the Yuichiro MORIGUCHI nor the names of its contributors 
+#   may be used to endorse or promote products derived from this software 
+#   without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL Yuichiro MORIGUCHI BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+--------------------------
+a high order calculator
+
+@author Yuichiro MORIGUCHI
+--------------------------
+#machine DFABuilder
+#option targetLanguage=Java
+#label VAR=/[A-Za-z_][A-Za-z_0-9]*/
+#label LAHEADVAR=/?=[A-Za-z_][A-Za-z_0-9]*[ \t]*=/
+#label LAHEADDECL=/?=[A-Za-z_][A-Za-z_0-9]*(\[\])*[ \t\n]*[A-Za-z_][A-Za-z_0-9]*[ \t\n]*[,;]/
+#label LAHEADCAST=/?=\([ \t\n]*[A-Za-z][A-Za-z0-9]*(\[\])*[ \t\n]*\)[A-Za-z_0-9\.\(]/
+#label S=[ \t\n]
+#package net.morilib.syaro.test
+%{
+import java.io.FileOutputStream;
+import java.io.StringReader;
+import net.morilib.syaro.classfile.*;
+import net.morilib.syaro.classfile.code.*;
+%}
+ @S@@@@@@@@           @@@@@@@@@@@
+ @        >-{toplist}->         @
+ @@@@@@@@@@           @@@@@@@@@@@
+-- toplist --
+         +---------+
+ @S@@@@@@v@       @^@
+ @        >-{top}-> @
+ @v@@@@@@^@       @@@
+  +-${S}-+
+-- top --
+                                  +-${S}-+
+  *S*                 ***        *^******v*     @@@@@@@@@@@@@@@@@@
+  * >-+-${LAHEADDECL}-> >-{decl}->        >-';'->globalvardecl();@
+  *** |               ***        **********     @@@@@@@@@@@@@@@@@@
+      |
+      |           @@@
+      +-{funcsub}-> @
+                  @@@
+-- funcsub --
+    +-${S}-+               +-${S}-+
+ *S*^******v*             *^******v*     *********
+ *          >-+-{funcdef}->        >-'{'->func();*
+ ************ |           **********     *v*******
+              |             +-{functop}---+
+              |             |
+              |             | +-${S}-+
+              |            *v*^******v*     @@@@@@@@@@@@
+              |            *          >-'}'->endfunc();@
+              |            ************     @@@@@@@@@@@@
+              |        +-${S}-+             +-${S}-+
+              |       *^******v*           *^******v*     *********
+              +-"sub"->        >-{subrdef}->        >-'{'->subr();*
+                      **********           **********     *v*******
+                       +-{functop}-------------------------+
+                       |
+                       | +-${S}-+
+                      *v*^******v*     @@@@@@@@@@@@
+                      *          >-'}'->endsubr();@
+                      ************     @@@@@@@@@@@@
+-- funcdef --
+    +-${S}-+                                           +-${S}-+
+ *S*^******v*        ******************************** *^******v*
+ *          >-{decl}->funcnt = declnt;              >->        *
+ ************        ******************************** *v********
+                                    +-'('--------------+  +-${S}-+       +-${S}-+
+                                    |                    *^******v*     *^******v*
+                                    |                    *        >-','->        *
+                                    |                    *^*v******     *v********
+                                    |   +-${S}-+          | +-')'-(FD)   +-{decl}-+
+                     ***************v* *^******v*        *^***********************v*******
+                     *initfuncargs();>->        >-{decl}->addfuncarg(declnt);            *
+                     ***************** *v********        *********************************
+                                        +-')'-+
+                                              |
+                                       @FD@@@@v@@@@@@@
+                                       @endfuncdef();@
+                                       @@@@@@@@@@@@@@@
+-- subrdef --
+    +-${S}-+                                           +-${S}-+
+ *S*^******v*        ******************************** *^******v*
+ *          >-${VAR}->subrdef($buffer.toString());  >->        *
+ ************        ******************************** *v********
+                                    +-'('--------------+  +-${S}-+       +-${S}-+
+                                    |                    *^******v*     *^******v*
+                                    |                    *        >-','->        *
+                                    |                    *^*v******     *v********
+                                    |   +-${S}-+          | +-')'-(FD)   +-${VAR}-+
+                     ***************v* *^******v*        *^***********************v*******
+                     *initfuncargs();>->        >-{decl}->addfuncarg(declnt);            *
+                     ***************** *v********        *********************************
+                                        +-')'-+
+                                              |
+                                       @FD@@@@v@@@@@@@
+                                       @endfuncdef();@
+                                       @@@@@@@@@@@@@@@
+-- decl --
+    +-${S}-+                                          +-${S}-+
+ *S*^******v*            *A<VariableType>*********** *^******v*
+ *          >-{decltype}->%% = decltype;           >->        *
+ ************            *************************** *v********
+                      +-${VAR}------------------------+
+                     @v@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                     @decl($A, $buffer.toString());@
+                     @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+-- decltype --
+    +-${S}-+
+ *S*^******v*        *A<String>****************
+ *          >-${VAR}->%% = $buffer.toString();*
+ ************        *v************************
+                      +----------+
+                                 |
+                     *B<Integer>*v*
+                     *%% = 0;     *
+                     *v************
+                      |+--------+
+                     *vv*      *^************
+                     *  >-'[]'->%B = $B + 1;*
+                     *v**      **************
+                      |
+                     @v@@@@@@@@@@@@@@@@@
+                     @decltype($A, $B);@
+                     @@@@@@@@@@@@@@@@@@@
+-- functop --
+             +-------------------------------------------+
+    +-${S}-+ |                            +-${S}-+       |
+ *S*^******v*v*               ***        *^******v*     *^***************
+ *            >-${LAHEADDECL}-> >-{decl}->        >-';'->localvardecl();*
+ *v************               ***        **********     *****************
+  |
+  |            @@@
+  +-{stmtlist}-> @
+               @@@
+-- stmtlist --
+           +----------+
+ @S@@@@@@@@v@        @^@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ @          >-{stmt}->_s.putCode(functions, local, code, null, -1, null);@
+ @v@@@@@@^@v@        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  +-${S}-+ |
+           |
+           |                  @@@
+           +-'}'/'UNGET($c);'-> @
+                              @@@
+-- stmt --
+    +-${S}-+          +-${S}-+       +-${S}-+                     +-${S}-+
+ *S*^******v*        *^******v*     *^******v*        *LIF<AST>* *^******v*     ***
+ *          >-+-"if"->        >-'('->        >-{expr}->%% = _e;>->        >-')'-> >-{stmt}-(IF1)
+ ************ |      **********     **********        ********** **********     ***
+              |        +-${S}-+
+              |       *^******v*        *LEL<SAST>*        @@@@@@@@@@@@@@@@@@@@
+              | (IF1)->        >-"else"->%% = _s; >-{stmt}->endif($LIF, $LEL);@
+              |       *v********        ***********        @@@@@@@@@@@@@@@@@@@@
+              |        |
+              |        | @@@@@@@@@@@@@@
+              |        +->endif($LIF);@
+              |          @@@@@@@@@@@@@@
+              |          +-${S}-+                  +-${S}-+
+              |         *^******v*     ***        *^******v*
+              +-"while"->        >-'('-> >-{expr}->        >-')'-(WH1)
+              |         **********     ***        **********
+              |
+              |       *WX<AST>**        @@@@@@@@@@@@@
+              | (WH1)->%% = _e;>-{stmt}->endwh($WX);@
+              |       **********        @@@@@@@@@@@@@
+              |                  +-${S}-+           +-${S}-+                  +-${S}-+
+              |      ***        *^******v*         *^******v*     ***        *^******v*
+              +-"do"-> >-{stmt}->        >-"while"->        >-'('-> >-{expr}->        >-')'-(DO1)
+              |      ***        **********         **********     ***        **********
+              |        +-${S}-+
+              |       *^******v*     @@@@@@@@@@
+              | (DO1)->        >-';'->enddo();@
+              |       **********     @@@@@@@@@@
+              |        +-${S}-+         +-${S}-+          +-${S}-+       +-${S}-+
+              |       *^******v***     *^******v*        *^******v*     *^******v*
+              +-"for"->_e = null;>-'('->        >-{expr}->        >-';'->        >-(FO1)
+              |       ************     *v********        **********     *^********
+              |                         |                                |
+              |                         |     ***********                |
+              |                         +-';'->         >----------------+
+              |                               ***********
+              |                     +-${S}-+          +-${S}-+       +-${S}-+
+              |       *FE<AST>**** *^******v*        *^******v*     *^******v*
+              | (FO1)->%% = _e;  >->        >-{expr}->        >-';'->        >-(FO2)
+              |       *_e = null;* *v********        **********     *^********
+              |       ************  |                                |
+              |                     |     ***********                |
+              |                     +-';'->         >----------------+
+              |                           ***********
+              |                     +-${S}-+          +-${S}-+       +-${S}-+
+              |       *FI<AST>**** *^******v*        *^******v*     *^******v*
+              | (FO2)->%% = _e;  >->        >-{expr}->        >-')'->        >-(FO3)
+              |       *_e = null;* *v********        **********     *^********
+              |       ************  |                                |
+              |                     |     ***********                |
+              |                     +-')'->         >----------------+
+              |                           ***********
+              |
+              |       *FS<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@
+              | (FO3)->%% = _e;>-{stmt}->endfor($FE, $FI, $FS);@
+              |       **********        @@@@@@@@@@@@@@@@@@@@@@@@
+              |          +-${S}-+
+              |         *^******v*     @@@@@@@@@@@
+              +-"break"->        >-';'->_break();@
+              |         **********     @@@@@@@@@@@
+              |             +-${S}-+
+              |            *^******v*     @@@@@@@@@@@@@@
+              +-"continue"->        >-';'->_continue();@
+              |            **********     @@@@@@@@@@@@@@
+              |                       +-${S}-+
+              |     *BL<BlockAST>*** *^******v*        ************
+              +-"{"->%% = beginb();>->        >-{stmt}->addb($BL);*
+              |     **************** *v******^*        *v**********
+              |                       |      +----------+
+              |                       |     @@@@@@@@@@@@
+              |                       +-'}'->endb($BL);@
+              |                             @@@@@@@@@@@@
+              |          +-${S}-+          +-${S}-+
+              |         *^******v*        *^******v*     @@@@@@@@@@
+              +-"print"->        >-{expr}->        >-';'->print();@
+              |         **********        **********     @@@@@@@@@@
+              |           +-${S}-+            +-${S}-+
+              |          *^******v***        *^******v*     @@@@@@@@@@@@
+              +-"return"->_e = null;>-{expr}->        >-';'->_return();@
+              |          **********v*        **********     @^@@@@@@@@@@
+              |                    +--------------------';'--+
+              |         +-${S}-+
+              |        *^******v*     @@@@@@@@@@@
+              +-{expr}->        >-';'->simple();@
+                       **********     @@@@@@@@@@@
+-- expr --
+ *S*        @@@@@@@@@@@
+ * >-{asgn}->         @
+ ***        @@@@@@@@@@@
+-- asgn --
+             +-${S}-+         +-${S}-+
+ *S*        @^@@@@@@v@       *^******v* *AA<AST>**        @@@@@@@@@@@@@@@@@@@@
+ * >-{lior}->        >-+-"="->        >->%% = _e;>-{asgn}->asgn(${AA}, null);@
+ ***        @@@@@@@@@@ |     ********** **********        @@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AB<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"+="->        >->%% = _e;>-{asgn}->asgn(${AB}, AssignAST.Type.ADD);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AC<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"-="->        >->%% = _e;>-{asgn}->asgn(${AC}, AssignAST.Type.SUB);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AD<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"*="->        >->%% = _e;>-{asgn}->asgn(${AD}, AssignAST.Type.MUL);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AE<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"/="->        >->%% = _e;>-{asgn}->asgn(${AE}, AssignAST.Type.DIV);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AF<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"%="->        >->%% = _e;>-{asgn}->asgn(${AF}, AssignAST.Type.REM);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |        +-${S}-+
+                       |       *^******v* *AG<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"<<="->        >->%% = _e;>-{asgn}->asgn(${AG}, AssignAST.Type.SHL);@
+                       |       ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |        +-${S}-+
+                       |       *^******v* *AH<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-">>="->        >->%% = _e;>-{asgn}->asgn(${AH}, AssignAST.Type.SHR);@
+                       |       ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AI<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"&="->        >->%% = _e;>-{asgn}->asgn(${AI}, AssignAST.Type.BAND);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AJ<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"^="->        >->%% = _e;>-{asgn}->asgn(${AJ}, AssignAST.Type.BXOR);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |        +-${S}-+
+                       |       *^******v* *AK<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"\|="->        >->%% = _e;>-{asgn}->asgn(${AK}, AssignAST.Type.BOR);@
+                               ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+-- lior --
+                    +-${S}-+              +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@            *^******v*        @@@@@@@@@@@@
+ * >-{land}->%% = _e;       >---"\|\|"--->        >-{land}->lior($A); >-(A)
+ ***        @@@@@@@@@@@@@@@@@            **********        @@@@@@@@@@@@
+-- land --
+                    +-${S}-+            +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@          *^******v*        @@@@@@@@@@@@
+ * >-{bior}->%% = _e;       >---"&&"--->        >-{bior}->land($A); >-(A)
+ ***        @@@@@@@@@@@@@@@@@          **********        @@@@@@@@@@@@
+-- bior --
+                    +-${S}-+                        +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@              ***     *^******v*        @@@@@@@@@@@
+ * >-{bxor}->%% = _e;       >-/?=\|[^\|=]/-> >-'|'->        >-{bxor}->bior($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@              ***     **********        @@@@@@@@@@@
+-- bxor --
+                    +-${S}-+              +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@            *^******v*        @@@@@@@@@@@
+ * >-{band}->%% = _e;       >---"^/!="--->        >-{band}->bxor($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@            **********        @@@@@@@@@@@
+-- band --
+                    +-${S}-+                      +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@            ***     *^******v*        @@@@@@@@@@@
+ * >-{loeq}->%% = _e;       >-/?=&[^&=]/-> >-'&'->        >-{loeq}->band($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@            ***     **********        @@@@@@@@@@@
+-- loeq --
+                    +-${S}-+              +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@            *^******v*        @@@@@@@@@@
+ * >-{lcmp}->%% = _e;       >-+-"=="----->        >-{lcmp}->leq($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@ |          **********        @@@@@@@@@@
+                              |           +-${S}-+
+                              |          *^******v*        @@@@@@@@@@
+                              +-"!="----->        >-{lcmp}->lne($A);>-(A)
+                                         **********        @@@@@@@@@@
+-- lcmp --
+                    +-${S}-+                                +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@               ***            *^******v*        @@@@@@@@@@
+ * >-{shft}->%% = _e;       >-/?=[<>][^<>]/-> >-+-"<"------>        >-{shft}->llt($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@               *** |          **********        @@@@@@@@@@
+                                                |           +-${S}-+
+                                                |          *^******v*        @@@@@@@@@@
+                                                +-"<="----->        >-{shft}->lle($A);>-(A)
+                                                |          **********        @@@@@@@@@@
+                                                |           +-${S}-+
+                                                |          *^******v*        @@@@@@@@@@
+                                                +-">"------>        >-{shft}->lgt($A);>-(A)
+                                                |          **********        @@@@@@@@@@
+                                                |           +-${S}-+
+                                                |          *^******v*        @@@@@@@@@@
+                                                +-">="----->        >-{shft}->lge($A);>-(A)
+                                                           **********        @@@@@@@@@@
+-- shft --
+                    +-${S}-+                 +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@               *^******v*        @@@@@@@@@@@@@
+ * >-{poly}->%% = _e;       >-+-">>/!="----->        >-{poly}->rshift($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@ |             **********        @@@@@@@@@@@@@
+                              |              +-${S}-+
+                              |             *^******v*        @@@@@@@@@@@@@
+                              +-"<</!="----->        >-{poly}->lshift($A);>-(A)
+                                            **********        @@@@@@@@@@@@@
+-- poly --
+                    +-${S}-+            +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@          *^******v*        @@@@@@@@@@
+ * >-{term}->%% = _e;       >-+-"+/!="->        >-{term}->add($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@ |        **********        @@@@@@@@@@
+                              |         +-${S}-+
+                              |        *^******v*        @@@@@@@@@@
+                              +-"-/!="->        >-{term}->sub($A);>-(A)
+                                       **********        @@@@@@@@@@
+-- term --
+                     +-${S}-+            +-${S}-+
+ *S*         @A<AST>@^@@@@@@v@          *^******v*         @@@@@@@@@@
+ * >-{cast}-->%% = _e;       >-+-"*/!="->        >-{cast}-->mul($A);>-(A)
+ ***         @@@@@@@@@@@@@@@@@ |        **********         @@@@@@@@@@
+                               |          +-${S}-+
+                               |         *^******v*         @@@@@@@@@@
+                               +-"\//!="->        >-{cast}-->div($A);>-(A)
+                               |         **********         @@@@@@@@@@
+                               |         +-${S}-+
+                               |        *^******v*         @@@@@@@@@@
+                               +-"%/!="->        >-{cast}-->mod($A);>-(A)
+                                        **********         @@@@@@@@@@
+-- cast --
+    +-${S}-+                 +-${S}-+       +-${S}-+
+ *S*^******v*               *^******v*     *^******v*
+ *          >-${LAHEADCAST}->        >-'('->        *
+ *v**********               **********     *v********
+  |                                         |
+  |         @@@                             |
+  +-{unary}-> @                             |
+  |         @@@                             |
+  |                                         |
+  |                  +-{decltype}-----------+
+  |                  |
+  |                  |   +-${S}-+
+  | *A<VariableType>*v* *^******v*     ***         @@@@@@@@@@@
+  | *%% = decltype;   >->        >-')'-> >-{unary}->cast($A);@
+  | ******************* **********     ***         @@@@@@@@@@@
+  |        +-${S}-+
+  |       *^******v*        *E<String>****************
+  +-"new"->        >-${VAR}->%% = $buffer.toString();*
+          **********        *v************************
+           +-----------------+
+           |
+          *v*     ***        ***     *F<Integer>*
+          * >-'['-> >-{expr}-> >-']'->%% = 0;   *
+          ***     ***        ***     *v**********
+                   +------------------+
+                   |+--------+
+                  *vv*      *^************
+                  *  >-'[]'->%F = $F + 1;*
+                  *v**      **************
+                   |
+                  @v@@@@@@@@@@@@@@@@@@@@@
+                  @newarray($E, _e, $F);@
+                  @@@@@@@@@@@@@@@@@@@@@@@
+-- unary --
+    +-${S}-+         +-${S}-+
+ *S*^******v*       *^******v*        @@@@@@@@@@@
+ *          >-+-"-"->        >-{prex}->uminus();@
+ ************ |     **********        @@@@@@@@@@@
+              |      +-${S}-+
+              |     *^******v*        @@@@@@@@@@@
+              +-"+"->        >-{prex}->         @
+              |     **********        @@@@@@@@@@@
+              |      +-${S}-+
+              |     *^******v*        @@@@@@@@@@@
+              +-"~"->        >-{prex}->bnot();  @
+              |     **********        @@@@@@@@@@@
+              |      +-${S}-+
+              |     *^******v*        @@@@@@@@@@@
+              +-"!"->        >-{prex}->lnot();  @
+              |     **********        @@@@@@@@@@@
+              |       +-${S}-+
+              |      *^******v*        @@@@@@@@@@@
+              +-"++"->        >-{prex}->incpre();@
+              |      **********        @@@@@@@@@@@
+              |       +-${S}-+
+              |      *^******v*        @@@@@@@@@@@
+              +-"--"->        >-{prex}->decpre();@
+              |      **********        @@@@@@@@@@@
+              |
+              |        @@@
+              +-{prex}-> @
+                       @@@
+-- prex --
+             +-${S}-+
+ *S*        @^@@@@@@v@        @@@@@@@@@@@@
+ * >-{elem}->        >-+-"++"->incpost();@
+ ***        @@@@@@@@@@ |      @@@@@@@@@@@@
+                       |
+                       |      @@@@@@@@@@@@
+                       +-"--"->decpost();@
+                       |      @@@@@@@@@@@@
+                       |                  +-${S}-+              +-${S}-+
+                       |     *AR<CallAST>*^******v* ***        *^******v******
+                       +-'('->%% = begincall();   >-> >-{expr}->addcall($AR);*
+                       |     *v******************** *^*        *v**v**********
+                       |      |                      +--','-----+  |
+                       |      |     @@@@@@@@@@@@@                  |
+                       |      +-')'->call($AR); <-')'--------------+
+                       |            @@@@@@@@@@@@@
+                       |                        +-${S}-+
+                       |     *AA<AST>**        *^******v*     @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-'['->%% = _e;>-{expr}->        >-']'->_e = new ArrayIndexAST($AA, _e);@
+                             *^********        **********     @v@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                              |                 +-${S}-+       |
+                              |                @^@@@@@@v@      |
+                              +-'['------------<        <------+
+                                               @@@@@@@@@@
+-- elem --
+    +-${S}-+
+ *S*^******v*        @@@        @@@@@@@@@@@@@@@@@@@
+ *          >-+-{%f}-> >-+-[fF]->konstfloat($num);@
+ ************ |      @@@ |      @@@@@@@@@@@@@@@@@@@
+              |          |
+              |          |      @@@@@@@@@@@@@@
+              |          +------>konst($num);@
+              |                 @@@@@@@@@@@@@@
+              |
+              |     ***        ***     @@@
+              +-'('-> >-{expr}-> >-')'-> @
+              |     ***        ***     @@@
+              |
+              |        @@@@@@@@@@@@@@@@@@@@@@@@@@
+              +-${VAR}->var($buffer.toString());@
+                       @@@@@@@@@@@@@@@@@@@@@@@@@@
+%%
+private static class NameAndType {
+	private VariableType type;
+	private String name;
+}
+
+private Classfile classfile;
+private MethodInfo method;
+private FunctionSpace functions;
+private LocalVariableSpace local;
+private Code code;
+private Goto gotoInst;
+private int localStart;
+private int localRet;
+private NameAndType funcnt;
+private NameAndType declnt;
+private java.util.List<NameAndType> funcargs;
+private FunctionDefinition funcdefobj;
+private VariableType decltype;
+private SAST _s;
+private AST _e;
+
+private void initfuncargs() {
+	funcargs = new java.util.ArrayList<NameAndType>();
+}
+
+private void addfuncarg(NameAndType nt) {
+	funcargs.add(nt);
+}
+
+private void endfuncdef() {
+}
+
+private VariableType getTypeFromName(String tname) {
+	if(tname.equals("int")) {
+		return Primitive.INT;
+	} else if(tname.equals("float")) {
+		return Primitive.FLOAT;
+	} else if(tname.equals("double")) {
+		return Primitive.DOUBLE;
+	} else {
+		throw new RuntimeException("unknown type " + tname);
+	}
+}
+
+private void decl(VariableType type, String name) {
+	declnt = new NameAndType();
+	declnt.type = type;
+	declnt.name = name;
+}
+
+private void decltype(String type, int dim) {
+	VariableType t;
+
+	t = getTypeFromName(type);
+	for(int i = 0; i < dim; i++) {
+		t = new ArrayType(t);
+	}
+	decltype = t;
+}
+
+private void subrdef(String name) {
+	funcnt = new NameAndType();
+	funcnt.type = Primitive.VOID;
+	funcnt.name = name;
+}
+
+private void getFuncdef() {
+	java.util.List<VariableType> a = new java.util.ArrayList<VariableType>();
+
+	for(NameAndType x : funcargs) {
+		a.add(x.type);
+	}
+	funcdefobj = new FunctionDefinition(funcnt.type, a);
+}
+
+private void funcbegin() {
+	getFuncdef();
+	functions.putSpace(funcnt.name, funcdefobj);
+	local = new LocalVariableSpace(funcdefobj.getReturnType());
+	for(NameAndType t : funcargs) {
+		local.putVariable(t.name, t.type);
+	}
+	method = new MethodInfo(funcnt.name, funcdefobj.getDescriptor());
+	method.setAccessFlags(MethodInfo.ACC_PUBLIC);
+	code = new Code();
+	gotoInst = new Goto();
+	localStart = code.addCode(gotoInst);
+	localRet = code.addCode(Mnemonic.NOP);
+}
+
+private void funcend() {
+	Goto gb = new Goto();
+	int fargs = 0;
+
+	gotoInst.setOffset(code.getCurrentOffset(localStart));
+	for(NameAndType x : funcargs) {
+		if(x.type.equals(Primitive.DOUBLE)) {
+			fargs += 2;
+		} else {
+			fargs++;
+		}
+	}
+	for(int i = fargs + 1; i < local.getMax(); i++) {
+		if(local.getType(i - fargs) == null) {
+			// do nothing
+		} else if(local.getType(i - fargs).equals(Primitive.INT)) {
+			code.addCode(new IConst(0));
+			code.addCode(new IStore(i));
+		} else if(local.getType(i - fargs).equals(Primitive.FLOAT)) {
+			code.addCode(new FConst(0));
+			code.addCode(new FStore(i));
+		} else if(local.getType(i - fargs).equals(Primitive.DOUBLE)) {
+			code.addCode(new DConst(0));
+			code.addCode(new DStore(i));
+		} else {
+			code.addCode(Mnemonic.ACONST_NULL);
+			code.addCode(new AStore(i));
+		}
+	}
+	gb.setOffset(code.getAddress(localRet) - code.getCurrentAddress());
+	code.addCode(gb);
+	code.setMaxStack(1024);
+	code.setMaxLocals(local.getMax());
+	method.addAttribute(code);
+	classfile.addMethod(method);
+}
+
+private void func() {
+	funcbegin();
+}
+
+private void endfunc() {
+	if(funcdefobj.getReturnType().equals(Primitive.INT)) {
+		code.addCode(new IConst(0));
+		code.addCode(Mnemonic.IRETURN);
+	} else {
+		code.addCode(new DConst(0));
+		code.addCode(Mnemonic.DRETURN);
+	}
+	funcend();
+}
+
+private void subr() {
+	funcbegin();
+}
+
+private void endsubr() {
+	code.addCode(Mnemonic.RETURN);
+	funcend();
+}
+
+private void localvardecl() {
+	local.putVariable(declnt.name, declnt.type);
+}
+
+private void globalvardecl() {
+	functions.putGlobal(declnt.name, declnt.type);
+}
+
+private void asgn(AST a, AssignAST.Type op) {
+	_e = new AssignAST(op, a, _e);
+}
+
+private void konst(Number num) {
+	if(num instanceof Integer) {
+		_e = new IntegerAST(num.intValue());
+	} else {
+		_e = new DoubleAST(num.doubleValue());
+	}
+}
+
+private void konstfloat(Number num) {
+	_e = new FloatAST(num.floatValue());
+}
+
+private void lior(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.ILOR, a, _e);
+}
+
+private void land(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.ILAND, a, _e);
+}
+
+private void bior(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IBOR, a, _e);
+}
+
+private void bxor(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IBXOR, a, _e);
+}
+
+private void band(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IBAND, a, _e);
+}
+
+private void leq(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IEQ, a, _e);
+}
+
+private void lne(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.INE, a, _e);
+}
+
+private void llt(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.ILT, a, _e);
+}
+
+private void lle(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.ILE, a, _e);
+}
+
+private void lgt(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IGT, a, _e);
+}
+
+private void lge(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IGE, a, _e);
+}
+
+private void rshift(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.ISHR, a, _e);
+}
+
+private void lshift(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.ISHL, a, _e);
+}
+
+private void add(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IADD, a, _e);
+}
+
+private void sub(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.ISUB, a, _e);
+}
+
+private void mul(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IMUL, a, _e);
+}
+
+private void div(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IDIV, a, _e);
+}
+
+private void mod(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.IREM, a, _e);
+}
+
+private void cast(VariableType type) {
+	_e = new CastAST(type, _e);
+}
+
+private void newarray(String type, AST ind, int dim) {
+	VariableType t;
+
+	t = getTypeFromName(type);
+	t = new ArrayType(t);
+	for(int i = 0; i < dim; i++) {
+		t = new ArrayType(t);
+	}
+	_e = new NewArrayAST((ArrayType)t, ind);
+}
+
+private void uminus() {
+	_e = new UnaryAST(UnaryAST.Type.INEG, _e);
+}
+
+private void bnot() {
+	_e = new UnaryAST(UnaryAST.Type.IBNOT, _e);
+}
+
+private void lnot() {
+	_e = new UnaryAST(UnaryAST.Type.ILNOT, _e);
+}
+
+private void incpre() {
+	_e = new IncDecAST(true, true, _e);
+}
+
+private void decpre() {
+	_e = new IncDecAST(false, true, _e);
+}
+
+private void incpost() {
+	_e = new IncDecAST(true, false, _e);
+}
+
+private void decpost() {
+	_e = new IncDecAST(false, false, _e);
+}
+
+private CallAST begincall() {
+	return new CallAST(_e);
+}
+
+private void addcall(CallAST call) {
+	call.addArgument(_e);
+}
+
+private void call(CallAST call) {
+	_e = call;
+}
+
+private void var(String name) {
+	_e = new SymbolAST(name);
+}
+
+private void endif(AST expr) {
+	_s = new IfAST(expr, _s, null);
+}
+
+private void endif(AST expr, SAST _if) {
+	_s = new IfAST(expr, _if, _s);
+}
+
+private void _break() {
+	_s = new BreakAST();
+}
+
+private void _continue() {
+	_s = new ContinueAST();
+}
+
+private void endwh(AST expr) {
+	_s = new WhileAST(expr, _s);
+}
+
+private void enddo() {
+	_s = new DoAST(_e, _s);
+}
+
+private void endfor(AST fe, AST fi, AST fs) {
+	_s = new ForAST(fe, fi, fs, _s);
+}
+
+private BlockAST beginb() {
+	return new BlockAST();
+}
+
+private void addb(BlockAST s) {
+	s.addStatement(_s);
+}
+
+private void endb(BlockAST s) {
+	_s = s;
+}
+
+private void print() {
+	_s = new PrintAST(_e);
+}
+
+private void _return() {
+	_s = new ReturnAST(_e);
+}
+
+private void simple() {
+	_s = new SimpleAST(_e);
+}
+
+private static FunctionSpace newFunctionSpace(String name) {
+	FunctionSpace space = new FunctionSpace(name);
+	FunctionDefinition def;
+
+	def = new FunctionDefinition(Primitive.INT, new java.util.ArrayList<VariableType>());
+	space.putSpace("getchar", def);
+	return space;
+}
+
+private static void addBuiltIn(Classfile cf) {
+	MethodInfo mi;
+	Code cd;
+
+	mi = new MethodInfo("getchar", "()I");
+	mi.setAccessFlags(MethodInfo.ACC_PUBLIC);
+	cd = new Code();
+	cd.addCode(new Getstatic(new ConstantFieldref(
+			"java/lang/System", "in", "Ljava/io/InputStream;")));
+	cd.addCode(new Invokevirtual(new ConstantMethodref(
+			"java/io/InputStream", "read", "()I")));
+	cd.addCode(Mnemonic.IRETURN);
+	cd.setMaxStack(128);
+	cd.setMaxLocals(1);
+	mi.addAttribute(cd);
+	cf.addMethod(mi);
+}
+
+private static void addBootStrap(String name, Classfile cf) {
+	MethodInfo mi;
+	Code cd;
+
+	mi = new MethodInfo("<init>", "()V");
+	mi.setAccessFlags(MethodInfo.ACC_PUBLIC);
+	cd = new Code();
+	cd.addCode(new ALoad(0));
+	cd.addCode(new Invokespecial(new ConstantMethodref("java/lang/Object", "<init>", "()V")));
+	cd.addCode(Mnemonic.RETURN);
+	cd.setMaxStack(128);
+	cd.setMaxLocals(1);
+	mi.addAttribute(cd);
+	cf.addMethod(mi);
+
+	mi = new MethodInfo("main", "([Ljava/lang/String;)V");
+	mi.setAccessFlags(MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC);
+	cd = new Code();
+	cd.addCode(new New(new ConstantClass(name)));
+	cd.addCode(Mnemonic.DUP);
+	cd.addCode(Mnemonic.DUP);
+	cd.addCode(new Invokespecial(new ConstantMethodref(name, "<init>", "()V")));
+	cd.addCode(new Invokevirtual(new ConstantMethodref(name, "main", "()V")));
+	cd.addCode(Mnemonic.RETURN);
+	cd.setMaxStack(128);
+	cd.setMaxLocals(1);
+	mi.addAttribute(cd);
+	cf.addMethod(mi);
+}
+
+private static void addFields(FunctionSpace fs, Classfile cf) {
+	java.util.Map<String, VariableType> map;
+	FieldInfo fi;
+
+	map = fs.getGlobalMap();
+	for(java.util.Map.Entry<String, VariableType> e : map.entrySet()) {
+		fi = new FieldInfo(e.getKey(), e.getValue().getDescriptor());
+		fi.setAccessFlags(FieldInfo.ACC_PUBLIC);
+		cf.addField(fi);
+	}
+}
+
+public static void main(String[] args) throws Exception {
+	Classfile cf = new Classfile();
+	MethodInfo mi = new MethodInfo("main", "()V");
+	Miyuki9 parser = new Miyuki9();
+	Goto gt = new Goto(), gb = new Goto();
+	FunctionDefinition mn;
+	int jp, np;
+
+	parser.classfile = cf;
+	parser.functions = newFunctionSpace(args[0]);
+	cf.setMajorVersion(45);
+	cf.setMinorVersion(3);
+	cf.setAccessFlag(Classfile.ACC_PUBLIC);
+	cf.setThisClass(new ConstantClass(args[0]));
+	cf.setSuperClass(new ConstantClass("java/lang/Object"));
+	parser.parse(System.in);
+
+	addBuiltIn(cf);
+	addBootStrap(args[0], cf);
+	addFields(parser.functions, cf);
+
+	mn = parser.functions.getDefinition("main");
+	if(!mn.getReturnType().equals(Primitive.VOID)) {
+		throw new RuntimeException("main must be subroutine");
+	}
+
+	FileOutputStream fs = null;
+	try {
+		fs = new FileOutputStream(args[0] + ".class");
+		cf.generateClassFile(fs);
+	} finally {
+		if(fs != null) {
+			fs.close();
+		}
+	}
+}

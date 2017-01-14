@@ -19,6 +19,7 @@ import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.ConstantFieldref;
 import net.morilib.syaro.classfile.Mnemonic;
 import net.morilib.syaro.classfile.code.ALoad;
+import net.morilib.syaro.classfile.code.AStore;
 import net.morilib.syaro.classfile.code.DStore;
 import net.morilib.syaro.classfile.code.FStore;
 import net.morilib.syaro.classfile.code.IStore;
@@ -51,13 +52,56 @@ public class Utils {
 		return ((SymbolAST)ast).getName();
 	}
 
-	public static void setVar(AST node,
+	public static void putCodeRef(VariableType v, Code code) {
+		if(v.isPrimitive()) {
+			if(v.equals(Primitive.INT)) {
+				code.addCode(Mnemonic.IALOAD);
+			} else if(v.equals(Primitive.FLOAT)) {
+				code.addCode(Mnemonic.FALOAD);
+			} else if(v.equals(Primitive.DOUBLE)) {
+				code.addCode(Mnemonic.DALOAD);
+			}
+		} else {
+			code.addCode(Mnemonic.AALOAD);
+		}
+	}
+
+	public static void putCodeArrayRef(AST left,
 			FunctionSpace functions,
 			LocalVariableSpace space,
-			int idx, Code code) {
+			Code code) {
+		ArrayIndexAST a;
+
+		if(!(left instanceof ArrayIndexAST)) {
+			return;
+		} else {
+			a = (ArrayIndexAST)left;
+			while(true) {
+				a.getArray().putCode(functions, space, code);
+				a.getArrayIndex().putCode(functions, space, code);
+				if(a.getArray() instanceof ArrayIndexAST) {
+					code.addCode(Mnemonic.AALOAD);
+					a = (ArrayIndexAST)a.getArray();
+				} else {
+					break;
+				}
+			}
+		}
+	}
+
+	private static int getLocalIndex(LocalVariableSpace space, AST ast) {
+		return space.getIndex(Utils.getVarName(ast));
+	}
+
+	private static void setVarNotRef(AST node,
+			FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code) {
 		VariableType type;
 		String name;
+		int idx;
 
+		idx = getLocalIndex(space, node);
 		if(idx >= 0) {
 			if(node.getASTType(functions, space).equals(Primitive.INT)) {
 				code.addCode(new IStore(idx));
@@ -66,7 +110,7 @@ public class Utils {
 			} else if(node.getASTType(functions, space).equals(Primitive.DOUBLE)) {
 				code.addCode(new DStore(idx));
 			} else {
-				throw new RuntimeException();
+				code.addCode(new AStore(idx));
 			}
 		} else {
 			code.addCode(new ALoad(0));
@@ -80,6 +124,46 @@ public class Utils {
 			type = functions.getGlobal(name);
 			code.addCode(new Putfield(new ConstantFieldref(
 					functions.getClassname(), name, type.getDescriptor())));
+		}
+	}
+
+	public static void setVar(AST node,
+			FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code) {
+		VariableType v;
+
+		if(node instanceof ArrayIndexAST) {
+			v = node.getASTType(functions, space);
+			if(v.isPrimitive()) {
+				if(v.equals(Primitive.INT)) {
+					code.addCode(Mnemonic.IASTORE);
+				} else if(v.equals(Primitive.FLOAT)) {
+					code.addCode(Mnemonic.FASTORE);
+				} else if(v.equals(Primitive.DOUBLE)) {
+					code.addCode(Mnemonic.DASTORE);
+				}
+			} else {
+				code.addCode(Mnemonic.AASTORE);
+			}
+		} else {
+			setVarNotRef(node, functions, space, code);
+		}
+	}
+
+	public static void putDup(AST node, Code code) {
+		if(node instanceof ArrayIndexAST) {
+			code.addCode(Mnemonic.DUP_X2);
+		} else {
+			code.addCode(Mnemonic.DUP);
+		}
+	}
+
+	public static void putDup2(AST node, Code code) {
+		if(node instanceof ArrayIndexAST) {
+			code.addCode(Mnemonic.DUP2_X2);
+		} else {
+			code.addCode(Mnemonic.DUP2);
 		}
 	}
 

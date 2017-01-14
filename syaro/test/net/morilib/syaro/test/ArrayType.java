@@ -19,14 +19,40 @@ package net.morilib.syaro.test;
  * @author Yuichiro MORIGUCHI
  *
  */
-public interface VariableType {
+public class ArrayType implements VariableType {
 
-	public String getDescriptor();
+	private VariableType element;
 
-	public boolean isPrimitive();
+	public ArrayType(VariableType el) {
+		element = el;
+	}
 
-	public boolean isConversible(VariableType type);
+	public VariableType getElement() {
+		return element;
+	}
 
-	public boolean isCastable(VariableType type);
+	@Override
+	public String getDescriptor() {
+		return element.getDescriptor() + "[";
+	}
+
+	@Override
+	public boolean isPrimitive() {
+		return false;
+	}
+
+	@Override
+	public boolean isConversible(VariableType type) {
+		if(type instanceof ArrayType) {
+			return element.isConversible(((ArrayType)type).element);
+		} else {
+			return false;
+		}
+	}
+
+	@Override
+	public boolean isCastable(VariableType type) {
+		return isConversible(type);
+	}
 
 }

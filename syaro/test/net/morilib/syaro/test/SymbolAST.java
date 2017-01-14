@@ -52,8 +52,10 @@ public class SymbolAST implements AST {
 				code.addCode(new ILoad(idx));
 			} else if(type.equals(Primitive.FLOAT)) {
 				code.addCode(new FLoad(idx));
-			} else {
+			} else if(type.equals(Primitive.DOUBLE)) {
 				code.addCode(new DLoad(idx));
+			} else {
+				code.addCode(new ALoad(idx));
 			}
 		} else {
 			type = functions.getGlobal(name);

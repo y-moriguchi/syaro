@@ -82,24 +82,27 @@ public class AssignAST implements AST {
 		return right;
 	}
 
-	private int getLocalIndex(LocalVariableSpace space, AST ast) {
-		return space.getIndex(Utils.getVarName(ast));
+	private void putCodeReference(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code) {
+		if(operate != null) {
+			throw new RuntimeException("not operate instance");
+		} else {
+			Utils.putCodeArrayRef(left, functions, space, code);
+			right.putCode(functions, space, code);
+			Utils.putDup(left, code);
+			Utils.setVar(left, functions, space, code);
+		}
 	}
 
-	@Override
-	public void putCode(FunctionSpace functions,
+	private void putCodePrimitive(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
 		Primitive lp, rp;
-		int idx;
 
-		if(!left.getASTType(functions, space).isPrimitive() ||
-				!right.getASTType(functions, space).isPrimitive()) {
-			throw new RuntimeException();
-		}
 		lp = (Primitive)left.getASTType(functions, space);
 		rp = (Primitive)right.getASTType(functions, space);
-		idx = getLocalIndex(space, left);
+		Utils.putCodeArrayRef(left, functions, space, code);
 		if(operate == null) {
 			right.putCode(functions, space, code);
 		} else {
@@ -126,22 +129,36 @@ public class AssignAST implements AST {
 				code.addCode(operateDouble);
 			}
 		}
-		if(lp.equals(Primitive.INT)) {
-			if(!rp.isConversible(Primitive.INT)) {
-				throw new RuntimeException("double value can not assign to int");
-			}
-			code.addCode(Mnemonic.DUP);
+		if(!rp.isConversible(lp)) {
+			throw new RuntimeException("type mismatch");
+		} else if(lp.equals(Primitive.INT)) {
+			Utils.putDup(left, code);
 		} else if(lp.equals(Primitive.FLOAT)) {
-			if(!rp.isConversible(Primitive.FLOAT)) {
-				throw new RuntimeException("double value can not assign to int");
-			}
 			Utils.putConversionFloat(rp, code);
-			code.addCode(Mnemonic.DUP);
+			Utils.putDup(left, code);
 		} else {
 			Utils.putConversionDouble(rp, code);
-			code.addCode(Mnemonic.DUP2);
+			Utils.putDup2(left, code);
 		}
-		Utils.setVar(left, functions, space, idx, code);
+		Utils.setVar(left, functions, space, code);
+	}
+
+
+	@Override
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code) {
+		VariableType l, r;
+
+		l = left.getASTType(functions, space);
+		r = right.getASTType(functions, space);
+		if(!l.isConversible(r)) {
+			throw new RuntimeException("type mismatch");
+		} else if(!l.isPrimitive() || !r.isPrimitive()) {
+			putCodeReference(functions, space, code);
+		} else {
+			putCodePrimitive(functions, space, code);
+		}
 	}
 
 	public VariableType getASTType(FunctionSpace functions,

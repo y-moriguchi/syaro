@@ -68,6 +68,7 @@ public class CallAST implements AST {
 		List<VariableType> fvar;
 		String name, desc;
 		Primitive ap, fp;
+		VariableType at;
 		AST a;
 
 		name = getName(callee);
@@ -80,21 +81,16 @@ public class CallAST implements AST {
 		}
 		for(int i = 0; i < arguments.size(); i++) {
 			a = arguments.get(i);
+			at = arguments.get(i).getASTType(functions, space);
 			a.putCode(functions, space, code);
-			if(fvar.get(i).isPrimitive()) {
-				if(!a.getASTType(functions, space).isPrimitive()) {
-					throw new RuntimeException("type mismatch");
-				}
-				ap = (Primitive)arguments.get(i).getASTType(functions, space);
+			if(!at.isConversible(fvar.get(i))) {
+				throw new RuntimeException("type mismatch");
+			} else if(fvar.get(i).isPrimitive()) {
+				ap = (Primitive)at;
 				fp = (Primitive)fvar.get(i);
 				if(fp.isConversible(Primitive.INT)) {
-					if(!ap.isConversible(Primitive.INT)) {
-						throw new RuntimeException("type mismatch");
-					}
-				} else if(ap.isConversible(Primitive.FLOAT)) {
-					if(!ap.isConversible(Primitive.FLOAT)) {
-						throw new RuntimeException("type mismatch");
-					}
+					// do nothing
+				} else if(fp.isConversible(Primitive.FLOAT)) {
 					Utils.putConversionFloat(ap, code);
 				} else {
 					Utils.putConversionDouble(ap, code);

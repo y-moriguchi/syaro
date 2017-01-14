@@ -41,65 +41,54 @@ public class IncDecAST implements AST {
 		return node;
 	}
 
-	private int getLocalIndex(LocalVariableSpace space, AST ast) {
-		return space.getIndex(Utils.getVarName(ast));
-	}
-
 	@Override
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
+		VariableType t;
 		Mnemonic val;
-		int idx;
 
-		if(node.getASTType(functions, space).equals(Primitive.INT)) {
+		t = node.getASTType(functions, space);
+		if(t.equals(Primitive.INT)) {
 			val = new IConst(isInc ? 1 : -1);
-		} else if(node.getASTType(functions, space).equals(Primitive.INT)) {
+		} else if(t.equals(Primitive.FLOAT)) {
 			val = new FConst(1);
-		} else {
+		} else if(t.equals(Primitive.DOUBLE)) {
 			val = new DConst(1);
+		} else {
+			throw new RuntimeException("type mismatch");
 		}
-		idx = getLocalIndex(space, node);
+		Utils.putCodeArrayRef(node, functions, space, code);
 		if(isPre) {
+			node.putCode(functions, space, code);
+			code.addCode(val);
 			if(node.getASTType(functions, space).equals(Primitive.INT)) {
-				node.putCode(functions, space, code);
-				code.addCode(val);
 				code.addCode(Mnemonic.IADD);
-				code.addCode(Mnemonic.DUP);
-				Utils.setVar(node, functions, space, idx, code);
+				Utils.putDup(node, code);
+			} else if(node.getASTType(functions, space).equals(Primitive.FLOAT)) {
+				code.addCode(isInc ? Mnemonic.FADD : Mnemonic.FSUB);
+				Utils.putDup(node, code);
 			} else {
-				node.putCode(functions, space, code);
-				code.addCode(val);
-				if(node.getASTType(functions, space).equals(Primitive.FLOAT)) {
-					code.addCode(isInc ? Mnemonic.FADD : Mnemonic.FSUB);
-					code.addCode(Mnemonic.DUP);
-				} else {
-					code.addCode(isInc ? Mnemonic.DADD : Mnemonic.DSUB);
-					code.addCode(Mnemonic.DUP2);
-				}
-				Utils.setVar(node, functions, space, idx, code);
+				code.addCode(isInc ? Mnemonic.DADD : Mnemonic.DSUB);
+				Utils.putDup2(node, code);
 			}
 		} else {
+			node.putCode(functions, space, code);
 			if(node.getASTType(functions, space).equals(Primitive.INT)) {
-				node.putCode(functions, space, code);
-				code.addCode(Mnemonic.DUP);
+				Utils.putDup(node, code);
 				code.addCode(val);
 				code.addCode(Mnemonic.IADD);
-				Utils.setVar(node, functions, space, idx, code);
+			} else if(node.getASTType(functions, space).equals(Primitive.FLOAT)) {
+				Utils.putDup(node, code);
+				code.addCode(val);
+				code.addCode(isInc ? Mnemonic.FADD : Mnemonic.FSUB);
 			} else {
-				node.putCode(functions, space, code);
-				if(node.getASTType(functions, space).equals(Primitive.FLOAT)) {
-					code.addCode(Mnemonic.DUP);
-					code.addCode(val);
-					code.addCode(isInc ? Mnemonic.FADD : Mnemonic.FSUB);
-				} else {
-					code.addCode(Mnemonic.DUP2);
-					code.addCode(val);
-					code.addCode(isInc ? Mnemonic.DADD : Mnemonic.DSUB);
-				}
-				Utils.setVar(node, functions, space, idx, code);
+				Utils.putDup2(node, code);
+				code.addCode(val);
+				code.addCode(isInc ? Mnemonic.DADD : Mnemonic.DSUB);
 			}
 		}
+		Utils.setVar(node, functions, space, code);
 	}
 
 	public VariableType getASTType(FunctionSpace functions,
