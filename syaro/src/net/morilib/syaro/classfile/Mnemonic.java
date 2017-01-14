@@ -283,6 +283,11 @@ public abstract class Mnemonic implements ClassInfo {
 	public static Mnemonic BALOAD = new Single(51);
 
 	/**
+	 * The instruction caload.
+	 */
+	public static Mnemonic CALOAD = new Single(52);
+
+	/**
 	 * The instruction saload.
 	 */
 	public static Mnemonic SALOAD = new Single(53);
@@ -328,6 +333,11 @@ public abstract class Mnemonic implements ClassInfo {
 	public static Mnemonic BASTORE = new Single(84);
 
 	/**
+	 * The instruction castore.
+	 */
+	public static Mnemonic CASTORE = new Single(85);
+
+	/**
 	 * The instruction sastore.
 	 */
 	public static Mnemonic SASTORE = new Single(86);
@@ -371,6 +381,11 @@ public abstract class Mnemonic implements ClassInfo {
 	 * The instruction i2b.
 	 */
 	public static Mnemonic I2B = new Single(145);
+
+	/**
+	 * The instruction i2c.
+	 */
+	public static Mnemonic I2C = new Single(146);
 
 	/**
 	 * The instruction i2s.
