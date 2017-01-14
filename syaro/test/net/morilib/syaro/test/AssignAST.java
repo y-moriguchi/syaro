@@ -22,56 +22,73 @@ import net.morilib.syaro.classfile.Mnemonic;
  * @author Yuichiro MORIGUCHI
  *
  */
-public class AssignAST implements AST {
+public class AssignAST implements AST, OperationMnemonics {
 
 	public static enum Type {
-		BOR(Mnemonic.IOR, null, null),
-		BXOR(Mnemonic.IXOR, null, null),
-		BAND(Mnemonic.IAND, null, null),
-		SHR(Mnemonic.ISHR, null, null),
-		SHL(Mnemonic.ISHL, null, null),
-		ADD(Mnemonic.IADD, Mnemonic.DADD, Mnemonic.FADD),
-		SUB(Mnemonic.ISUB, Mnemonic.DSUB, Mnemonic.FSUB),
-		MUL(Mnemonic.IMUL, Mnemonic.DMUL, Mnemonic.FMUL),
-		DIV(Mnemonic.IDIV, Mnemonic.DDIV, Mnemonic.FDIV),
-		REM(Mnemonic.IREM, Mnemonic.DREM, Mnemonic.FREM);
+		BOR(Mnemonic.IOR, Mnemonic.LOR, null, null),
+		BXOR(Mnemonic.IXOR, Mnemonic.LXOR, null, null),
+		BAND(Mnemonic.IAND, Mnemonic.LAND, null, null),
+		SHR(Mnemonic.ISHR, Mnemonic.LSHR, null, null),
+		SHL(Mnemonic.ISHL, Mnemonic.LSHL, null, null),
+		ADD(Mnemonic.IADD, Mnemonic.LADD, Mnemonic.DADD, Mnemonic.FADD),
+		SUB(Mnemonic.ISUB, Mnemonic.LSUB, Mnemonic.DSUB, Mnemonic.FSUB),
+		MUL(Mnemonic.IMUL, Mnemonic.LMUL, Mnemonic.DMUL, Mnemonic.FMUL),
+		DIV(Mnemonic.IDIV, Mnemonic.LDIV, Mnemonic.DDIV, Mnemonic.FDIV),
+		REM(Mnemonic.IREM, Mnemonic.LREM, Mnemonic.DREM, Mnemonic.FREM);
 		private Mnemonic mnemonic;
+		private Mnemonic mnemonicLong;
 		private Mnemonic mnemonicDouble;
 		private Mnemonic mnemonicFloat;
-		private Type(Mnemonic m, Mnemonic d, Mnemonic f) {
+		private Type(Mnemonic m, Mnemonic l, Mnemonic d, Mnemonic f) {
 			mnemonic = m;
+			mnemonicLong = l;
 			mnemonicDouble = d;
 			mnemonicFloat = f;
 		}
 	}
 
-	private Mnemonic operate;
-	private Mnemonic operateDouble;
-	private Mnemonic operateFloat;
+	private Mnemonic mnemonic;
+	private Mnemonic mnemonicLong;
+	private Mnemonic mnemonicDouble;
+	private Mnemonic mnemonicFloat;
 	private AST left, right;
 
-	public AssignAST(Mnemonic operate, AST left, AST right) {
-		this.operate = operate;
+	public AssignAST(Mnemonic mnemonic, AST left, AST right) {
+		this.mnemonic = mnemonic;
 		this.left = left;
 		this.right = right;
 	}
 
 	public AssignAST(Type op, AST left, AST right) {
 		if(op != null) {
-			this.operate = op.mnemonic;
-			this.operateDouble = op.mnemonicDouble;
-			this.operateDouble = op.mnemonicFloat;
+			this.mnemonic = op.mnemonic;
+			this.mnemonicLong = op.mnemonicLong;
+			this.mnemonicDouble = op.mnemonicDouble;
+			this.mnemonicFloat = op.mnemonicFloat;
 		} else {
-			this.operate = null;
-			this.operateDouble = null;
-			this.operateFloat = null;
+			this.mnemonic = null;
+			this.mnemonicLong = null;
+			this.mnemonicDouble = null;
+			this.mnemonicFloat = null;
 		}
 		this.left = left;
 		this.right = right;
 	}
 
-	public Mnemonic getOperate() {
-		return operate;
+	public Mnemonic getMnemonic() {
+		return mnemonic;
+	}
+
+	public Mnemonic getMnemonicLong() {
+		return mnemonicLong;
+	}
+
+	public Mnemonic getMnemonicDouble() {
+		return mnemonicDouble;
+	}
+
+	public Mnemonic getMnemonicFloat() {
+		return mnemonicFloat;
 	}
 
 	public AST getLeft() {
@@ -85,8 +102,8 @@ public class AssignAST implements AST {
 	private void putCodeReference(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
-		if(operate != null) {
-			throw new RuntimeException("not operate instance");
+		if(mnemonic != null) {
+			throw new RuntimeException("not mnemonic instance");
 		} else {
 			Utils.putCodeArrayRef(left, functions, space, code);
 			right.putCode(functions, space, code);
@@ -103,36 +120,18 @@ public class AssignAST implements AST {
 		lp = (Primitive)left.getASTType(functions, space);
 		rp = (Primitive)right.getASTType(functions, space);
 		Utils.putCodeArrayRef(left, functions, space, code);
-		if(operate == null) {
+		if(mnemonic == null) {
 			right.putCode(functions, space, code);
 		} else {
-			if(lp.isConversible(Primitive.INT) && rp.isConversible(Primitive.INT)) {
-				left.putCode(functions, space, code);
-				right.putCode(functions, space, code);
-				code.addCode(operate);
-			} else if(operateFloat == null) {
-				throw new RuntimeException("type mismatch");
-			} else if(lp.isConversible(Primitive.FLOAT) &&
-					rp.isConversible(Primitive.FLOAT)) {
-				left.putCode(functions, space, code);
-				Utils.putConversionFloat(lp, code);
-				right.putCode(functions, space, code);
-				Utils.putConversionFloat(rp, code);
-				code.addCode(operateFloat);
-			} else if(operateDouble == null) {
-				throw new RuntimeException("type mismatch");
-			} else {
-				left.putCode(functions, space, code);
-				Utils.putConversionDouble(lp, code);
-				right.putCode(functions, space, code);
-				Utils.putConversionDouble(rp, code);
-				code.addCode(operateDouble);
-			}
+			Utils.operatePrimitive(left, right, this, functions, space, code);
 		}
 		if(!rp.isConversible(lp)) {
 			throw new RuntimeException("type mismatch");
-		} else if(lp.equals(Primitive.INT)) {
+		} else if(lp.isConversible(Primitive.INT)) {
 			Utils.putDup(left, code);
+		} else if(lp.equals(Primitive.LONG)) {
+			Utils.putConversionLong(rp, code);
+			Utils.putDup2(left, code);
 		} else if(lp.equals(Primitive.FLOAT)) {
 			Utils.putConversionFloat(rp, code);
 			Utils.putDup(left, code);

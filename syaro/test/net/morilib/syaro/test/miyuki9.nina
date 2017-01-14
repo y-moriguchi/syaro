@@ -521,8 +521,14 @@ private void endfuncdef() {
 }
 
 private VariableType getTypeFromName(String tname) {
-	if(tname.equals("int")) {
+	if(tname.equals("byte")) {
+		return Primitive.BYTE;
+	} else if(tname.equals("short")) {
+		return Primitive.SHORT;
+	} else if(tname.equals("int")) {
 		return Primitive.INT;
+	} else if(tname.equals("long")) {
+		return Primitive.LONG;
 	} else if(tname.equals("float")) {
 		return Primitive.FLOAT;
 	} else if(tname.equals("double")) {
@@ -584,7 +590,7 @@ private void funcend() {
 
 	gotoInst.setOffset(code.getCurrentOffset(localStart));
 	for(NameAndType x : funcargs) {
-		if(x.type.equals(Primitive.DOUBLE)) {
+		if(x.type.equals(Primitive.DOUBLE) || x.type.equals(Primitive.LONG)) {
 			fargs += 2;
 		} else {
 			fargs++;
@@ -593,9 +599,12 @@ private void funcend() {
 	for(int i = fargs + 1; i < local.getMax(); i++) {
 		if(local.getType(i - fargs) == null) {
 			// do nothing
-		} else if(local.getType(i - fargs).equals(Primitive.INT)) {
+		} else if(local.getType(i - fargs).isConversible(Primitive.INT)) {
 			code.addCode(new IConst(0));
 			code.addCode(new IStore(i));
+		} else if(local.getType(i - fargs).equals(Primitive.LONG)) {
+			code.addCode(new LConst(0));
+			code.addCode(new LStore(i));
 		} else if(local.getType(i - fargs).equals(Primitive.FLOAT)) {
 			code.addCode(new FConst(0));
 			code.addCode(new FStore(i));
@@ -620,12 +629,21 @@ private void func() {
 }
 
 private void endfunc() {
-	if(funcdefobj.getReturnType().equals(Primitive.INT)) {
+	if(funcdefobj.getReturnType().isConversible(Primitive.INT)) {
 		code.addCode(new IConst(0));
 		code.addCode(Mnemonic.IRETURN);
-	} else {
+	} else if(funcdefobj.getReturnType().isConversible(Primitive.LONG)) {
+		code.addCode(new LConst(0));
+		code.addCode(Mnemonic.LRETURN);
+	} else if(funcdefobj.getReturnType().isConversible(Primitive.FLOAT)) {
+		code.addCode(new FConst(0));
+		code.addCode(Mnemonic.FRETURN);
+	} else if(funcdefobj.getReturnType().isConversible(Primitive.DOUBLE)) {
 		code.addCode(new DConst(0));
 		code.addCode(Mnemonic.DRETURN);
+	} else {
+		code.addCode(Mnemonic.ACONST_NULL);
+		code.addCode(Mnemonic.ARETURN);
 	}
 	funcend();
 }

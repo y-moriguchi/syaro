@@ -47,7 +47,7 @@ public class LocalVariableSpace {
 	public void putVariable(String var, VariableType type) {
 		if(!space.containsKey(var)) {
 			types.put(var, type);
-			if(type.equals(Primitive.DOUBLE)) {
+			if(type.equals(Primitive.DOUBLE) || type.equals(Primitive.LONG)) {
 				space.put(var, max);
 				max += 2;
 				typeList.add(type);

@@ -17,12 +17,15 @@ package net.morilib.syaro.test;
 
 import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.ConstantInteger;
+import net.morilib.syaro.classfile.ConstantLong;
 import net.morilib.syaro.classfile.Mnemonic;
 import net.morilib.syaro.classfile.code.DConst;
 import net.morilib.syaro.classfile.code.FConst;
 import net.morilib.syaro.classfile.code.Goto;
 import net.morilib.syaro.classfile.code.IConst;
 import net.morilib.syaro.classfile.code.If;
+import net.morilib.syaro.classfile.code.LConst;
+import net.morilib.syaro.classfile.code.Ldc2W;
 import net.morilib.syaro.classfile.code.LdcW;
 
 /**
@@ -32,18 +35,23 @@ import net.morilib.syaro.classfile.code.LdcW;
 public class UnaryAST implements AST {
 
 	public static enum Type {
-		INEG(Mnemonic.INEG, Mnemonic.DNEG, Mnemonic.FNEG),
-		IBNOT(null, null, null),
-		ILNOT(null, null, null);
+		INEG(Mnemonic.INEG, Mnemonic.LNEG, Mnemonic.DNEG, Mnemonic.FNEG, OP_VALUE),
+		IBNOT(null, null, null, null, OP_VALUE),
+		ILNOT(null, null, null, null, OP_LOGICAL);
 		private Mnemonic mnemonic;
+		private Mnemonic mnemonicLong;
 		private Mnemonic mnemonicDouble;
 		private Mnemonic mnemonicFloat;
-		private Type(Mnemonic m, Mnemonic d, Mnemonic f) {
+		private Type(Mnemonic m, Mnemonic l, Mnemonic d, Mnemonic f, int fl) {
 			mnemonic = m;
+			mnemonicLong = l;
 			mnemonicDouble = d;
 			mnemonicFloat = f;
 		}
 	}
+
+	private static final int OP_VALUE = 0;
+	private static final int OP_LOGICAL = 1;
 
 	private Type type;
 	private AST node;
@@ -66,34 +74,53 @@ public class UnaryAST implements AST {
 			LocalVariableSpace space,
 			Code code) {
 		int lbl0, lbl1;
+		VariableType t;
 
+		t = node.getASTType(functions, space);
 		if(type.mnemonic != null) {
 			node.putCode(functions, space, code);
-			if(node.getASTType(functions, space).equals(Primitive.INT)) {
+			if(t.isConversible(Primitive.INT)) {
 				code.addCode(type.mnemonic);
-			} else if(node.getASTType(functions, space).equals(Primitive.FLOAT)) {
+			} else if(t.equals(Primitive.LONG)) {
+				code.addCode(type.mnemonicLong);
+			} else if(t.equals(Primitive.FLOAT)) {
 				code.addCode(type.mnemonicFloat);
-			} else {
+			} else if(t.equals(Primitive.DOUBLE)) {
 				code.addCode(type.mnemonicDouble);
+			} else {
+				throw new RuntimeException("type mismatch");
 			}
 		} else {
 			switch(type) {
 			case IBNOT:
-				if(!node.getASTType(functions, space).equals(Primitive.INT)) {
+				if(t.isConversible(Primitive.INT)) {
+					node.putCode(functions, space, code);
+					code.addCode(new LdcW(new ConstantInteger(0xffffffff)));
+					code.addCode(Mnemonic.IXOR);
+					break;
+				} else if(t.equals(Primitive.LONG)) {
+					node.putCode(functions, space, code);
+					code.addCode(new Ldc2W(new ConstantLong(0xffffffffffffffffl)));
+					code.addCode(Mnemonic.LXOR);
+					break;
+				} else {
 					throw new RuntimeException("type mismatch");
 				}
-				node.putCode(functions, space, code);
-				code.addCode(new LdcW(new ConstantInteger(0xffffffff)));
-				code.addCode(Mnemonic.IXOR);
-				break;
 			case ILNOT:
 				node.putCode(functions, space, code);
-				if(node.getASTType(functions, space).equals(Primitive.FLOAT)) {
+				if(t.isConversible(Primitive.INT)) {
+					// do nothing
+				} else if(t.equals(Primitive.LONG)) {
+					code.addCode(new LConst(0));
+					code.addCode(Mnemonic.LCMP);
+				} else if(t.equals(Primitive.FLOAT)) {
 					code.addCode(new FConst(0.0));
 					code.addCode(Mnemonic.FCMPG);
-				} else if(node.getASTType(functions, space).equals(Primitive.DOUBLE)) {
+				} else if(t.equals(Primitive.DOUBLE)) {
 					code.addCode(new DConst(0.0));
 					code.addCode(Mnemonic.DCMPG);
+				} else {
+					throw new RuntimeException("type mismatch");
 				}
 				lbl0 = code.addCode(new If(If.Cond.NE));
 				code.addCode(new IConst(1));

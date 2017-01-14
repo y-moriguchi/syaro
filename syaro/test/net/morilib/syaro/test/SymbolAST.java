@@ -22,6 +22,7 @@ import net.morilib.syaro.classfile.code.DLoad;
 import net.morilib.syaro.classfile.code.FLoad;
 import net.morilib.syaro.classfile.code.Getfield;
 import net.morilib.syaro.classfile.code.ILoad;
+import net.morilib.syaro.classfile.code.LLoad;
 
 /**
  * @author Yuichiro MORIGUCHI
@@ -48,8 +49,10 @@ public class SymbolAST implements AST {
 
 		if(idx >= 0) {
 			type = space.getType(name);
-			if(type.equals(Primitive.INT)) {
+			if(type.isConversible(Primitive.INT)) {
 				code.addCode(new ILoad(idx));
+			} else if(type.equals(Primitive.LONG)) {
+				code.addCode(new LLoad(idx));
 			} else if(type.equals(Primitive.FLOAT)) {
 				code.addCode(new FLoad(idx));
 			} else if(type.equals(Primitive.DOUBLE)) {

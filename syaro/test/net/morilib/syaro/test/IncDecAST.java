@@ -20,6 +20,7 @@ import net.morilib.syaro.classfile.Mnemonic;
 import net.morilib.syaro.classfile.code.DConst;
 import net.morilib.syaro.classfile.code.FConst;
 import net.morilib.syaro.classfile.code.IConst;
+import net.morilib.syaro.classfile.code.LConst;
 
 /**
  * @author Yuichiro MORIGUCHI
@@ -49,8 +50,10 @@ public class IncDecAST implements AST {
 		Mnemonic val;
 
 		t = node.getASTType(functions, space);
-		if(t.equals(Primitive.INT)) {
+		if(t.isConversible(Primitive.INT)) {
 			val = new IConst(isInc ? 1 : -1);
+		} else if(t.equals(Primitive.LONG)) {
+			val = new LConst(1);
 		} else if(t.equals(Primitive.FLOAT)) {
 			val = new FConst(1);
 		} else if(t.equals(Primitive.DOUBLE)) {
@@ -62,10 +65,13 @@ public class IncDecAST implements AST {
 		if(isPre) {
 			node.putCode(functions, space, code);
 			code.addCode(val);
-			if(node.getASTType(functions, space).equals(Primitive.INT)) {
+			if(t.isConversible(Primitive.INT)) {
 				code.addCode(Mnemonic.IADD);
 				Utils.putDup(node, code);
-			} else if(node.getASTType(functions, space).equals(Primitive.FLOAT)) {
+			} else if(t.equals(Primitive.LONG)) {
+				code.addCode(isInc ? Mnemonic.LADD : Mnemonic.LSUB);
+				Utils.putDup2(node, code);
+			} else if(t.equals(Primitive.FLOAT)) {
 				code.addCode(isInc ? Mnemonic.FADD : Mnemonic.FSUB);
 				Utils.putDup(node, code);
 			} else {
@@ -74,11 +80,15 @@ public class IncDecAST implements AST {
 			}
 		} else {
 			node.putCode(functions, space, code);
-			if(node.getASTType(functions, space).equals(Primitive.INT)) {
+			if(t.isConversible(Primitive.INT)) {
 				Utils.putDup(node, code);
 				code.addCode(val);
 				code.addCode(Mnemonic.IADD);
-			} else if(node.getASTType(functions, space).equals(Primitive.FLOAT)) {
+			} else if(t.equals(Primitive.LONG)) {
+				Utils.putDup2(node, code);
+				code.addCode(val);
+				code.addCode(isInc ? Mnemonic.LADD : Mnemonic.LSUB);
+			} else if(t.equals(Primitive.FLOAT)) {
 				Utils.putDup(node, code);
 				code.addCode(val);
 				code.addCode(isInc ? Mnemonic.FADD : Mnemonic.FSUB);

@@ -38,23 +38,59 @@ public class CastAST implements AST {
 		VariableType ntype = node.getASTType(functions, space);
 
 		node.putCode(functions, space, code);
-		if(ntype.isCastable(type)) {
+		if(!ntype.isCastable(type)) {
 			throw new RuntimeException("can not cast");
-		} else if(ntype.equals(Primitive.INT)) {
-			if(type.equals(Primitive.FLOAT)) {
+		} else if(ntype.isConversible(Primitive.INT)) {
+			if(type.equals(Primitive.BYTE)) {
+				code.addCode(Mnemonic.I2B);
+			} else if(type.equals(Primitive.SHORT)) {
+				code.addCode(Mnemonic.I2S);
+			} else if(type.equals(Primitive.LONG)) {
+				code.addCode(Mnemonic.I2D);
+			} else if(type.equals(Primitive.FLOAT)) {
 				code.addCode(Mnemonic.I2F);
 			} else if(type.equals(Primitive.DOUBLE)) {
 				code.addCode(Mnemonic.I2D);
 			}
+		} else if(ntype.equals(Primitive.LONG)) {
+			if(type.equals(Primitive.BYTE)) {
+				code.addCode(Mnemonic.L2I);
+				code.addCode(Mnemonic.I2B);
+			} else if(type.equals(Primitive.SHORT)) {
+				code.addCode(Mnemonic.L2I);
+				code.addCode(Mnemonic.I2S);
+			} else if(type.equals(Primitive.INT)) {
+				code.addCode(Mnemonic.L2I);
+			} else if(type.equals(Primitive.FLOAT)) {
+				code.addCode(Mnemonic.L2F);
+			} else if(type.equals(Primitive.DOUBLE)) {
+				code.addCode(Mnemonic.L2D);
+			}
 		} else if(ntype.equals(Primitive.FLOAT)) {
-			if(type.equals(Primitive.INT)) {
+			if(type.equals(Primitive.BYTE)) {
 				code.addCode(Mnemonic.F2I);
+				code.addCode(Mnemonic.I2B);
+			} else if(type.equals(Primitive.SHORT)) {
+				code.addCode(Mnemonic.F2I);
+				code.addCode(Mnemonic.I2S);
+			} else if(type.equals(Primitive.INT)) {
+				code.addCode(Mnemonic.F2I);
+			} else if(type.equals(Primitive.LONG)) {
+				code.addCode(Mnemonic.F2L);
 			} else if(type.equals(Primitive.DOUBLE)) {
 				code.addCode(Mnemonic.F2D);
 			}
 		} else if(ntype.equals(Primitive.DOUBLE)) {
-			if(type.equals(Primitive.INT)) {
+			if(type.equals(Primitive.BYTE)) {
 				code.addCode(Mnemonic.D2I);
+				code.addCode(Mnemonic.I2B);
+			} else if(type.equals(Primitive.SHORT)) {
+				code.addCode(Mnemonic.D2I);
+				code.addCode(Mnemonic.I2S);
+			} else if(type.equals(Primitive.INT)) {
+				code.addCode(Mnemonic.D2I);
+			} else if(type.equals(Primitive.LONG)) {
+				code.addCode(Mnemonic.D2L);
 			} else if(type.equals(Primitive.FLOAT)) {
 				code.addCode(Mnemonic.D2F);
 			}

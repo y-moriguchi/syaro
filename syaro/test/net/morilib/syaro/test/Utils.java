@@ -23,6 +23,7 @@ import net.morilib.syaro.classfile.code.AStore;
 import net.morilib.syaro.classfile.code.DStore;
 import net.morilib.syaro.classfile.code.FStore;
 import net.morilib.syaro.classfile.code.IStore;
+import net.morilib.syaro.classfile.code.LStore;
 import net.morilib.syaro.classfile.code.Putfield;
 
 /**
@@ -31,15 +32,25 @@ import net.morilib.syaro.classfile.code.Putfield;
  */
 public class Utils {
 
+	public static void putConversionLong(VariableType type, Code code) {
+		if(type.equals(Primitive.INT)) {
+			code.addCode(Mnemonic.I2L);
+		}
+	}
+
 	public static void putConversionFloat(VariableType type, Code code) {
 		if(type.equals(Primitive.INT)) {
 			code.addCode(Mnemonic.I2F);
+		} else if(type.equals(Primitive.LONG)) {
+			code.addCode(Mnemonic.L2F);
 		}
 	}
 
 	public static void putConversionDouble(VariableType type, Code code) {
 		if(type.equals(Primitive.INT)) {
 			code.addCode(Mnemonic.I2D);
+		} else if(type.equals(Primitive.LONG)) {
+			code.addCode(Mnemonic.L2D);
 		} else if(type.equals(Primitive.FLOAT)) {
 			code.addCode(Mnemonic.F2D);
 		}
@@ -54,8 +65,14 @@ public class Utils {
 
 	public static void putCodeRef(VariableType v, Code code) {
 		if(v.isPrimitive()) {
-			if(v.equals(Primitive.INT)) {
+			if(v.equals(Primitive.BYTE)) {
+				code.addCode(Mnemonic.BALOAD);
+			} else if(v.equals(Primitive.SHORT)) {
+				code.addCode(Mnemonic.SALOAD);
+			} else if(v.equals(Primitive.INT)) {
 				code.addCode(Mnemonic.IALOAD);
+			} else if(v.equals(Primitive.LONG)) {
+				code.addCode(Mnemonic.LALOAD);
 			} else if(v.equals(Primitive.FLOAT)) {
 				code.addCode(Mnemonic.FALOAD);
 			} else if(v.equals(Primitive.DOUBLE)) {
@@ -103,8 +120,10 @@ public class Utils {
 
 		idx = getLocalIndex(space, node);
 		if(idx >= 0) {
-			if(node.getASTType(functions, space).equals(Primitive.INT)) {
+			if(node.getASTType(functions, space).isConversible(Primitive.INT)) {
 				code.addCode(new IStore(idx));
+			} else if(node.getASTType(functions, space).equals(Primitive.LONG)) {
+				code.addCode(new LStore(idx));
 			} else if(node.getASTType(functions, space).equals(Primitive.FLOAT)) {
 				code.addCode(new FStore(idx));
 			} else if(node.getASTType(functions, space).equals(Primitive.DOUBLE)) {
@@ -136,8 +155,14 @@ public class Utils {
 		if(node instanceof ArrayIndexAST) {
 			v = node.getASTType(functions, space);
 			if(v.isPrimitive()) {
-				if(v.equals(Primitive.INT)) {
+				if(v.equals(Primitive.BYTE)) {
+					code.addCode(Mnemonic.BASTORE);
+				} else if(v.equals(Primitive.SHORT)) {
+					code.addCode(Mnemonic.SASTORE);
+				} else if(v.equals(Primitive.INT)) {
 					code.addCode(Mnemonic.IASTORE);
+				} else if(v.equals(Primitive.LONG)) {
+					code.addCode(Mnemonic.LASTORE);
 				} else if(v.equals(Primitive.FLOAT)) {
 					code.addCode(Mnemonic.FASTORE);
 				} else if(v.equals(Primitive.DOUBLE)) {
@@ -164,6 +189,64 @@ public class Utils {
 			code.addCode(Mnemonic.DUP2_X2);
 		} else {
 			code.addCode(Mnemonic.DUP2);
+		}
+	}
+
+	public static void operatePrimitive(AST left, AST right,
+			OperationMnemonics type,
+			FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code) {
+		Primitive lp, rp;
+
+		lp = (Primitive)left.getASTType(functions, space);
+		rp = (Primitive)right.getASTType(functions, space);
+		if(lp.isConversible(Primitive.INT) && rp.isConversible(Primitive.INT)) {
+			left.putCode(functions, space, code);
+			right.putCode(functions, space, code);
+			code.addCode(type.getMnemonic());
+		} else if(type.getMnemonicLong() == null) {
+			throw new RuntimeException("type mismatch");
+		} else if(lp.isConversible(Primitive.LONG) &&
+				rp.isConversible(Primitive.INT)) {
+			left.putCode(functions, space, code);
+			Utils.putConversionLong(lp, code);
+			right.putCode(functions, space, code);
+			if(type.getMnemonicLong().equals(Mnemonic.LSHL) ||
+					type.getMnemonicLong().equals(Mnemonic.LSHR)) {
+				code.addCode(type.getMnemonicLong());
+			} else {
+				Utils.putConversionLong(rp, code);
+				code.addCode(type.getMnemonicLong());
+			}
+		} else if(lp.isConversible(Primitive.LONG) &&
+				rp.isConversible(Primitive.LONG)) {
+			if(type.getMnemonicLong().equals(Mnemonic.LSHL) ||
+					type.getMnemonicLong().equals(Mnemonic.LSHR)) {
+				throw new RuntimeException("type mismatch");
+			}
+			left.putCode(functions, space, code);
+			Utils.putConversionLong(lp, code);
+			right.putCode(functions, space, code);
+			Utils.putConversionLong(rp, code);
+			code.addCode(type.getMnemonicLong());
+		} else if(type.getMnemonicFloat() == null) {
+			throw new RuntimeException("type mismatch");
+		} else if(lp.isConversible(Primitive.FLOAT) &&
+				rp.isConversible(Primitive.FLOAT)) {
+			left.putCode(functions, space, code);
+			Utils.putConversionFloat(lp, code);
+			right.putCode(functions, space, code);
+			Utils.putConversionFloat(rp, code);
+			code.addCode(type.getMnemonicFloat());
+		} else if(type.getMnemonicDouble() == null) {
+			throw new RuntimeException("type mismatch");
+		} else {
+			left.putCode(functions, space, code);
+			Utils.putConversionDouble(lp, code);
+			right.putCode(functions, space, code);
+			Utils.putConversionDouble(rp, code);
+			code.addCode(type.getMnemonicDouble());
 		}
 	}
 

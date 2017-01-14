@@ -22,7 +22,10 @@ package net.morilib.syaro.test;
 public enum Primitive implements VariableType {
 
 	VOID("V", -1),
+	BYTE("B", 1),
+	SHORT("S", 2),
 	INT("I", 3),
+	LONG("J", 4),
 	FLOAT("F", 5),
 	DOUBLE("D", 6);
 

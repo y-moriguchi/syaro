@@ -39,15 +39,21 @@ public class NewArrayAST implements AST {
 			Code code) {
 		VariableType t;
 
-		if(!size.getASTType(functions, space).equals(Primitive.INT)) {
+		if(!size.getASTType(functions, space).isConversible(Primitive.INT)) {
 			throw new RuntimeException("size must be int");
 		} else if(type.isPrimitive()) {
 			throw new RuntimeException("can not new primitives");
 		}
 		size.putCode(functions, space, code);
 		t = ((ArrayType)type).getElement();
-		if(t.equals(Primitive.INT)) {
+		if(t.equals(Primitive.BYTE)) {
+			code.addCode(new NewArray(NewArray.Type.BYTE));
+		} else if(t.equals(Primitive.SHORT)) {
+			code.addCode(new NewArray(NewArray.Type.SHORT));
+		} else if(t.equals(Primitive.INT)) {
 			code.addCode(new NewArray(NewArray.Type.INT));
+		} else if(t.equals(Primitive.LONG)) {
+			code.addCode(new NewArray(NewArray.Type.LONG));
 		} else if(t.equals(Primitive.FLOAT)) {
 			code.addCode(new NewArray(NewArray.Type.FLOAT));
 		} else if(t.equals(Primitive.DOUBLE)) {

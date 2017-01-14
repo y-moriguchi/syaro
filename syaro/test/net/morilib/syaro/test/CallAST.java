@@ -90,6 +90,8 @@ public class CallAST implements AST {
 				fp = (Primitive)fvar.get(i);
 				if(fp.isConversible(Primitive.INT)) {
 					// do nothing
+				} else if(fp.isConversible(Primitive.LONG)) {
+					Utils.putConversionLong(ap, code);
 				} else if(fp.isConversible(Primitive.FLOAT)) {
 					Utils.putConversionFloat(ap, code);
 				} else {

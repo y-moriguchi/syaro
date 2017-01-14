@@ -39,21 +39,22 @@ public class ReturnAST implements SAST {
 			List<Integer> breakIndices,
 			int continueAddress,
 			List<Integer> continueIndices) {
+		VariableType t;
 		Primitive ep;
 
 		if(expr != null) {
 			expr.putCode(functions, space, code);
-			if(space.getThisReturnType().isPrimitive()) {
+			t = expr.getASTType(functions, space);
+			if(!t.isConversible(space.getThisReturnType())) {
+				throw new RuntimeException("type mismatch");
+			} else if(space.getThisReturnType().isPrimitive()) {
 				ep = (Primitive)space.getThisReturnType();
-				if(ep.equals(Primitive.INT)) {
-					if(!ep.isConversible(Primitive.INT)) {
-						throw new RuntimeException("type mismatch");
-					}
+				if(ep.isConversible(Primitive.INT)) {
 					code.addCode(Mnemonic.IRETURN);
+				} else if(ep.equals(Primitive.LONG)) {
+					Utils.putConversionLong(ep, code);
+					code.addCode(Mnemonic.LRETURN);
 				} else if(ep.equals(Primitive.FLOAT)) {
-					if(!ep.isConversible(Primitive.FLOAT)) {
-						throw new RuntimeException("type mismatch");
-					}
 					Utils.putConversionFloat(ep, code);
 					code.addCode(Mnemonic.FRETURN);
 				} else if(ep.equals(Primitive.DOUBLE)) {
@@ -62,6 +63,8 @@ public class ReturnAST implements SAST {
 				} else {
 					throw new RuntimeException("subroutine must not return value");
 				}
+			} else {
+				code.addCode(Mnemonic.ARETURN);
 			}
 		} else {
 			code.addCode(Mnemonic.RETURN);

@@ -15,40 +15,33 @@
  */
 package net.morilib.syaro.test;
 
-import java.util.List;
-
 import net.morilib.syaro.classfile.Code;
-import net.morilib.syaro.classfile.Mnemonic;
+import net.morilib.syaro.classfile.ConstantLong;
+import net.morilib.syaro.classfile.code.Ldc2W;
 
 /**
  * @author Yuichiro MORIGUCHI
  *
  */
-public class SimpleAST implements SAST {
+public class LongAST implements AST {
 
-	private AST expr;
+	private long value;
 
-	public SimpleAST(AST expr) {
-		this.expr = expr;
+	public LongAST(long value) {
+		this.value = value;
 	}
 
 	@Override
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
-			Code code,
-			List<Integer> breakIndices,
-			int continueAddress,
-			List<Integer> continueIndices) {
-		if(expr instanceof CallAST && ((CallAST)expr).isSubroutine(functions)) {
-			((CallAST)expr).putCodeSimple(functions, space, code);
-		} else if(expr.getASTType(functions, space).equals(Primitive.LONG) ||
-				expr.getASTType(functions, space).equals(Primitive.DOUBLE)) {
-			expr.putCode(functions, space, code);
-			code.addCode(Mnemonic.POP2);
-		} else {
-			expr.putCode(functions, space, code);
-			code.addCode(Mnemonic.POP);
-		}
+			Code code) {
+		code.addCode(new Ldc2W(new ConstantLong(value)));
+	}
+
+	@Override
+	public VariableType getASTType(FunctionSpace functions,
+			LocalVariableSpace space) {
+		return Primitive.LONG;
 	}
 
 }
