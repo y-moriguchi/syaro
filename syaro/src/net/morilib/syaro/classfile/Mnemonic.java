@@ -267,6 +267,56 @@ public abstract class Mnemonic implements ClassInfo {
 	 */
 	public static Mnemonic POP2 = new Single(88);
 
+	/**
+	 * The instruction iaload.
+	 */
+	public static Mnemonic IALOAD = new Single(46);
+
+	/**
+	 * The instruction faload.
+	 */
+	public static Mnemonic FALOAD = new Single(48);
+
+	/**
+	 * The instruction daload.
+	 */
+	public static Mnemonic DALOAD = new Single(49);
+
+	/**
+	 * The instruction aaload.
+	 */
+	public static Mnemonic AALOAD = new Single(50);
+
+	/**
+	 * The instruction aconst_null.
+	 */
+	public static Mnemonic ACONST_NULL = new Single(1);
+
+	/**
+	 * The instruction dup2_x2.
+	 */
+	public static Mnemonic DUP2_X2 = new Single(94);
+
+	/**
+	 * The instruction iastore.
+	 */
+	public static Mnemonic IASTORE = new Single(79);
+
+	/**
+	 * The instruction fastore.
+	 */
+	public static Mnemonic FASTORE = new Single(81);
+
+	/**
+	 * The instruction dastore.
+	 */
+	public static Mnemonic DASTORE = new Single(82);
+
+	/**
+	 * The instruction aastore.
+	 */
+	public static Mnemonic AASTORE = new Single(83);
+
 	private byte opcode;
 
 	/**
