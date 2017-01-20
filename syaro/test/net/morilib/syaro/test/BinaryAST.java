@@ -115,7 +115,9 @@ public class BinaryAST implements AST {
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
-		if(!left.getASTType(functions, space).isPrimitive() ||
+		if(type.equals(Type.IADD)) {
+			Utils.operateAdd(left, right, functions, space, code);
+		} else if(!left.getASTType(functions, space).isPrimitive() ||
 				!right.getASTType(functions, space).isPrimitive()) {
 			throw new RuntimeException();
 		} else if(type.mnemonic != null) {
@@ -300,6 +302,8 @@ public class BinaryAST implements AST {
 			}
 		} else if(type.type == COMPARISON) {
 			return Primitive.INT;
+		} else if(type.equals(Type.IADD)) {
+			return QuasiPrimitive.STRING;
 		} else {
 			throw new RuntimeException("type mismatch");
 		}

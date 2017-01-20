@@ -142,6 +142,14 @@ public class AssignAST implements AST, OperationMnemonics {
 		Utils.setVar(left, functions, space, code);
 	}
 
+	private void putCodeString(FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code) {
+		Utils.putCodeArrayRef(left, functions, space, code);
+		Utils.operateAdd(left, right, functions, space, code);
+		Utils.putDup(left, code);
+		Utils.setVar(left, functions, space, code);
+	}
 
 	@Override
 	public void putCode(FunctionSpace functions,
@@ -151,7 +159,9 @@ public class AssignAST implements AST, OperationMnemonics {
 
 		l = left.getASTType(functions, space);
 		r = right.getASTType(functions, space);
-		if(!l.isConversible(r)) {
+		if(l.equals(QuasiPrimitive.STRING)) {
+			putCodeString(functions, space, code);
+		} else if(!l.isConversible(r)) {
 			throw new RuntimeException("type mismatch");
 		} else if(!l.isPrimitive() || !r.isPrimitive()) {
 			putCodeReference(functions, space, code);

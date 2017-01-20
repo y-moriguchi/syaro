@@ -21,26 +21,25 @@ package net.morilib.syaro.test;
  */
 public enum Primitive implements VariableType {
 
-	VOID("V", -1),
-	BYTE("B", 1),
-	CHAR("C", 2),
-	SHORT("S", 2),
-	INT("I", 3),
-	LONG("J", 4),
-	FLOAT("F", 5),
-	DOUBLE("D", 6);
+	VOID("V", "java/lang/Void", -1),
+	BYTE("B", "java/lang/Byte", 1),
+	CHAR("C", "java/lang/Character", 2),
+	SHORT("S", "java/lang/Short", 2),
+	INT("I", "java/lang/Integer", 3),
+	LONG("J", "java/lang/Long", 4),
+	FLOAT("F", "java/lang/Float", 5),
+	DOUBLE("D", "java/lang/Double", 6);
 
 	private String descriptor;
+	private String wrapper;
 	private int level;
 
-	private Primitive(String desc, int l) {
+	private Primitive(String desc, String w, int l) {
 		this.descriptor = desc;
+		this.wrapper = w;
 		this.level = l;
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.test.VariableType#getDescriptor()
-	 */
 	@Override
 	public String getDescriptor() {
 		return descriptor;
@@ -71,6 +70,14 @@ public enum Primitive implements VariableType {
 	@Override
 	public boolean isCastable(VariableType type) {
 		return type instanceof Primitive;
+	}
+
+	public String getWrapperClass() {
+		return wrapper;
+	}
+
+	public String getWrapperDescriptor() {
+		return "L" + wrapper + ";";
 	}
 
 }

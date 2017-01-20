@@ -16,15 +16,21 @@
 package net.morilib.syaro.test;
 
 import net.morilib.syaro.classfile.Code;
+import net.morilib.syaro.classfile.ConstantClass;
 import net.morilib.syaro.classfile.ConstantFieldref;
+import net.morilib.syaro.classfile.ConstantMethodref;
 import net.morilib.syaro.classfile.Mnemonic;
 import net.morilib.syaro.classfile.code.ALoad;
 import net.morilib.syaro.classfile.code.AStore;
 import net.morilib.syaro.classfile.code.DStore;
 import net.morilib.syaro.classfile.code.FStore;
 import net.morilib.syaro.classfile.code.IStore;
+import net.morilib.syaro.classfile.code.Invokespecial;
+import net.morilib.syaro.classfile.code.Invokevirtual;
 import net.morilib.syaro.classfile.code.LStore;
+import net.morilib.syaro.classfile.code.New;
 import net.morilib.syaro.classfile.code.Putfield;
+import net.morilib.syaro.test.BinaryAST.Type;
 
 /**
  * @author Yuichiro MORIGUCHI
@@ -251,6 +257,60 @@ public class Utils {
 			right.putCode(functions, space, code);
 			Utils.putConversionDouble(rp, code);
 			code.addCode(type.getMnemonicDouble());
+		}
+	}
+
+	private static void operateAddAppend(AST node, VariableType type,
+			FunctionSpace functions, LocalVariableSpace space, Code code) {
+		if(type.isPrimitive()) {
+			code.addCode(new Invokevirtual(new ConstantMethodref(
+					"java/lang/StringBuffer", "append",
+					"(" + type.getDescriptor() + ")Ljava/lang/StringBuffer;")));
+		} else {
+			code.addCode(new Invokevirtual(new ConstantMethodref(
+					"java/lang/StringBuffer", "append",
+					"(Ljava/lang/Object;)Ljava/lang/StringBuffer;")));
+		}
+	}
+
+	private static void operateAddLeft(AST node, FunctionSpace functions,
+			LocalVariableSpace space, Code code) {
+		VariableType nv;
+		BinaryAST ba;
+
+		if(!(node instanceof BinaryAST) ||
+				!((BinaryAST)node).getType().equals(Type.IADD)) {
+			nv = node.getASTType(functions, space);
+			node.putCode(functions, space, code);
+			operateAddAppend(node, nv, functions, space, code);
+		} else {
+			ba = (BinaryAST)node;
+			operateAddLeft(ba.getLeft(), functions, space, code);
+			nv = ba.getRight().getASTType(functions, space);
+			ba.getRight().putCode(functions, space, code);
+			operateAddAppend(ba.getRight(), nv, functions, space, code);
+		}
+	}
+
+	public static void operateAdd(AST left, AST right, FunctionSpace functions,
+			LocalVariableSpace space, Code code) {
+		VariableType lv, rv, nv;
+
+		lv = left.getASTType(functions, space);
+		rv = right.getASTType(functions, space);
+		if(lv.isPrimitive() && rv.isPrimitive()) {
+			operatePrimitive(left, right, Type.IADD, functions, space, code);
+		} else {
+			code.addCode(new New(new ConstantClass("java/lang/StringBuffer")));
+			code.addCode(Mnemonic.DUP);
+			code.addCode(new Invokespecial(new ConstantMethodref(
+					"java/lang/StringBuffer", "<init>", "()V")));
+			operateAddLeft(left, functions, space, code);
+			nv = right.getASTType(functions, space);
+			right.putCode(functions, space, code);
+			operateAddAppend(right, nv, functions, space, code);
+			code.addCode(new Invokevirtual(new ConstantMethodref(
+					"java/lang/StringBuffer", "toString", "()Ljava/lang/String;")));
 		}
 	}
 
