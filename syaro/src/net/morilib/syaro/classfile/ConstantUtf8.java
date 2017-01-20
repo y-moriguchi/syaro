@@ -18,6 +18,8 @@ package net.morilib.syaro.classfile;
 import java.io.ByteArrayOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class represents a constant pool of Utf8 string.
@@ -26,6 +28,8 @@ import java.io.IOException;
  */
 public class ConstantUtf8 extends ConstantPool {
 
+	private static Map<String, ConstantUtf8> pool =
+			new HashMap<String, ConstantUtf8>();
 	private String string;
 
 	/**
@@ -34,6 +38,20 @@ public class ConstantUtf8 extends ConstantPool {
 	public ConstantUtf8(String str) {
 		super(CONSTANT_Utf8);
 		this.string = str;
+	}
+
+	/**
+	 * gets an instance of a constant pool of Utf8 string.
+	 */
+	public static ConstantUtf8 getInstance(String str) {
+		ConstantUtf8 res;
+
+		res = pool.get(str);
+		if(res == null) {
+			res = new ConstantUtf8(str);
+			pool.put(str, res);
+		}
+		return res;
 	}
 
 	/**
