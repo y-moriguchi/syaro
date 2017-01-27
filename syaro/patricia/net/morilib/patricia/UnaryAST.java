@@ -16,13 +16,14 @@
 package net.morilib.patricia;
 
 import net.morilib.syaro.classfile.Code;
+import net.morilib.syaro.classfile.ConstantInteger;
+import net.morilib.syaro.classfile.ConstantLong;
 import net.morilib.syaro.classfile.Mnemonic;
-import net.morilib.syaro.classfile.code.DConst;
-import net.morilib.syaro.classfile.code.FConst;
 import net.morilib.syaro.classfile.code.Goto;
 import net.morilib.syaro.classfile.code.IConst;
 import net.morilib.syaro.classfile.code.If;
-import net.morilib.syaro.classfile.code.LConst;
+import net.morilib.syaro.classfile.code.Ldc2W;
+import net.morilib.syaro.classfile.code.LdcW;
 
 /**
  * An abstract syntax tree of unary operators.
@@ -101,32 +102,32 @@ public class UnaryAST implements AST {
 			} else if(t.equals(Primitive.DOUBLE)) {
 				code.addCode(type.mnemonicDouble);
 			} else {
-				throw new RuntimeException("type mismatch");
+				throw new SemanticsException("type mismatch");
 			}
 		} else {
 			switch(type) {
 			case NOT:
 				node.putCode(functions, space, code);
-				if(t.isConversible(Primitive.INT)) {
-					// do nothing
+				if(t.equals(Primitive.BOOLEAN)) {
+					lbl0 = code.addCode(new If(If.Cond.NE));
+					code.addCode(new IConst(1));
+					lbl1 = code.addCode(new Goto());
+					((If)code.getCode(lbl0)).setOffset(code.getCurrentOffset(lbl0));
+					code.addCode(new IConst(0));
+					((Goto)code.getCode(lbl1)).setOffset(code.getCurrentOffset(lbl1));
+				} else if(t.isConversible(Primitive.INT)) {
+					node.putCode(functions, space, code);
+					code.addCode(new LdcW(new ConstantInteger(0xffffffff)));
+					code.addCode(Mnemonic.IXOR);
+					break;
 				} else if(t.equals(Primitive.LONG)) {
-					code.addCode(new LConst(0));
-					code.addCode(Mnemonic.LCMP);
-				} else if(t.equals(Primitive.FLOAT)) {
-					code.addCode(new FConst(0.0));
-					code.addCode(Mnemonic.FCMPG);
-				} else if(t.equals(Primitive.DOUBLE)) {
-					code.addCode(new DConst(0.0));
-					code.addCode(Mnemonic.DCMPG);
+					node.putCode(functions, space, code);
+					code.addCode(new Ldc2W(new ConstantLong(0xffffffffffffffffl)));
+					code.addCode(Mnemonic.LXOR);
+					break;
 				} else {
 					throw new RuntimeException("type mismatch");
 				}
-				lbl0 = code.addCode(new If(If.Cond.NE));
-				code.addCode(new IConst(1));
-				lbl1 = code.addCode(new Goto());
-				((If)code.getCode(lbl0)).setOffset(code.getCurrentOffset(lbl0));
-				code.addCode(new IConst(0));
-				((Goto)code.getCode(lbl1)).setOffset(code.getCurrentOffset(lbl1));
 				break;
 			default: throw new RuntimeException();
 			}

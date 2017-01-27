@@ -82,20 +82,20 @@ public class Utils {
 	 */
 	public static String getVarName(AST ast) {
 		if(!(ast instanceof SymbolAST)) {
-			throw new RuntimeException("not a lvalue");
+			throw new SemanticsException("not a lvalue");
 		}
 		return ((SymbolAST)ast).getName();
 	}
 
 	/**
-	 * puts the codes of storing an array.
+	 * puts the codes of referring an array.
 	 * 
 	 * @param v the type
 	 * @param code the container of codes.
 	 */
 	public static void putCodeRef(VariableType v, Code code) {
 		if(v.isPrimitive()) {
-			if(v.equals(Primitive.BYTE)) {
+			if(v.equals(Primitive.BYTE) || v.equals(Primitive.BOOLEAN)) {
 				code.addCode(Mnemonic.BALOAD);
 			} else if(v.equals(Primitive.CHAR)) {
 				code.addCode(Mnemonic.CALOAD);
@@ -166,6 +166,8 @@ public class Utils {
 				code.addCode(new FStore(idx));
 			} else if(node.getASTType(functions, space).equals(Primitive.DOUBLE)) {
 				code.addCode(new DStore(idx));
+			} else if(node.getASTType(functions, space).equals(Primitive.BOOLEAN)) {
+				code.addCode(new DStore(idx));
 			} else {
 				code.addCode(new AStore(idx));
 			}
@@ -201,7 +203,7 @@ public class Utils {
 		if(node instanceof ArrayIndexAST) {
 			v = node.getASTType(functions, space);
 			if(v.isPrimitive()) {
-				if(v.equals(Primitive.BYTE)) {
+				if(v.equals(Primitive.BYTE) || v.equals(Primitive.BOOLEAN)) {
 					code.addCode(Mnemonic.BASTORE);
 				} else if(v.equals(Primitive.CHAR)) {
 					code.addCode(Mnemonic.CASTORE);
@@ -271,12 +273,14 @@ public class Utils {
 
 		lp = (Primitive)left.getASTType(functions, space);
 		rp = (Primitive)right.getASTType(functions, space);
-		if(lp.isConversible(Primitive.INT) && rp.isConversible(Primitive.INT)) {
+		if(lp.equals(Primitive.BOOLEAN) || rp.equals(Primitive.BOOLEAN)) {
+			throw new SemanticsException("type mismatch");
+		} else if(lp.isConversible(Primitive.INT) && rp.isConversible(Primitive.INT)) {
 			left.putCode(functions, space, code);
 			right.putCode(functions, space, code);
 			code.addCode(type.getMnemonic());
 		} else if(type.getMnemonicLong() == null) {
-			throw new RuntimeException("type mismatch");
+			throw new SemanticsException("type mismatch");
 		} else if(lp.isConversible(Primitive.LONG) &&
 				rp.isConversible(Primitive.INT)) {
 			left.putCode(functions, space, code);
@@ -293,7 +297,7 @@ public class Utils {
 				rp.isConversible(Primitive.LONG)) {
 			if(type.getMnemonicLong().equals(Mnemonic.LSHL) ||
 					type.getMnemonicLong().equals(Mnemonic.LSHR)) {
-				throw new RuntimeException("type mismatch");
+				throw new SemanticsException("type mismatch");
 			}
 			left.putCode(functions, space, code);
 			Utils.putConversionLong(lp, code);
@@ -301,7 +305,7 @@ public class Utils {
 			Utils.putConversionLong(rp, code);
 			code.addCode(type.getMnemonicLong());
 		} else if(type.getMnemonicFloat() == null) {
-			throw new RuntimeException("type mismatch");
+			throw new SemanticsException("type mismatch");
 		} else if(lp.isConversible(Primitive.FLOAT) &&
 				rp.isConversible(Primitive.FLOAT)) {
 			left.putCode(functions, space, code);
@@ -310,7 +314,7 @@ public class Utils {
 			Utils.putConversionFloat(rp, code);
 			code.addCode(type.getMnemonicFloat());
 		} else if(type.getMnemonicDouble() == null) {
-			throw new RuntimeException("type mismatch");
+			throw new SemanticsException("type mismatch");
 		} else {
 			left.putCode(functions, space, code);
 			Utils.putConversionDouble(lp, code);

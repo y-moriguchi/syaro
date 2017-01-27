@@ -71,11 +71,11 @@ public class ArrayIndexAST implements AST {
 		v = array.getASTType(functions, space);
 		w = arrayIndex.getASTType(functions, space);
 		if(!w.isConversible(Primitive.INT)) {
-			throw new RuntimeException("type of arrayindex is integer");
+			throw new SemanticsException("type of arrayindex is integer");
 		} else if(v instanceof ArrayType) {
 			return ((ArrayType)v).getElement();
 		} else {
-			throw new RuntimeException("type of array is not array");
+			throw new SemanticsException("type of array is not array");
 		}
 	}
 

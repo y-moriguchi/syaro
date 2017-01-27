@@ -15,19 +15,13 @@
  */
 package net.morilib.patricia;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.Mnemonic;
-import net.morilib.syaro.classfile.code.DConst;
-import net.morilib.syaro.classfile.code.FConst;
 import net.morilib.syaro.classfile.code.Goto;
 import net.morilib.syaro.classfile.code.IConst;
 import net.morilib.syaro.classfile.code.If;
 import net.morilib.syaro.classfile.code.IfAcmp;
 import net.morilib.syaro.classfile.code.IfIcmp;
-import net.morilib.syaro.classfile.code.LConst;
 
 /**
  * An abstract syntax tree of binary operators.
@@ -42,8 +36,8 @@ public class BinaryAST implements AST {
 	 * @author Yuichiro MORIGUCHI
 	 */
 	public static enum Type implements OperationMnemonics {
-		OR(null, null, null, null, OP_LOGICAL),
-		AND(null, null, null, null, OP_LOGICAL),
+		OR(Mnemonic.IOR, Mnemonic.LOR, null, null, OP_LOGICAL),
+		AND(Mnemonic.IAND, Mnemonic.LAND, null, null, OP_LOGICAL),
 		EQ(null, null, null, null, COMPARISON),
 		NE(null, null, null, null, COMPARISON),
 		LT(null, null, null, null, COMPARISON),
@@ -135,18 +129,21 @@ public class BinaryAST implements AST {
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
-		if(!left.getASTType(functions, space).isPrimitive() ||
-				!right.getASTType(functions, space).isPrimitive()) {
-			throw new RuntimeException();
-		} else if(type.mnemonic != null) {
+		VariableType lt, rt;
+
+		lt = left.getASTType(functions, space);
+		rt = right.getASTType(functions, space);
+		if(!lt.isPrimitive() || !rt.isPrimitive()) {
+			throw new SemanticsException();
+		} else if(type.type == OP_VALUE) {
 			Utils.operatePrimitive(left, right, type, functions, space, code);
 		} else {
 			switch(type) {
 			case OR:
-				putCodeLogical(this, functions, space, code, Type.OR, If.Cond.NE);
+				putCodeLogical(functions, space, code, If.Cond.NE);
 				break;
 			case AND:
-				putCodeLogical(this, functions, space, code, Type.AND, If.Cond.EQ);
+				putCodeLogical(functions, space, code, If.Cond.EQ);
 				break;
 			case EQ:
 				putCodeCompare(this, functions, space, code, IfIcmp.Cond.EQ,
@@ -174,54 +171,27 @@ public class BinaryAST implements AST {
 		}
 	}
 
-	private static void putCodeCmp(VariableType t, Code code) {
-		if(t.isConversible(Primitive.INT)) {
-			// do nothing
-		} else if(t.equals(Primitive.LONG)) {
-			code.addCode(new LConst(0));
-			code.addCode(Mnemonic.LCMP);
-		} else if(t.equals(Primitive.FLOAT)) {
-			code.addCode(new FConst(0.0));
-			code.addCode(Mnemonic.FCMPG);
-		} else if(t.equals(Primitive.DOUBLE)) {
-			code.addCode(new DConst(0.0));
-			code.addCode(Mnemonic.DCMPG);
-		}
-	}
-
-	private static void putCodeLogical(AST bnode,
-			FunctionSpace functions,
+	private void putCodeLogical(FunctionSpace functions,
 			LocalVariableSpace space,
-			Code code, Type tp, If.Cond cond) {
-		List<Integer> labels = new ArrayList<Integer>();
-		VariableType t;
-		AST node = bnode;
-		int caddr;
+			Code code, If.Cond cond) {
+		VariableType lt, rt;
+		int aif;
 		If xif;
 
-		while(true) {
-			if(!(node instanceof BinaryAST)) {
-				break;
-			} else if(!((BinaryAST)node).type.equals(tp)) {
-				break;
-			}
-			((BinaryAST)node).left.putCode(functions, space, code);
-			t = ((BinaryAST)node).left.getASTType(functions, space);
-			if(!t.isPrimitive()) {
-				throw new RuntimeException("type mismatch");
-			}
-			putCodeCmp(t, code);
+		lt = left.getASTType(functions, space);
+		rt = right.getASTType(functions, space);
+		if(lt.equals(Primitive.BOOLEAN) && rt.equals(Primitive.BOOLEAN)) {
+			left.putCode(functions, space, code);
 			code.addCode(Mnemonic.DUP);
-			labels.add(code.addCode(new If(cond)));
+			xif = new If(cond);
+			aif = code.addCode(xif);
 			code.addCode(Mnemonic.POP);
-			node = ((BinaryAST)node).right;
-		}
-		node.putCode(functions, space, code);
-		putCodeCmp(node.getASTType(functions, space), code);
-		caddr = code.getCurrentAddress();
-		for(int idx : labels) {
-			xif = (If)code.getCode(idx);
-			xif.setOffset(caddr - code.getAddress(idx));
+			right.putCode(functions, space, code);
+			xif.setOffset(code.getCurrentOffset(aif));
+		} else if(!(lt.equals(Primitive.BOOLEAN) && rt.equals(Primitive.BOOLEAN))) {
+			Utils.operatePrimitive(left, right, type, functions, space, code);
+		} else {
+			throw new SemanticsException("type mismatch");
 		}
 	}
 
@@ -240,10 +210,13 @@ public class BinaryAST implements AST {
 		lp = bnode.left.getASTType(functions, space);
 		rp = bnode.right.getASTType(functions, space);
 		if(lp.isPrimitive() != rp.isPrimitive()) {
-			throw new RuntimeException("type mismatch");
+			throw new SemanticsException("type mismatch");
 		} else if(!lp.isPrimitive() && !rp.isPrimitive() && acond == null) {
-			throw new RuntimeException("type mismatch");
+			throw new SemanticsException("type mismatch");
+		} else if(lp.equals(Primitive.BOOLEAN) || rp.equals(Primitive.BOOLEAN)) {
+			throw new SemanticsException("type mismatch");
 		}
+
 		if(lp.isConversible(Primitive.INT) && rp.isConversible(Primitive.INT)) {
 			bnode.left.putCode(functions, space, code);
 			bnode.right.putCode(functions, space, code);
@@ -304,8 +277,12 @@ public class BinaryAST implements AST {
 				right.getASTType(functions, space).isPrimitive()) {
 			lp = (Primitive)left.getASTType(functions, space);
 			rp = (Primitive)right.getASTType(functions, space);
-			if(type.type == OP_LOGICAL || type.type == COMPARISON) {
-				return Primitive.INT;
+			if(type.type == COMPARISON) {
+				return Primitive.BOOLEAN;
+			} else if(type.type == OP_LOGICAL &&
+					lp.equals(Primitive.BOOLEAN) &&
+					rp.equals(Primitive.BOOLEAN)) {
+				return Primitive.BOOLEAN;
 			} else if(lp.isConversible(Primitive.INT) &&
 					rp.isConversible(Primitive.INT)) {
 				return Primitive.INT;
@@ -319,9 +296,9 @@ public class BinaryAST implements AST {
 				return Primitive.DOUBLE;
 			}
 		} else if(type.type == COMPARISON) {
-			return Primitive.INT;
+			return Primitive.BOOLEAN;
 		} else {
-			throw new RuntimeException("type mismatch");
+			throw new SemanticsException("type mismatch");
 		}
 	}
 

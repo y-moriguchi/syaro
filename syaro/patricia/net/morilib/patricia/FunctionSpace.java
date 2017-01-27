@@ -65,7 +65,7 @@ public class FunctionSpace {
 	 */
 	public FunctionDefinition getDefinition(String name) {
 		if(!space.containsKey(name)) {
-			throw new RuntimeException("function " + name + " is not defined");
+			throw new SemanticsException("function " + name + " is not defined");
 		}
 		return space.get(name);
 	}
@@ -88,7 +88,7 @@ public class FunctionSpace {
 	 */
 	public VariableType getGlobal(String name) {
 		if(!global.containsKey(name)) {
-			throw new RuntimeException("variable " + name + "is not defined");
+			throw new SemanticsException("variable " + name + "is not defined");
 		}
 		return global.get(name);
 	}
