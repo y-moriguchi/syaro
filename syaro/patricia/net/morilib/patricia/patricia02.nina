@@ -1,0 +1,379 @@
+#
+# Copyright (c) 2017, Yuichiro MORIGUCHI
+# All rights reserved.
+#
+# Redistribution and use in source and binary forms, with or without
+# modification, are permitted provided that the following conditions are met:
+# * Redistributions of source code must retain the above copyright notice, 
+#   this list of conditions and the following disclaimer.
+# * Redistributions in binary form must reproduce the above copyright notice, 
+#   this list of conditions and the following disclaimer in the documentation 
+#   and/or other materials provided with the distribution.
+# * Neither the name of the Yuichiro MORIGUCHI nor the names of its contributors 
+#   may be used to endorse or promote products derived from this software 
+#   without specific prior written permission.
+# 
+# THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+# ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+# WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+# DISCLAIMED. IN NO EVENT SHALL Yuichiro MORIGUCHI BE LIABLE FOR ANY
+# DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+# (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+# LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND
+# ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+# (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+# SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+#
+--------------------------
+Patricia: a Pascal like compiler
+
+@author Yuichiro MORIGUCHI
+--------------------------
+#machine DFABuilder
+#option targetLanguage=Java
+#label VAR=/[A-Za-z_][A-Za-z0-9_]*/
+#label LAHEADVAR=/?=[A-Za-z][A-Za-z0-9]*[ \t]*=/
+#label S=[\s]
+#package net.morilib.patricia
+%{
+import java.io.FileOutputStream;
+import java.io.StringReader;
+import net.morilib.syaro.classfile.*;
+import net.morilib.syaro.classfile.code.*;
+%}
+    +-${S}-+
+ *S*^******v*         ***       @@@
+ *          >-+-"var"-> >-{var}-> @
+ ************ |       ***       @@@
+              |          +-${S}-+
+              |         *^******v*            *********     @@@
+              +-"begin"->        >-{stmtlist}->prog();>-'.'-> @
+                        **********            *********     @@@
+-- var --
+    +-${S}-+                                         +-${S}-+       +-${S}-+
+ *S*^******v* ***        *A<String>**************** *^******v*     *^******v*
+ *          >-> >-${VAR}->%% = $buffer.toString();>->        >-':'->        >-${VAR}-(Z)
+ *v********** ***        ************************** **********     **********
+  |          +-${S}-+
+  |         *^******v*            *********     @@@
+  +-"begin"->        >-{stmtlist}->prog();>-'.'-> @
+            **********            *********     @@@
+                             +-${S}-+
+ *Z<String>**************** *^******v*     *****************
+ *%% = $buffer.toString();>->        >-';'->defvar($A, $Z);>-(S)
+ ************************** **********     *****************
+-- stmt --
+    +-${S}-+             +-${S}-+
+ *S*^******v*           *^******v*            @@@@@@@@@@
+ *          >-+-"begin"->        >-{stmtlist}->block();@
+ ************ |         **********            @@@@@@@@@@
+              |
+              |            +-${S}-+                  +-${S}-+
+              |           *^******v*     ***        *^******v*     @@@@@@@@@@
+              +-"writeln"->        >-'('-> >-{expr}->        >-')'->print();@
+              |           **********     ***        **********     @@@@@@@@@@
+              |
+              |             +-${S}-+
+              | ***        *^******v*      *AA<String>***************        @@@@@@@@@@@@@@@@
+              +-> >-${VAR}->        >-":="->%% = $buffer.toString();>-{expr}->asgn($AA, _e);@
+                ***        **********      **************************        @@@@@@@@@@@@@@@@
+-- stmtlist --
+               +-${S}-+          +-${S}-+
+ *S********** *^******v*        *^******v*     **********
+ *beginsl();>->        >-{stmt}->        >-';'->addsl();*
+ ************ *v******^*        **********     *v********
+               |      +-------------------------+
+               |
+               |       @@@
+               +-"end"-> @
+                       @@@
+-- expr --
+ *S*       @@@@@@@@@@@
+ * >-{rel}->         @
+ ***       @@@@@@@@@@@
+-- rel --
+                    +-${S}-+           +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@         *^******v*        @@@@@@@@@@@@
+ * >-{poly}->%% = _e;       >-+-'='--->        >-{poly}->releq($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@ |       **********        @@@@@@@@@@@@
+                              |          +-${S}-+
+                              |     *** *^******v*        @@@@@@@@@@@@
+                              +-'<'-> >->        >-{poly}->rellt($A);>-(A)
+                              |     *v* **********        @@@@@@@@@@@@
+                              |      |      +-${S}-+
+                              |      |     *^******v*        @@@@@@@@@@@@
+                              |      +-'='->        >-{poly}->relle($A);>-(A)
+                              |      |     **********        @@@@@@@@@@@@
+                              |      |      +-${S}-+
+                              |      |     *^******v*        @@@@@@@@@@@@
+                              |      +-'>'->        >-{poly}->relne($A);>-(A)
+                              |            **********        @@@@@@@@@@@@
+                              |          +-${S}-+
+                              |     *** *^******v*        @@@@@@@@@@@@
+                              +-'>'-> >->        >-{poly}->relgt($A);>-(A)
+                                    *v* **********        @@@@@@@@@@@@
+                                     |      +-${S}-+ 
+                                     |     *^******v*        @@@@@@@@@@@@
+                                     +-'='->        >-{poly}->relge($A);>-(A)
+                                           **********        @@@@@@@@@@@@
+-- poly --
+                    +-${S}-+         +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@       *^******v*        @@@@@@@@@@
+ * >-{term}->%% = _e;       >-+-'+'->        >-{term}->add($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@ |     **********        @@@@@@@@@@
+                              |      +-${S}-+
+                              |     *^******v*        @@@@@@@@@@
+                              +-'-'->        >-{term}->sub($A);>-(A)
+                              |     **********        @@@@@@@@@@
+                              |       +-${S}-+
+                              |      *^******v*        @@@@@@@@@@
+                              +-"or"->        >-{term}->or($A); >-(A)
+                              |      **********        @@@@@@@@@@
+                              |        +-${S}-+
+                              |       *^******v*        @@@@@@@@@@
+                              +-"xor"->        >-{term}->xor($A);>-(A)
+                                      **********        @@@@@@@@@@
+-- term --
+                    +-${S}-+         +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@       *^******v*        @@@@@@@@@@
+ * >-{unot}->%% = _e;       >-+-'*'->        >-{unot}->mul($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@ |     **********        @@@@@@@@@@
+                              |      +-${S}-+
+                              |     *^******v*        @@@@@@@@@@
+                              +-'/'->        >-{unot}->div($A);>-(A)
+                              |     **********        @@@@@@@@@@
+                              |        +-${S}-+
+                              |       *^******v*        @@@@@@@@@@@
+                              +-"div"->        >-{unot}->idiv($A);>-(A)
+                              |       **********        @@@@@@@@@@@
+                              |        +-${S}-+
+                              |       *^******v*        @@@@@@@@@@
+                              +-"mod"->        >-{unot}->mod($A);>-(A)
+                              |       **********        @@@@@@@@@@
+                              |        +-${S}-+
+                              |       *^******v*        @@@@@@@@@@
+                              +-"and"->        >-{unot}->and($A);>-(A)
+                              |       **********        @@@@@@@@@@
+                              |        +-${S}-+
+                              |       *^******v*        @@@@@@@@@@
+                              +-"shl"->        >-{unot}->shl($A);>-(A)
+                              |       **********        @@@@@@@@@@
+                              |        +-${S}-+
+                              |       *^******v*        @@@@@@@@@@
+                              +-"shr"->        >-{unot}->shr($A);>-(A)
+                                      **********        @@@@@@@@@@
+-- unot --
+    +-${S}-+           +-${S}-+
+ *S*^******v*         *^******v*         @@@@@@@@@@@
+ *          >-+-"not"->        >-{unary}->not();   @
+ ************ |       **********         @@@@@@@@@@@
+              |
+              |         @@@
+              +-{unary}-> @
+                        @@@
+-- unary --
+    +-${S}-+         +-${S}-+
+ *S*^******v*       *^******v*        @@@@@@@@@@@
+ *          >-+-"-"->        >-{elem}->uminus();@
+ ************ |     **********        @@@@@@@@@@@
+              |
+              |        @@@
+              +-{elem}-> @
+                       @@@
+-- elem --
+    +-${S}-+
+ *S*^******v*        @@@@@@@@@@@@@@
+ *          >-+-{%d}->konst($int);@
+ ************ |      @@@@@@@@@@@@@@
+              |
+              |        @@@@@@@@@@@@@@@@@@@@@@@@@@
+              +-${VAR}->var($buffer.toString());@
+              |        @@@@@@@@@@@@@@@@@@@@@@@@@@
+              |
+              |     ***        ***     @@@
+              +-'('-> >-{expr}-> >-')'-> @
+                    ***        ***     @@@
+%%
+private FunctionSpace functions;
+private LocalVariableSpace local = new LocalVariableSpace();
+private Code code;
+private SAST _s;
+private java.util.List<SAST> stmtlist;
+private AST _e;
+
+private VariableType getTypeFromName(String tname) {
+	if(tname.equals("byte")) {
+		return Primitive.BYTE;
+	} else if(tname.equals("boolean")) {
+		return Primitive.BOOLEAN;
+	} else if(tname.equals("char")) {
+		return Primitive.CHAR;
+	} else if(tname.equals("short")) {
+		return Primitive.SHORT;
+	} else if(tname.equals("int")) {
+		return Primitive.INT;
+	} else if(tname.equals("long")) {
+		return Primitive.LONG;
+	} else if(tname.equals("float")) {
+		return Primitive.FLOAT;
+	} else if(tname.equals("double")) {
+		return Primitive.DOUBLE;
+	} else {
+		throw new RuntimeException("unknown type " + tname);
+	}
+}
+
+private void prog() {
+	block();
+	_s.putCode(functions, local, code, null, -1, null);
+}
+
+private void defvar(String name, String type) {
+	local.putVariable(name, getTypeFromName(type));
+}
+
+private void block() {
+	_s = new BlockAST(stmtlist);
+}
+
+private void print() {
+	_s = new PrintAST(_e);
+}
+
+private void asgn(String name, AST right) {
+	_s = new AssignAST(name, right);
+}
+
+private void beginsl() {
+	stmtlist = new java.util.ArrayList<SAST>();
+}
+
+private void addsl() {
+	stmtlist.add(_s);
+}
+
+private void konst(Number num) {
+	_e = new IntegerAST(num.intValue());
+}
+
+private void releq(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.EQ, a, _e);
+}
+
+private void relne(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.NE, a, _e);
+}
+
+private void relgt(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.GT, a, _e);
+}
+
+private void rellt(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.LT, a, _e);
+}
+
+private void relge(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.GE, a, _e);
+}
+
+private void relle(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.LE, a, _e);
+}
+
+private void add(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.ADD, a, _e);
+}
+
+private void sub(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.SUB, a, _e);
+}
+
+private void or(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.OR, a, _e);
+}
+
+private void xor(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.XOR, a, _e);
+}
+
+private void mul(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.MUL, a, _e);
+}
+
+private void div(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.DIV, a, _e);
+}
+
+private void idiv(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.DIV, a, _e);
+}
+
+private void mod(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.REM, a, _e);
+}
+
+private void and(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.AND, a, _e);
+}
+
+private void shr(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.SHR, a, _e);
+}
+
+private void shl(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.SHL, a, _e);
+}
+
+private void not() {
+	_e = new UnaryAST(UnaryAST.Type.NOT, _e);
+}
+
+private void uminus() {
+	_e = new UnaryAST(UnaryAST.Type.NEG, _e);
+}
+
+private void var(String name) {
+	_e = new SymbolAST(name);
+}
+
+public static void main(String[] args) throws Exception {
+	Classfile cf = new Classfile();
+	MethodInfo mi = new MethodInfo("main", "([Ljava/lang/String;)V");
+	Patricia02 parser = new Patricia02();
+	Goto gt = new Goto(), gb = new Goto();
+	int jp, np;
+
+	parser.code = new Code();
+	parser.functions = new FunctionSpace(args[0]);
+	cf.setMajorVersion(45);
+	cf.setMinorVersion(3);
+	cf.setAccessFlag(Classfile.ACC_PUBLIC);
+	cf.setThisClass(new ConstantClass(args[0]));
+	cf.setSuperClass(new ConstantClass("java/lang/Object"));
+	jp = parser.code.addCode(gt);
+	np = parser.code.addCode(Mnemonic.NOP);
+	parser.parse(System.in);
+	parser.code.addCode(Mnemonic.RETURN);
+	gt.setOffset(parser.code.getCurrentOffset(jp));
+	for(int i = 1; i < parser.local.getMax(); i++) {
+		parser.code.addCode(new IConst(0));
+		parser.code.addCode(new IStore(i));
+	}
+	gb.setOffset(parser.code.getAddress(np) - parser.code.getCurrentAddress());
+	parser.code.addCode(gb);
+	parser.code.setMaxStack(1024);
+	parser.code.setMaxLocals(parser.local.getMax());
+	mi.setAccessFlags(MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC);
+	mi.addAttribute(parser.code);
+	cf.addMethod(mi);
+
+	FileOutputStream fs = null;
+	try {
+		fs = new FileOutputStream(args[0] + ".class");
+		cf.generateClassFile(fs);
+	} finally {
+		if(fs != null) {
+			fs.close();
+		}
+	}
+}
