@@ -79,7 +79,8 @@ public class Code extends Attribute {
 	public int addCode(Mnemonic code) {
 		this.code.add(code);
 		if(address.size() > 0) {
-			address.add(getCurrentAddress() + code.getByteLength());
+			address.add(getCurrentAddress() +
+					code.computeByteLength(getCurrentAddress()));
 		} else {
 			address.add(code.getByteLength());
 		}
@@ -126,6 +127,16 @@ public class Code extends Attribute {
 			return 0;
 		}
 	}
+
+	/**
+	 * gets current padding of this codes.
+	 */
+	public int getCurrentPad() {
+		int current = getCurrentAddress();
+
+		return (4 - ((current + 1) % 4)) / 4;
+	}
+
 	/**
 	 * add an exception table.
 	 * 

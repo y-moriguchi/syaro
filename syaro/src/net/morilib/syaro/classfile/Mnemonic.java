@@ -508,6 +508,16 @@ public abstract class Mnemonic implements ClassInfo {
 	 */
 	protected abstract int getByteLength();
 
+	/**
+	 * computes the byte length of this instruction.
+	 * 
+	 * @param currentAddress beginning point of address
+	 * @return byte length
+	 */
+	protected int computeByteLength(int currentAddress) {
+		return getByteLength();
+	}
+
 	/* (non-Javadoc)
 	 * @see net.morilib.syaro.classfile.ClassInfo#generateCode(net.morilib.syaro.classfile.GatheredConstantPool, java.io.DataOutputStream)
 	 */
