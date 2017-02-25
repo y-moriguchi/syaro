@@ -27,6 +27,7 @@ Patricia: a Pascal like compiler
 %{
 import java.io.FileOutputStream;
 import java.io.StringReader;
+import java.util.List;
 import net.morilib.syaro.classfile.*;
 import net.morilib.syaro.classfile.code.*;
 %}
@@ -34,10 +35,50 @@ import net.morilib.syaro.classfile.code.*;
  *S*^******v*         ***       @@@
  *          >-+-"var"-> >-{var}-> @
  ************ |       ***       @@@
+              |
+              |         ***         @@@
+              +-"const"-> >-{konst}-> @
+              |         ***         @@@
+              |
               |          +-${S}-+
               |         *^******v*            *********     @@@
               +-"begin"->        >-{stmtlist}->prog();>-'.'-> @
                         **********            *********     @@@
+-- konst --
+    +-${S}-+                                         +-${S}-+       +-${S}-+
+ *S*^******v* ***        *A<String>**************** *^******v*     *^******v*
+ *          >-> >-${VAR}->%% = $buffer.toString();>->        >-'='->        >-(G)
+ *v********** ***        ************************** **********     **********
+  |
+  | *G*        ************************
+  | * >-+-{%f}->consts.bind($A, $num);>-(H)
+  | *** |      ************************
+  |     |
+  |     |      +-${S}-+
+  |     |     *^******v*      ******************************
+  |     +-'-'->        >-{%f}->consts.bindNegate($A, $num);>-(H)
+  |     |     **********      ******************************
+  |     |
+  |     |        ***************************************************
+  |     +-${VAR}->consts.bind($A, consts.find($buffer.toString()));>-(H)
+  |     |        ***************************************************
+  |     |
+  |     |        *********************************************************
+  |     +-${VAR}->consts.bindNegate($A, consts.find($buffer.toString()));>-(H)
+  |              *********************************************************
+  |    +-${S}-+
+  | *H*^******v*
+  | *          >-';'-(S)
+  | ************
+  |
+  |       ***       @@@
+  +-"var"-> >-{var}-> @
+  |       ***       @@@
+  |
+  |          +-${S}-+
+  |         *^******v*            *********     @@@
+  +-"begin"->        >-{stmtlist}->prog();>-'.'-> @
+            **********            *********     @@@
 -- var --
     +-${S}-+                                         +-${S}-+       +-${S}-+
  *S*^******v* ***        *A<String>**************** *^******v*     *^******v*
@@ -53,29 +94,135 @@ import net.morilib.syaro.classfile.code.*;
  ************************** **********     *****************
 -- stmt --
     +-${S}-+             +-${S}-+
- *S*^******v*           *^******v*            @@@@@@@@@@
- *          >-+-"begin"->        >-{stmtlist}->block();@
- ************ |         **********            @@@@@@@@@@
+ *S*^******v*           *^******v*            @@@
+ *          >-+-"begin"->        >-{stmtlist}-> @
+ ************ |         **********            @@@
               |
               |            +-${S}-+                  +-${S}-+
               |           *^******v*     ***        *^******v*     @@@@@@@@@@
               +-"writeln"->        >-'('-> >-{expr}->        >-')'->print();@
               |           **********     ***        **********     @@@@@@@@@@
               |
-              |             +-${S}-+
-              | ***        *^******v*      *AA<String>***************        @@@@@@@@@@@@@@@@
-              +-> >-${VAR}->        >-":="->%% = $buffer.toString();>-{expr}->asgn($AA, _e);@
-                ***        **********      **************************        @@@@@@@@@@@@@@@@
+              |       +-${S}-+                     +-${S}-+
+              |      *^******v*        *LIF<AST>* *^******v*        ***
+              +-"if"->        >-{expr}->%% = _e;>->        >-"then"-> >-{stmt}-(IF1)
+              |      **********        ********** **********        ***
+              |        +-${S}-+
+              |       *^******v*        *LEL<SAST>*        @@@@@@@@@@@@@@@@@@@@
+              | (IF1)->        >-"else"->%% = _s; >-{stmt}->endif($LIF, $LEL);@
+              |       *v********        ***********        @@@@@@@@@@@@@@@@@@@@
+              |        |
+              |        | @@@@@@@@@@@@@@
+              |        +->endif($LIF);@
+              |          @@@@@@@@@@@@@@
+              |
+              |           @@@
+              +-{stmtrep}-> @
+                          @@@
+-- stmtrep --
+ *S*
+ * *
+ *v*
+  |
+  |                    +-${S}-+                       +-${S}-+
+  |        ***        *^******v*      ***            *^******v*        @@@
+  +-"case"-> >-{expr}->        >-"of"-> >-{casebody}->        >-"end"--> @
+  |        ***        **********      ***            **********        @@@
+  |
+  |        +-${S}-+                                     +-${S}-+
+  |       *^******v*        *FA<String>*************** *^******v*
+  +-"for"->        >-${VAR}->%% = $buffer.toString();>->        *
+  |       **********        ************************** *v********
+  |  +---------------":="-------------------------------+
+  |  |                     +-${S}-+                      +-${S}-+
+  | *v*        *FB<AST>** *^******v*      *FC<Integer>* *^******v*
+  | * >-{expr}->%% = _e;>->        >-"to"->%% = 1;    >->        >-{expr}-(FD)
+  | ***        ********** ********v*      ************* **^*******
+  |                               |                       |
+  |                               |           *********** |
+  |                               +--"downto"->%FC = -1;>-+
+  |                                           ***********
+  |             +-${S}-+
+  | *FD<AST>** *^******v*      ***        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  | *%% = _e;>->        >-"do"-> >-{stmt}->_s = new ForAST($FA, $FB, $FD, $FC, _s);@
+  | ********** **********      ***        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  |
+  |          +-${S}-+          +-${S}-+
+  |         *^******v*        *^******v*
+  +-"while"->        >-{expr}->        >-"do"-(WH1)
+  |         **********        **********
+  |
+  |       *WX<AST>**        @@@@@@@@@@@@@
+  | (WH1)->%% = _e;>-{stmt}->endwh($WX);@
+  |       **********        @@@@@@@@@@@@@
+  |
+  |          ***            ***        @@@@@@@@@@
+  +-"repeat"-> >-{stmtlrep}-> >-{expr}->enddo();@
+  |          ***            ***        @@@@@@@@@@
+  |
+  |         @@@@@@@@@@@
+  +-"break"->_break();@
+  |         @@@@@@@@@@@
+  |
+  |            @@@@@@@@@@@@@@
+  +-"continue"->_continue();@
+  |            @@@@@@@@@@@@@@
+  |
+  |             +-${S}-+
+  | ***        *^******v*      *AA<String>***************        @@@@@@@@@@@@@@@@
+  +-> >-${VAR}->        >-":="->%% = $buffer.toString();>-{expr}->asgn($AA, _e);@
+    ***        **********      **************************        @@@@@@@@@@@@@@@@
+-- casebody --
+ *S<CaseAST>************
+ *%% = new CaseAST(_e);*
+ ***v*******************
+    |
+    | +-${S}-+
+ *A*v*^******v*              *B<List<Integer>>*     ***        *********************
+ *            >-+-{casevals}->%% = _ln;       >-':'-> >-{stmt}->$S.addCase($B, _s);*
+ ************** |            ******************     ***        *v*******************
+                |                                    +-${S}-+   |
+                |                                   *^******v***v***
+                |                                   *              *
+                |                                   ************v*v*
+                |                                               | +-';'-(A)
+                |                                   @@@@@@@@@@@@v@
+                |                                   @_s = $S;    @
+                |                                   @@@@@@@@@@@@@@
+                |
+                |
+                |        ***        @@@@@@@@@@@@@@@@@@@@@@@@@@
+                +-"else"-> >-{stmt}->$S.setElse(_s); _s = $S;@
+                         ***        @@@@@@@@@@@@@@@@@@@@@@@@@@
+-- casevals --
+ *S*****************************************
+ *_ln = new java.util.ArrayList<Integer>();*
+ ***v***************************************
+    | +-${S}-+                         +-${S}-+
+ *A*v*^******v*      **************** *^******v* @@@
+ *            >-{%d}->_ln.add($int);>->        >-> @
+ ************^*      **************** *v******** @@@
+             +--','--------------------+
 -- stmtlist --
-               +-${S}-+          +-${S}-+
- *S********** *^******v*        *^******v*     **********
- *beginsl();>->        >-{stmt}->        >-';'->addsl();*
- ************ *v******^*        **********     *v********
-               |      +-------------------------+
-               |
-               |       @@@
-               +-"end"-> @
-                       @@@
+                   +-${S}-+          +-${S}-+
+ *S<BlockAST>**** *^******v*        *^******v*     ***********
+ *%% = beginb();>->        >-{stmt}->        >-';'->addb($S);*
+ **************** *v******^*        **********     *v*********
+                   |      +-------------------------+
+                   |
+                   |       @@@@@@@@@@@
+                   +-"end"->endb($S);@
+                           @@@@@@@@@@@
+-- stmtlrep --
+                   +-${S}-+          +-${S}-+
+ *S<BlockAST>**** *^******v*        *^******v*     ***********
+ *%% = beginb();>->        >-{stmt}->        >-';'->addb($S);*
+ **************** *v******^*        **********     *v*********
+                   |      +-------------------------+
+                   |
+                   |         @@@@@@@@@@@
+                   +-"until"->endb($S);@
+                             @@@@@@@@@@@
 -- expr --
  *S*       @@@@@@@@@@@
  * >-{rel}->         @
@@ -171,9 +318,13 @@ import net.morilib.syaro.classfile.code.*;
                        @@@
 -- elem --
     +-${S}-+
- *S*^******v*        @@@@@@@@@@@@@@
- *          >-+-{%d}->konst($int);@
- ************ |      @@@@@@@@@@@@@@
+ *S*^******v*        ***      @@@@@@@@@@@@@@@@@@@
+ *          >-+-{%f}-> >-[fF]->konstfloat($num);@
+ ************ |      *v*      @@@@@@@@@@@@@@@@@@@
+              |       |
+              |       |       @@@@@@@@@@@@@@
+              |       +------->konst($num);@
+              |               @@@@@@@@@@@@@@
               |
               |        @@@@@@@@@@@@@@@@@@@@@@@@@@
               +-${VAR}->var($buffer.toString());@
@@ -185,10 +336,12 @@ import net.morilib.syaro.classfile.code.*;
 %%
 private FunctionSpace functions;
 private LocalVariableSpace local = new LocalVariableSpace();
+private ConstSpace consts = new ConstSpace();
 private Code code;
 private SAST _s;
 private java.util.List<SAST> stmtlist;
 private AST _e;
+private java.util.List<Integer> _ln;
 
 private VariableType getTypeFromName(String tname) {
 	if(tname.equals("byte")) {
@@ -213,7 +366,6 @@ private VariableType getTypeFromName(String tname) {
 }
 
 private void prog() {
-	block();
 	_s.putCode(functions, local, code, null, -1, null);
 }
 
@@ -221,8 +373,40 @@ private void defvar(String name, String type) {
 	local.putVariable(name, getTypeFromName(type));
 }
 
-private void block() {
-	_s = new BlockAST(stmtlist);
+private BlockAST beginb() {
+	return new BlockAST();
+}
+
+private void addb(BlockAST s) {
+	s.addStatement(_s);
+}
+
+private void endb(BlockAST s) {
+	_s = s;
+}
+
+private void endif(AST expr) {
+	_s = new IfAST(expr, _s, null);
+}
+
+private void endif(AST expr, SAST _if) {
+	_s = new IfAST(expr, _if, _s);
+}
+
+private void endwh(AST expr) {
+	_s = new WhileAST(expr, _s);
+}
+
+private void enddo() {
+	_s = new DoAST(_e, _s);
+}
+
+private void _break() {
+	_s = new BreakAST();
+}
+
+private void _continue() {
+	_s = new ContinueAST();
 }
 
 private void print() {
@@ -242,7 +426,15 @@ private void addsl() {
 }
 
 private void konst(Number num) {
-	_e = new IntegerAST(num.intValue());
+	if(num instanceof Integer) {
+		_e = new IntegerAST(num.intValue());
+	} else {
+		_e = new DoubleAST(num.doubleValue());
+	}
+}
+
+private void konstfloat(Number num) {
+	_e = new FloatAST(num.floatValue());
 }
 
 private void releq(AST a) {
@@ -322,13 +514,17 @@ private void uminus() {
 }
 
 private void var(String name) {
-	_e = new SymbolAST(name);
+	if(consts.containsKey(name)) {
+		_e = consts.find(name);
+	} else {
+		_e = new SymbolAST(name);
+	}
 }
 
 public static void main(String[] args) throws Exception {
 	Classfile cf = new Classfile();
 	MethodInfo mi = new MethodInfo("main", "([Ljava/lang/String;)V");
-	Patricia02 parser = new Patricia02();
+	Patricia04 parser = new Patricia04();
 	Goto gt = new Goto(), gb = new Goto();
 	int jp, np;
 

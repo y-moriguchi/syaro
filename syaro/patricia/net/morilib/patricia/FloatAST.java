@@ -16,31 +16,31 @@
 package net.morilib.patricia;
 
 import net.morilib.syaro.classfile.Code;
-import net.morilib.syaro.classfile.ConstantInteger;
+import net.morilib.syaro.classfile.ConstantFloat;
 import net.morilib.syaro.classfile.code.LdcW;
 
 /**
- * An abstract syntax tree for integer constant.
+ * An abstract syntax tree for float constant.
  * 
  * @author Yuichiro MORIGUCHI
  */
-public class IntegerAST implements AST {
+public class FloatAST implements AST {
 
-	private int value;
+	private float value;
 
 	/**
 	 * creates an AST for the value.
 	 * 
 	 * @param value the value
 	 */
-	public IntegerAST(int value) {
+	public FloatAST(float value) {
 		this.value = value;
 	}
 
 	/**
 	 * gets the value.
 	 */
-	public int getValue() {
+	public float getValue() {
 		return value;
 	}
 
@@ -48,13 +48,13 @@ public class IntegerAST implements AST {
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
-		code.addCode(new LdcW(new ConstantInteger(value)));
+		code.addCode(new LdcW(new ConstantFloat(value)));
 	}
 
 	@Override
 	public VariableType getASTType(FunctionSpace functions,
 			LocalVariableSpace space) {
-		return Primitive.INT;
+		return Primitive.FLOAT;
 	}
 
 }
