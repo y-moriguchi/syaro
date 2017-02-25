@@ -19,39 +19,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.morilib.syaro.classfile.Code;
+import net.morilib.syaro.classfile.code.Goto;
+import net.morilib.syaro.classfile.code.If;
 
 /**
- * An abstract syntax tree for statement of a block.
+ * An abstract syntax tree for repeat statement.
  * 
  * @author Yuichiro MORIGUCHI
  */
-public class BlockAST implements SAST {
+public class DoAST implements SAST {
 
-	private List<SAST> block;
-
-	/**
-	 * constructs a block.
-	 */
-	public BlockAST() {
-		this.block = new ArrayList<SAST>();
-	}
+	private AST condition;
+	private SAST statement;
 
 	/**
-	 * constructs a block.
+	 * creates an AST of repeat statement.
 	 * 
-	 * @param block block of statements
-	 */
-	public BlockAST(List<SAST> block) {
-		this.block = new ArrayList<SAST>(block);
-	}
-
-	/**
-	 * adds a statement.
-	 * 
+	 * @param cond condition
 	 * @param stmt statement
 	 */
-	public void addStatement(SAST stmt) {
-		block.add(stmt);
+	public DoAST(AST cond, SAST stmt) {
+		condition = cond;
+		statement = stmt;
 	}
 
 	@Override
@@ -61,9 +50,18 @@ public class BlockAST implements SAST {
 			List<Integer> breakIndices,
 			int continueAddress,
 			List<Integer> continueIndices) {
-		for(SAST s : block) {
-			s.putCode(functions, space,
-					code, breakIndices, continueAddress, continueIndices);
+		List<Integer> brk = new ArrayList<Integer>();
+		int addr;
+		If _if;
+
+		addr = code.getCurrentAddress();
+		statement.putCode(functions, space, code, brk, addr, null);
+		condition.putCode(functions, space, code);
+		_if = new If(If.Cond.EQ);
+		_if.setOffset(addr - code.getCurrentAddress());
+		code.addCode(_if);
+		for(int x : brk) {
+			((Goto)code.getCode(x)).setOffset(code.getCurrentOffset(x));
 		}
 	}
 

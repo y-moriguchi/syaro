@@ -67,6 +67,10 @@ public class CaseAST implements SAST {
 		List<Integer> end = new ArrayList<Integer>();
 		int lsidx;
 
+		if(!expr.getASTType(functions, space).isConversible(Primitive.INT)) {
+			throw new SemanticsException("expression of case must be int");
+		}
+
 		expr.putCode(functions, space, code);
 		npairs = new TreeMap<Integer, Integer>();
 		for(int i = 0; i < caseValue.size(); i++) {

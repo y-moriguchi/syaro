@@ -15,44 +15,17 @@
  */
 package net.morilib.patricia;
 
-import java.util.ArrayList;
 import java.util.List;
 
 import net.morilib.syaro.classfile.Code;
+import net.morilib.syaro.classfile.code.Goto;
 
 /**
- * An abstract syntax tree for statement of a block.
+ * An abstract syntax tree for break statement.
  * 
  * @author Yuichiro MORIGUCHI
  */
-public class BlockAST implements SAST {
-
-	private List<SAST> block;
-
-	/**
-	 * constructs a block.
-	 */
-	public BlockAST() {
-		this.block = new ArrayList<SAST>();
-	}
-
-	/**
-	 * constructs a block.
-	 * 
-	 * @param block block of statements
-	 */
-	public BlockAST(List<SAST> block) {
-		this.block = new ArrayList<SAST>(block);
-	}
-
-	/**
-	 * adds a statement.
-	 * 
-	 * @param stmt statement
-	 */
-	public void addStatement(SAST stmt) {
-		block.add(stmt);
-	}
+public class BreakAST implements SAST {
 
 	@Override
 	public void putCode(FunctionSpace functions,
@@ -61,10 +34,10 @@ public class BlockAST implements SAST {
 			List<Integer> breakIndices,
 			int continueAddress,
 			List<Integer> continueIndices) {
-		for(SAST s : block) {
-			s.putCode(functions, space,
-					code, breakIndices, continueAddress, continueIndices);
+		if(breakIndices == null) {
+			throw new RuntimeException("invalid break");
 		}
+		breakIndices.add(code.addCode(new Goto()));
 	}
 
 }

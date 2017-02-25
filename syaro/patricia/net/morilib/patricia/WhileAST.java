@@ -19,39 +19,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.morilib.syaro.classfile.Code;
+import net.morilib.syaro.classfile.code.Goto;
+import net.morilib.syaro.classfile.code.If;
 
 /**
- * An abstract syntax tree for statement of a block.
+ * An abstract syntax tree for while statement.
  * 
  * @author Yuichiro MORIGUCHI
  */
-public class BlockAST implements SAST {
+public class WhileAST implements SAST {
 
-	private List<SAST> block;
-
-	/**
-	 * constructs a block.
-	 */
-	public BlockAST() {
-		this.block = new ArrayList<SAST>();
-	}
+	private AST condition;
+	private SAST statement;
 
 	/**
-	 * constructs a block.
+	 * creates an AST of while statement.
 	 * 
-	 * @param block block of statements
-	 */
-	public BlockAST(List<SAST> block) {
-		this.block = new ArrayList<SAST>(block);
-	}
-
-	/**
-	 * adds a statement.
-	 * 
+	 * @param cond condition
 	 * @param stmt statement
 	 */
-	public void addStatement(SAST stmt) {
-		block.add(stmt);
+	public WhileAST(AST cond, SAST stmt) {
+		condition = cond;
+		statement = stmt;
 	}
 
 	@Override
@@ -61,9 +50,22 @@ public class BlockAST implements SAST {
 			List<Integer> breakIndices,
 			int continueAddress,
 			List<Integer> continueIndices) {
-		for(SAST s : block) {
-			s.putCode(functions, space,
-					code, breakIndices, continueAddress, continueIndices);
+		List<Integer> brk = new ArrayList<Integer>();
+		int addr, ifa;
+		If _if;
+		Goto _gt;
+
+		addr = code.getCurrentAddress();
+		condition.putCode(functions, space, code);
+		_if = new If(If.Cond.EQ);
+		ifa = code.addCode(_if);
+		statement.putCode(functions, space, code, brk, addr, null);
+		_gt = new Goto();
+		_gt.setOffset(addr - code.getCurrentAddress());
+		code.addCode(_gt);
+		_if.setOffset(code.getCurrentOffset(ifa));
+		for(int x : brk) {
+			((Goto)code.getCode(x)).setOffset(code.getCurrentOffset(x));
 		}
 	}
 
