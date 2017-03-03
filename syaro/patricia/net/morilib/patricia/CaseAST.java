@@ -23,6 +23,7 @@ import java.util.TreeMap;
 import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.code.Goto;
 import net.morilib.syaro.classfile.code.LookupSwitch;
+import net.morilib.syaro.classfile.code.TableSwitch;
 
 /**
  * An abstract syntax tree for case.
@@ -56,20 +57,10 @@ public class CaseAST implements SAST {
 		caseElse = stmt;
 	}
 
-	@Override
-	public void putCode(FunctionSpace functions,
-			LocalVariableSpace space, Code code,
-			List<Integer> breakIndices, int continueAddress,
-			List<Integer> continueIndices) {
+	private SortedMap<Integer, Integer> getPairs(FunctionSpace functions,
+			LocalVariableSpace space, Code code) {
 		SortedMap<Integer, Integer> npairs;
-		LookupSwitch ls;
 		List<Integer> val;
-		List<Integer> end = new ArrayList<Integer>();
-		int lsidx;
-
-		if(!expr.getASTType(functions, space).isConversible(Primitive.INT)) {
-			throw new SemanticsException("expression of case must be int");
-		}
 
 		expr.putCode(functions, space, code);
 		npairs = new TreeMap<Integer, Integer>();
@@ -82,6 +73,28 @@ public class CaseAST implements SAST {
 				npairs.put(val.get(j), -1);
 			}
 		}
+		return npairs;
+	}
+
+	private boolean isDense(SortedMap<Integer, Integer> npairs) {
+		for(int i = npairs.firstKey(); i <= npairs.lastKey(); i++) {
+			if(!npairs.containsKey(i)) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private void putCodeLookup(FunctionSpace functions,
+			LocalVariableSpace space, Code code,
+			List<Integer> breakIndices, int continueAddress,
+			List<Integer> continueIndices,
+			SortedMap<Integer, Integer> npairs) {
+		LookupSwitch ls;
+		List<Integer> val;
+		List<Integer> end = new ArrayList<Integer>();
+		int lsidx;
+
 		ls = new LookupSwitch(npairs, -1);
 		lsidx = code.addCode(ls);
 		for(int i = 0; i < caseValue.size(); i++) {
@@ -100,6 +113,58 @@ public class CaseAST implements SAST {
 		}
 		for(int l : end) {
 			((Goto)code.getCode(l)).setOffset(code.getCurrentOffset(l));
+		}
+	}
+
+	private void putCodeTable(FunctionSpace functions,
+			LocalVariableSpace space, Code code,
+			List<Integer> breakIndices, int continueAddress,
+			List<Integer> continueIndices,
+			SortedMap<Integer, Integer> npairs) {
+		TableSwitch ls;
+		List<Integer> val;
+		List<Integer> end = new ArrayList<Integer>();
+		int lsidx;
+
+		ls = new TableSwitch(npairs.firstKey(), npairs.lastKey());
+		lsidx = code.addCode(ls);
+		for(int i = 0; i < caseValue.size(); i++) {
+			val = caseValue.get(i);
+			for(int j = 0; j < val.size(); j++) {
+				ls.putOffset(val.get(j), code.getCurrentOffset(lsidx));
+			}
+			caseStatement.get(i).putCode(functions, space, code,
+					breakIndices, continueAddress, continueIndices);
+			end.add(code.addCode(new Goto()));
+		}
+		ls.setDefaultOffset(code.getCurrentOffset(lsidx));
+		if(caseElse != null) {
+			caseElse.putCode(functions, space, code,
+					breakIndices, continueAddress, continueIndices);
+		}
+		for(int l : end) {
+			((Goto)code.getCode(l)).setOffset(code.getCurrentOffset(l));
+		}
+	}
+
+	@Override
+	public void putCode(FunctionSpace functions,
+			LocalVariableSpace space, Code code,
+			List<Integer> breakIndices, int continueAddress,
+			List<Integer> continueIndices) {
+		SortedMap<Integer, Integer> npairs;
+
+		if(!expr.getASTType(functions, space).isConversible(Primitive.INT)) {
+			throw new SemanticsException("expression of case must be int");
+		}
+
+		npairs = getPairs(functions, space, code);
+		if(isDense(npairs)) {
+			putCodeTable(functions, space, code, breakIndices,
+					continueAddress, continueIndices, npairs);
+		} else {
+			putCodeLookup(functions, space, code, breakIndices,
+					continueAddress, continueIndices, npairs);
 		}
 	}
 
