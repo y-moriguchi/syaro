@@ -21,6 +21,7 @@ import net.morilib.syaro.classfile.code.ALoad;
 import net.morilib.syaro.classfile.code.DLoad;
 import net.morilib.syaro.classfile.code.FLoad;
 import net.morilib.syaro.classfile.code.Getfield;
+import net.morilib.syaro.classfile.code.Getstatic;
 import net.morilib.syaro.classfile.code.ILoad;
 import net.morilib.syaro.classfile.code.LLoad;
 
@@ -69,6 +70,10 @@ public class SymbolAST implements AST {
 			} else {
 				code.addCode(new ALoad(idx));
 			}
+		} else if(functions.containsStatic(name)) {
+			type = functions.getStatic(name);
+			code.addCode(new Getstatic(new ConstantFieldref(
+					functions.getClassname(), name, type.getDescriptor())));
 		} else {
 			type = functions.getGlobal(name);
 			code.addCode(new ALoad(0));
@@ -84,6 +89,8 @@ public class SymbolAST implements AST {
 
 		if(idx >= 0) {
 			return space.getType(name);
+		} else if(functions.containsStatic(name)) {
+			return functions.getStatic(name);
 		} else {
 			return functions.getGlobal(name);
 		}

@@ -30,6 +30,7 @@ public class FunctionSpace {
 	private Map<String, FunctionDefinition> space =
 			new HashMap<String, FunctionDefinition>();
 	private Map<String, VariableType> global = new HashMap<String, VariableType>();
+	private Map<String, VariableType> staticVar = new HashMap<String, VariableType>();
 
 	/**
 	 * creates a namespace.
@@ -98,6 +99,45 @@ public class FunctionSpace {
 	 */
 	public Map<String, VariableType> getGlobalMap() {
 		return new HashMap<String, VariableType>(global);
+	}
+
+	/**
+	 * return true if the name is found.
+	 * 
+	 * @param name the name
+	 */
+	public boolean containsStatic(String name) {
+		return staticVar.containsKey(name);
+	}
+
+	/**
+	 * puts a static variable definition.
+	 * 
+	 * @param name the name of the variable
+	 * @param type the type of the variable
+	 */
+	public void putStatic(String name, VariableType type) {
+		staticVar.put(name, type);
+	}
+
+	/**
+	 * gets a static variable from this namespace by the given name.
+	 * 
+	 * @param name the name
+	 * @return the definition of the static variable
+	 */
+	public VariableType getStatic(String name) {
+		if(!staticVar.containsKey(name)) {
+			throw new SemanticsException("variable " + name + "is not defined");
+		}
+		return staticVar.get(name);
+	}
+
+	/**
+	 * gets a map of definitions of static variables.
+	 */
+	public Map<String, VariableType> getStaticMap() {
+		return new HashMap<String, VariableType>(staticVar);
 	}
 
 }

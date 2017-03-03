@@ -40,6 +40,14 @@ import net.morilib.syaro.classfile.code.*;
               +-"const"-> >-{konst}-> @
               |         ***         @@@
               |
+              |          ***          @@@
+              +-"static"-> >-{static}-> @
+              |          ***          @@@
+              |
+              |         ***         @@@
+              +-"field"-> >-{field}-> @
+              |         ***         @@@
+              |
               |          +-${S}-+
               |         *^******v*            *********     @@@
               +-"begin"->        >-{stmtlist}->prog();>-'.'-> @
@@ -71,6 +79,14 @@ import net.morilib.syaro.classfile.code.*;
   | *          >-';'-(S)
   | ************
   |
+  |          ***          @@@
+  +-"static"-> >-{static}-> @
+  |          ***          @@@
+  |
+  |         ***         @@@
+  +-"field"-> >-{field}-> @
+  |         ***         @@@
+  |
   |       ***       @@@
   +-"var"-> >-{var}-> @
   |       ***       @@@
@@ -79,6 +95,44 @@ import net.morilib.syaro.classfile.code.*;
   |         *^******v*            *********     @@@
   +-"begin"->        >-{stmtlist}->prog();>-'.'-> @
             **********            *********     @@@
+-- static --
+    +-${S}-+                                         +-${S}-+       +-${S}-+
+ *S*^******v* ***        *A<String>**************** *^******v*     *^******v*
+ *          >-> >-${VAR}->%% = $buffer.toString();>->        >-':'->        >-${VAR}-(Z)
+ *v********** ***        ************************** **********     **********
+  |
+  |       ***       @@@
+  +-"var"-> >-{var}-> @
+  |       ***       @@@
+  |
+  |         ***         @@@
+  +-"field"-> >-{field}-> @
+  |         ***         @@@
+  |          +-${S}-+
+  |         *^******v*            *********     @@@
+  +-"begin"->        >-{stmtlist}->prog();>-'.'-> @
+            **********            *********     @@@
+                             +-${S}-+
+ *Z<String>**************** *^******v*     ********************
+ *%% = $buffer.toString();>->        >-';'->defstatic($A, $Z);>-(S)
+ ************************** **********     ********************
+-- field --
+    +-${S}-+                                         +-${S}-+       +-${S}-+
+ *S*^******v* ***        *A<String>**************** *^******v*     *^******v*
+ *          >-> >-${VAR}->%% = $buffer.toString();>->        >-':'->        >-${VAR}-(Z)
+ *v********** ***        ************************** **********     **********
+  |
+  |       ***       @@@
+  +-"var"-> >-{var}-> @
+  |       ***       @@@
+  |          +-${S}-+
+  |         *^******v*            *********     @@@
+  +-"begin"->        >-{stmtlist}->prog();>-'.'-> @
+            **********            *********     @@@
+                             +-${S}-+
+ *Z<String>**************** *^******v*     ********************
+ *%% = $buffer.toString();>->        >-';'->defglobal($A, $Z);>-(S)
+ ************************** **********     ********************
 -- var --
     +-${S}-+                                         +-${S}-+       +-${S}-+
  *S*^******v* ***        *A<String>**************** *^******v*     *^******v*
@@ -373,6 +427,14 @@ private void defvar(String name, String type) {
 	local.putVariable(name, getTypeFromName(type));
 }
 
+private void defstatic(String name, String type) {
+	functions.putStatic(name, getTypeFromName(type));
+}
+
+private void defglobal(String name, String type) {
+	functions.putGlobal(name, getTypeFromName(type));
+}
+
 private BlockAST beginb() {
 	return new BlockAST();
 }
@@ -521,6 +583,30 @@ private void var(String name) {
 	}
 }
 
+private static void addFields(FunctionSpace fs, Classfile cf) {
+	java.util.Map<String, VariableType> map;
+	FieldInfo fi;
+
+	map = fs.getGlobalMap();
+	for(java.util.Map.Entry<String, VariableType> e : map.entrySet()) {
+		fi = new FieldInfo(e.getKey(), e.getValue().getDescriptor());
+		fi.setAccessFlags(FieldInfo.ACC_PUBLIC);
+		cf.addField(fi);
+	}
+}
+
+private static void addStaticFields(FunctionSpace fs, Classfile cf) {
+	java.util.Map<String, VariableType> map;
+	FieldInfo fi;
+
+	map = fs.getStaticMap();
+	for(java.util.Map.Entry<String, VariableType> e : map.entrySet()) {
+		fi = new FieldInfo(e.getKey(), e.getValue().getDescriptor());
+		fi.setAccessFlags(FieldInfo.ACC_PUBLIC | FieldInfo.ACC_STATIC);
+		cf.addField(fi);
+	}
+}
+
 public static void main(String[] args) throws Exception {
 	Classfile cf = new Classfile();
 	MethodInfo mi = new MethodInfo("main", "([Ljava/lang/String;)V");
@@ -548,6 +634,8 @@ public static void main(String[] args) throws Exception {
 	parser.code.addCode(gb);
 	parser.code.setMaxStack(1024);
 	parser.code.setMaxLocals(parser.local.getMax());
+	addFields(parser.functions, cf);
+	addStaticFields(parser.functions, cf);
 	mi.setAccessFlags(MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC);
 	mi.addAttribute(parser.code);
 	cf.addMethod(mi);

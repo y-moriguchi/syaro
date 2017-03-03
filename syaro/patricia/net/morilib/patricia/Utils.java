@@ -25,6 +25,7 @@ import net.morilib.syaro.classfile.code.FStore;
 import net.morilib.syaro.classfile.code.IStore;
 import net.morilib.syaro.classfile.code.LStore;
 import net.morilib.syaro.classfile.code.Putfield;
+import net.morilib.syaro.classfile.code.Putstatic;
 
 /**
  * An utility class of ASTs.
@@ -171,6 +172,12 @@ public class Utils {
 			} else {
 				code.addCode(new AStore(idx));
 			}
+		}
+		name = getVarName(node);
+		if(functions.containsStatic(name)) {
+			type = functions.getStatic(name);
+			code.addCode(new Putstatic(new ConstantFieldref(
+					functions.getClassname(), name, type.getDescriptor())));
 		} else {
 			code.addCode(new ALoad(0));
 			if(node.getASTType(functions, space).equals(Primitive.DOUBLE)) {
@@ -179,7 +186,6 @@ public class Utils {
 			} else {
 				code.addCode(Mnemonic.SWAP);
 			}
-			name = getVarName(node);
 			type = functions.getGlobal(name);
 			code.addCode(new Putfield(new ConstantFieldref(
 					functions.getClassname(), name, type.getDescriptor())));
