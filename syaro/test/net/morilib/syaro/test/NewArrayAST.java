@@ -61,7 +61,7 @@ public class NewArrayAST implements AST {
 		} else if(t.equals(Primitive.DOUBLE)) {
 			code.addCode(new NewArray(NewArray.Type.DOUBLE));
 		} else {
-			code.addCode(new ANewArray(new ConstantClass(t.getDescriptor())));
+			code.addCode(new ANewArray(ConstantClass.getInstance(t.getDescriptor())));
 		}
 	}
 

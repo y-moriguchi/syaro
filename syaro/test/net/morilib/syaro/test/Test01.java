@@ -43,15 +43,15 @@ public class Test01 {
 		cf.setMajorVersion(45);
 		cf.setMinorVersion(3);
 		cf.setAccessFlag(Classfile.ACC_PUBLIC);
-		cf.setThisClass(new ConstantClass(args[0]));
-		cf.setSuperClass(new ConstantClass("Ljava/lang/Object;"));
+		cf.setThisClass(ConstantClass.getInstance(args[0]));
+		cf.setSuperClass(ConstantClass.getInstance("Ljava/lang/Object;"));
 		mi.setAccessFlags(MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC);
 		cd.setMaxStack(1024);
 		cd.setMaxLocals(1);
-		cd.addCode(new Getstatic(new ConstantFieldref(
+		cd.addCode(new Getstatic(ConstantFieldref.getInstance(
 				"java/lang/System", "out", "Ljava/io/PrintStream;")));
-		cd.addCode(new LdcW(new ConstantInteger(765)));
-		cd.addCode(new Invokevirtual(new ConstantMethodref(
+		cd.addCode(new LdcW(ConstantInteger.getInstance(765)));
+		cd.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 				"java/io/PrintStream", "println", "(I)V")));
 		cd.addCode(Mnemonic.RETURN);
 		mi.addAttribute(cd);

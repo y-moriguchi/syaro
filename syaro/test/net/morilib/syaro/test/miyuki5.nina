@@ -493,8 +493,8 @@ public static void main(String[] args) throws Exception {
 	cf.setMajorVersion(45);
 	cf.setMinorVersion(3);
 	cf.setAccessFlag(Classfile.ACC_PUBLIC);
-	cf.setThisClass(new ConstantClass(args[0]));
-	cf.setSuperClass(new ConstantClass("Ljava/lang/Object;"));
+	cf.setThisClass(ConstantClass.getInstance(args[0]));
+	cf.setSuperClass(ConstantClass.getInstance("Ljava/lang/Object;"));
 	mi.setAccessFlags(MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC);
 	jp = parser.code.addCode(gt);
 	np = parser.code.addCode(Mnemonic.NOP);

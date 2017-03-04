@@ -117,12 +117,12 @@ public class UnaryAST implements AST {
 					((Goto)code.getCode(lbl1)).setOffset(code.getCurrentOffset(lbl1));
 				} else if(t.isConversible(Primitive.INT)) {
 					node.putCode(functions, space, code);
-					code.addCode(new LdcW(new ConstantInteger(0xffffffff)));
+					code.addCode(new LdcW(ConstantInteger.getInstance(0xffffffff)));
 					code.addCode(Mnemonic.IXOR);
 					break;
 				} else if(t.equals(Primitive.LONG)) {
 					node.putCode(functions, space, code);
-					code.addCode(new Ldc2W(new ConstantLong(0xffffffffffffffffl)));
+					code.addCode(new Ldc2W(ConstantLong.getInstance(0xffffffffffffffffl)));
 					code.addCode(Mnemonic.LXOR);
 					break;
 				} else {

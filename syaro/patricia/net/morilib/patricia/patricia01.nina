@@ -226,16 +226,16 @@ public static void main(String[] args) throws Exception {
 	cf.setMajorVersion(45);
 	cf.setMinorVersion(3);
 	cf.setAccessFlag(Classfile.ACC_PUBLIC);
-	cf.setThisClass(new ConstantClass(args[0]));
-	cf.setSuperClass(new ConstantClass("Ljava/lang/Object;"));
+	cf.setThisClass(ConstantClass.getInstance(args[0]));
+	cf.setSuperClass(ConstantClass.getInstance("Ljava/lang/Object;"));
 	mi.setAccessFlags(MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC);
 	code.setMaxStack(1024);
 	code.setMaxLocals(1);
-	code.addCode(new Getstatic(new ConstantFieldref(
+	code.addCode(new Getstatic(ConstantFieldref.getInstance(
 			"java/lang/System", "out", "Ljava/io/PrintStream;")));
 	parseAll(System.in);
 	_e.putCode(new FunctionSpace(args[0]), new LocalVariableSpace(), code);
-	code.addCode(new Invokevirtual(new ConstantMethodref(
+	code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 			"java/io/PrintStream", "println", "(I)V")));
 	code.addCode(Mnemonic.RETURN);
 	mi.addAttribute(code);

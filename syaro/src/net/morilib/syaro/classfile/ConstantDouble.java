@@ -17,6 +17,8 @@ package net.morilib.syaro.classfile;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class represents a constant pool of double value.
@@ -25,14 +27,26 @@ import java.io.IOException;
  */
 public class ConstantDouble extends ConstantPool {
 
+	private static Map<Double, ConstantDouble> flyweight =
+			new HashMap<Double, ConstantDouble>();
 	private double value;
 
-	/**
-	 * constructs a constant pool of double value.
-	 */
-	public ConstantDouble(double value) {
+	private ConstantDouble(double value) {
 		super(CONSTANT_Double);
 		this.value = value;
+	}
+
+	/**
+	 * gets a constant pool of double value.
+	 */
+	public static ConstantDouble getInstance(double value) {
+		ConstantDouble res;
+
+		if((res = flyweight.get(value)) == null) {
+			res = new ConstantDouble(value);
+			flyweight.put(value, res);
+		}
+		return res;
 	}
 
 	/**

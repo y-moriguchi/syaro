@@ -17,6 +17,8 @@ package net.morilib.syaro.classfile;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class represents a constant pool of field reference.
@@ -25,27 +27,34 @@ import java.io.IOException;
  */
 public class ConstantFieldref extends ConstantPool {
 
+	private static Map<ConstantFieldref, ConstantFieldref> flyweight =
+			new HashMap<ConstantFieldref, ConstantFieldref>();
 	private ConstantClass classInfo;
 	private ConstantNameAndType nameAndTypeInfo;
 
-	/**
-	 * constructs a constant pool of field reference.
-	 */
-	public ConstantFieldref() {
+	private ConstantFieldref(String classname, String fieldname, String type) {
 		super(CONSTANT_Fieldref);
+		classInfo = ConstantClass.getInstance(classname);
+		nameAndTypeInfo = ConstantNameAndType.getInstance(fieldname, type);
 	}
 
 	/**
-	 * constructs a constant pool of field reference.
+	 * gets a constant pool of field reference.
 	 * 
 	 * @param classname class name
 	 * @param fieldname field name
 	 * @param type descriptor
 	 */
-	public ConstantFieldref(String classname, String fieldname, String type) {
-		super(CONSTANT_Fieldref);
-		classInfo = new ConstantClass(classname);
-		nameAndTypeInfo = new ConstantNameAndType(fieldname, type);
+	public static ConstantFieldref getInstance(String classname,
+			String fieldname, String type) {
+		ConstantFieldref res, obj;
+
+		obj = new ConstantFieldref(classname, fieldname, type);
+		if((res = flyweight.get(obj)) == null) {
+			res = obj;
+			flyweight.put(res, res);
+		}
+		return res;
 	}
 
 	/**
@@ -56,29 +65,12 @@ public class ConstantFieldref extends ConstantPool {
 	}
 
 	/**
-	 * sets the class info.
-	 */
-	public void setClassInfo(ConstantClass classInfo) {
-		this.classInfo = classInfo;
-	}
-
-	/**
 	 * gets the name and type info.
 	 */
 	public ConstantNameAndType getNameAndTypeInfo() {
 		return nameAndTypeInfo;
 	}
 
-	/**
-	 * sets the name and type info.
-	 */
-	public void setNameAndTypeInfo(ConstantNameAndType nameAndTypeInfo) {
-		this.nameAndTypeInfo = nameAndTypeInfo;
-	}
-
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.classfile.ClassInfo#gatherConstantPool(net.morilib.syaro.classfile.GatheredConstantPool)
-	 */
 	@Override
 	public void gatherConstantPool(GatheredConstantPool gathered) {
 		gathered.putConstantPool(this);
@@ -86,14 +78,32 @@ public class ConstantFieldref extends ConstantPool {
 		nameAndTypeInfo.gatherConstantPool(gathered);
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.classfile.ClassInfo#generateCode(net.morilib.syaro.classfile.GatheredConstantPool, java.io.DataOutputStream)
-	 */
 	@Override
 	protected void generatePoolCode(GatheredConstantPool gathered, DataOutputStream ous)
 			throws IOException {
 		ous.writeShort(gathered.getIndex(classInfo));
 		ous.writeShort(gathered.getIndex(nameAndTypeInfo));
+	}
+
+	@Override
+	public int hashCode() {
+		int h = 17;
+
+		h = 37 * classInfo.hashCode() + h;
+		h = 37 * nameAndTypeInfo.hashCode() + h;
+		return h;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		ConstantFieldref r;
+
+		if(obj != null && obj instanceof ConstantFieldref) {
+			r = (ConstantFieldref)obj;
+			return classInfo.equals(r.classInfo) &&
+					nameAndTypeInfo.equals(r.nameAndTypeInfo);
+		}
+		return false;
 	}
 
 }

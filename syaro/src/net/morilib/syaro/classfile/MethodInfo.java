@@ -52,8 +52,8 @@ public class MethodInfo implements ClassInfo {
 	 * @param desc method descriptor
 	 */
 	public MethodInfo(String name, String desc) {
-		this.name = new ConstantUtf8(name);
-		this.descriptor = new ConstantUtf8(desc);
+		this.name = ConstantUtf8.getInstance(name);
+		this.descriptor = ConstantUtf8.getInstance(desc);
 	}
 
 	/**

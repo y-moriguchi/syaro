@@ -63,7 +63,7 @@ public class SymbolAST implements AST {
 		} else {
 			type = functions.getGlobal(name);
 			code.addCode(new ALoad(0));
-			code.addCode(new Getfield(new ConstantFieldref(
+			code.addCode(new Getfield(ConstantFieldref.getInstance(
 					functions.getClassname(), name, type.getDescriptor())));
 		}
 	}

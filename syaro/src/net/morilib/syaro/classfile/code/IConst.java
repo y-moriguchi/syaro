@@ -31,7 +31,6 @@ public class IConst extends Mnemonic {
 	/**
 	 * constructs an iconst instruction.
 	 * 
-	 * @param cond condition
 	 * @param value int value between -1 and 5
 	 */
 	public IConst(int value) {

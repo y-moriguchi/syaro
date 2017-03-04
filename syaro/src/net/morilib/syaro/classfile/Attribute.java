@@ -34,7 +34,7 @@ public abstract class Attribute implements ClassInfo {
 	 * @param str the attribute name
 	 */
 	protected Attribute(String str) {
-		attributeName = new ConstantUtf8(str);
+		attributeName = ConstantUtf8.getInstance(str);
 	}
 
 	/**

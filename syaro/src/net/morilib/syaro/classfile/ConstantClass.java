@@ -17,6 +17,8 @@ package net.morilib.syaro.classfile;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class represents a constant pool of class.
@@ -25,16 +27,28 @@ import java.io.IOException;
  */
 public class ConstantClass extends ConstantPool {
 
+	private static Map<String, ConstantClass> flyweight =
+			new HashMap<String, ConstantClass>();
 	private ConstantUtf8 name;
 
+	private ConstantClass(String name) {
+		super(CONSTANT_Class);
+		this.name = ConstantUtf8.getInstance(name);
+	}
+
 	/**
-	 * constructs a constant pool of class.
+	 * gets a constant pool of class.
 	 * 
 	 * @param name class name
 	 */
-	public ConstantClass(String name) {
-		super(CONSTANT_Class);
-		this.name = new ConstantUtf8(name);
+	public static ConstantClass getInstance(String name) {
+		ConstantClass res;
+
+		if((res = flyweight.get(name)) == null) {
+			res = new ConstantClass(name);
+			flyweight.put(name, res);
+		}
+		return res;
 	}
 
 	/**
@@ -60,6 +74,19 @@ public class ConstantClass extends ConstantPool {
 	protected void generatePoolCode(GatheredConstantPool gathered, DataOutputStream ous)
 			throws IOException {
 		ous.writeShort(gathered.getIndex(name));
+	}
+
+	@Override
+	public int hashCode() {
+		return name.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof ConstantClass) {
+			return obj != null && name.equals(((ConstantClass)obj).name);
+		}
+		return false;
 	}
 
 }

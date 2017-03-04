@@ -49,8 +49,8 @@ public class FieldInfo implements ClassInfo {
 	 * @param desc field descriptor
 	 */
 	public FieldInfo(String name, String desc) {
-		this.name = new ConstantUtf8(name);
-		this.descriptor = new ConstantUtf8(desc);
+		this.name = ConstantUtf8.getInstance(name);
+		this.descriptor = ConstantUtf8.getInstance(desc);
 	}
 
 	/**

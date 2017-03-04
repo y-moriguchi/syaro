@@ -32,10 +32,7 @@ public class ConstantUtf8 extends ConstantPool {
 			new HashMap<String, ConstantUtf8>();
 	private String string;
 
-	/**
-	 * constructs a constant pool of Utf8 string.
-	 */
-	public ConstantUtf8(String str) {
+	private ConstantUtf8(String str) {
 		super(CONSTANT_Utf8);
 		this.string = str;
 	}
@@ -83,17 +80,11 @@ public class ConstantUtf8 extends ConstantPool {
 		return ous.toByteArray();
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.classfile.ClassInfo#gatherConstantPool(net.morilib.syaro.classfile.GatheredConstantPool)
-	 */
 	@Override
 	public void gatherConstantPool(GatheredConstantPool gathered) {
 		gathered.putConstantPool(this);
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.classfile.ClassInfo#generateCode(net.morilib.syaro.classfile.GatheredConstantPool, java.io.DataOutputStream)
-	 */
 	@Override
 	protected void generatePoolCode(GatheredConstantPool gathered, DataOutputStream ous)
 			throws IOException {
@@ -101,6 +92,19 @@ public class ConstantUtf8 extends ConstantPool {
 
 		ous.writeShort(ba.length);
 		ous.write(ba);
+	}
+
+	@Override
+	public int hashCode() {
+		return string.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof ConstantUtf8) {
+			return obj != null && string.equals(((ConstantUtf8)obj).string);
+		}
+		return false;
 	}
 
 }

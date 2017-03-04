@@ -17,6 +17,8 @@ package net.morilib.syaro.classfile;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class represents a constant pool of method reference.
@@ -25,27 +27,34 @@ import java.io.IOException;
  */
 public class ConstantMethodref extends ConstantPool {
 
+	private static Map<ConstantMethodref, ConstantMethodref> flyweight =
+			new HashMap<ConstantMethodref, ConstantMethodref>();
 	private ConstantClass classInfo;
 	private ConstantNameAndType nameAndTypeInfo;
 
-	/**
-	 * constructs a constant pool of method reference.
-	 */
-	public ConstantMethodref() {
+	private ConstantMethodref(String classname, String methodname, String type) {
 		super(CONSTANT_Methodref);
+		classInfo = ConstantClass.getInstance(classname);
+		nameAndTypeInfo = ConstantNameAndType.getInstance(methodname, type);
 	}
 
 	/**
-	 * constructs a constant pool of method reference.
+	 * gets a constant pool of method reference.
 	 * 
 	 * @param classname class name
 	 * @param methodname method name
 	 * @param type method descriptor
 	 */
-	public ConstantMethodref(String classname, String methodname, String type) {
-		super(CONSTANT_Methodref);
-		classInfo = new ConstantClass(classname);
-		nameAndTypeInfo = new ConstantNameAndType(methodname, type);
+	public static ConstantMethodref getInstance(String classname,
+			String methodname, String type) {
+		ConstantMethodref res, obj;
+
+		obj = new ConstantMethodref(classname, methodname, type);
+		if((res = flyweight.get(obj)) == null) {
+			res = obj;
+			flyweight.put(res, res);
+		}
+		return res;
 	}
 
 	/**
@@ -56,24 +65,10 @@ public class ConstantMethodref extends ConstantPool {
 	}
 
 	/**
-	 * sets the class info.
-	 */
-	public void setClassInfo(ConstantClass classInfo) {
-		this.classInfo = classInfo;
-	}
-
-	/**
 	 * gets the name and type info.
 	 */
 	public ConstantNameAndType getNameAndTypeInfo() {
 		return nameAndTypeInfo;
-	}
-
-	/**
-	 * sets the name and type info.
-	 */
-	public void setNameAndTypeInfo(ConstantNameAndType nameAndTypeInfo) {
-		this.nameAndTypeInfo = nameAndTypeInfo;
 	}
 
 	/* (non-Javadoc)
@@ -94,6 +89,27 @@ public class ConstantMethodref extends ConstantPool {
 			throws IOException {
 		ous.writeShort(gathered.getIndex(classInfo));
 		ous.writeShort(gathered.getIndex(nameAndTypeInfo));
+	}
+
+	@Override
+	public int hashCode() {
+		int h = 17;
+
+		h = 37 * classInfo.hashCode() + h;
+		h = 37 * nameAndTypeInfo.hashCode() + h;
+		return h;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		ConstantMethodref r;
+
+		if(obj != null && obj instanceof ConstantMethodref) {
+			r = (ConstantMethodref)obj;
+			return classInfo.equals(r.classInfo) &&
+					nameAndTypeInfo.equals(r.nameAndTypeInfo);
+		}
+		return false;
 	}
 
 }

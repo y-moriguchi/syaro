@@ -35,7 +35,7 @@ public class LongAST implements AST {
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
-		code.addCode(new Ldc2W(new ConstantLong(value)));
+		code.addCode(new Ldc2W(ConstantLong.getInstance(value)));
 	}
 
 	@Override

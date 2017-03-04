@@ -517,9 +517,9 @@ private static void addBuiltIn(Classfile cf) {
 	mi = new MethodInfo("getchar", "()I");
 	mi.setAccessFlags(MethodInfo.ACC_PUBLIC);
 	cd = new Code();
-	cd.addCode(new Getstatic(new ConstantFieldref(
+	cd.addCode(new Getstatic(ConstantFieldref.getInstance(
 			"java/lang/System", "in", "Ljava/io/InputStream;")));
-	cd.addCode(new Invokevirtual(new ConstantMethodref(
+	cd.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 			"java/io/InputStream", "read", "()I")));
 	cd.addCode(Mnemonic.IRETURN);
 	cd.setMaxStack(128);
@@ -536,7 +536,8 @@ private static void addBootStrap(String name, Classfile cf) {
 	mi.setAccessFlags(MethodInfo.ACC_PUBLIC);
 	cd = new Code();
 	cd.addCode(new ALoad(0));
-	cd.addCode(new Invokespecial(new ConstantMethodref("java/lang/Object", "<init>", "()V")));
+	cd.addCode(new Invokespecial(ConstantMethodref.getInstance(
+			"java/lang/Object", "<init>", "()V")));
 	cd.addCode(Mnemonic.RETURN);
 	cd.setMaxStack(128);
 	cd.setMaxLocals(1);
@@ -546,11 +547,11 @@ private static void addBootStrap(String name, Classfile cf) {
 	mi = new MethodInfo("main", "([Ljava/lang/String;)V");
 	mi.setAccessFlags(MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC);
 	cd = new Code();
-	cd.addCode(new New(new ConstantClass(name)));
+	cd.addCode(new New(ConstantClass.getInstance(name)));
 	cd.addCode(Mnemonic.DUP);
 	cd.addCode(Mnemonic.DUP);
-	cd.addCode(new Invokespecial(new ConstantMethodref(name, "<init>", "()V")));
-	cd.addCode(new Invokevirtual(new ConstantMethodref(name, "main", "()V")));
+	cd.addCode(new Invokespecial(ConstantMethodref.getInstance(name, "<init>", "()V")));
+	cd.addCode(new Invokevirtual(ConstantMethodref.getInstance(name, "main", "()V")));
 	cd.addCode(Mnemonic.RETURN);
 	cd.setMaxStack(128);
 	cd.setMaxLocals(1);
@@ -570,8 +571,8 @@ public static void main(String[] args) throws Exception {
 	cf.setMajorVersion(45);
 	cf.setMinorVersion(3);
 	cf.setAccessFlag(Classfile.ACC_PUBLIC);
-	cf.setThisClass(new ConstantClass(args[0]));
-	cf.setSuperClass(new ConstantClass("java/lang/Object"));
+	cf.setThisClass(ConstantClass.getInstance(args[0]));
+	cf.setSuperClass(ConstantClass.getInstance("java/lang/Object"));
 	mi.setAccessFlags(MethodInfo.ACC_PUBLIC);
 	jp = parser.code.addCode(gt);
 	np = parser.code.addCode(Mnemonic.NOP);

@@ -44,30 +44,30 @@ public class PrintAST implements SAST {
 			List<Integer> continueIndices) {
 		VariableType t;
 
-		code.addCode(new Getstatic(new ConstantFieldref(
+		code.addCode(new Getstatic(ConstantFieldref.getInstance(
 				"java/lang/System", "out", "Ljava/io/PrintStream;")));
 		expr.putCode(functions, space, code);
 		t = expr.getASTType(functions, space);
 		if(t.equals(Primitive.CHAR)) {
-			code.addCode(new Invokevirtual(new ConstantMethodref(
+			code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 					"java/io/PrintStream", "println", "(C)V")));
 		} else if(t.isConversible(Primitive.BOOLEAN)) {
-			code.addCode(new Invokevirtual(new ConstantMethodref(
+			code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 					"java/io/PrintStream", "println", "(Z)V")));
 		} else if(t.isConversible(Primitive.INT)) {
-			code.addCode(new Invokevirtual(new ConstantMethodref(
+			code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 					"java/io/PrintStream", "println", "(I)V")));
 		} else if(t.equals(Primitive.LONG)) {
-			code.addCode(new Invokevirtual(new ConstantMethodref(
+			code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 					"java/io/PrintStream", "println", "(J)V")));
 		} else if(t.equals(Primitive.FLOAT)) {
-			code.addCode(new Invokevirtual(new ConstantMethodref(
+			code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 					"java/io/PrintStream", "println", "(F)V")));
 		} else if(t.equals(Primitive.DOUBLE)) {
-			code.addCode(new Invokevirtual(new ConstantMethodref(
+			code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 					"java/io/PrintStream", "println", "(D)V")));
 		} else {
-			code.addCode(new Invokevirtual(new ConstantMethodref(
+			code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 					"java/io/PrintStream", "println", "(Ljava/lang/Object;)V")));
 		}
 	}

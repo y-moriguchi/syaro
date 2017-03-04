@@ -35,7 +35,7 @@ public class DoubleAST implements AST {
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
-		code.addCode(new Ldc2W(new ConstantDouble(value)));
+		code.addCode(new Ldc2W(ConstantDouble.getInstance(value)));
 	}
 
 	@Override

@@ -60,4 +60,17 @@ public class ConstantString extends ConstantPool {
 		ous.writeShort(gathered.getIndex(value));
 	}
 
+	@Override
+	public int hashCode() {
+		return value.hashCode();
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if(obj instanceof ConstantString) {
+			return obj != null && value.equals(((ConstantString)obj).value);
+		}
+		return false;
+	}
+
 }

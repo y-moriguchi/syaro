@@ -176,7 +176,7 @@ public class Utils {
 		name = getVarName(node);
 		if(functions.containsStatic(name)) {
 			type = functions.getStatic(name);
-			code.addCode(new Putstatic(new ConstantFieldref(
+			code.addCode(new Putstatic(ConstantFieldref.getInstance(
 					functions.getClassname(), name, type.getDescriptor())));
 		} else {
 			code.addCode(new ALoad(0));
@@ -187,7 +187,7 @@ public class Utils {
 				code.addCode(Mnemonic.SWAP);
 			}
 			type = functions.getGlobal(name);
-			code.addCode(new Putfield(new ConstantFieldref(
+			code.addCode(new Putfield(ConstantFieldref.getInstance(
 					functions.getClassname(), name, type.getDescriptor())));
 		}
 	}

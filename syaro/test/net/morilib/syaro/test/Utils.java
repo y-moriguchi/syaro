@@ -149,7 +149,7 @@ public class Utils {
 			}
 			name = getVarName(node);
 			type = functions.getGlobal(name);
-			code.addCode(new Putfield(new ConstantFieldref(
+			code.addCode(new Putfield(ConstantFieldref.getInstance(
 					functions.getClassname(), name, type.getDescriptor())));
 		}
 	}
@@ -263,11 +263,11 @@ public class Utils {
 	private static void operateAddAppend(AST node, VariableType type,
 			FunctionSpace functions, LocalVariableSpace space, Code code) {
 		if(type.isPrimitive()) {
-			code.addCode(new Invokevirtual(new ConstantMethodref(
+			code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 					"java/lang/StringBuffer", "append",
 					"(" + type.getDescriptor() + ")Ljava/lang/StringBuffer;")));
 		} else {
-			code.addCode(new Invokevirtual(new ConstantMethodref(
+			code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 					"java/lang/StringBuffer", "append",
 					"(Ljava/lang/Object;)Ljava/lang/StringBuffer;")));
 		}
@@ -301,15 +301,15 @@ public class Utils {
 		if(lv.isPrimitive() && rv.isPrimitive()) {
 			operatePrimitive(left, right, Type.IADD, functions, space, code);
 		} else {
-			code.addCode(new New(new ConstantClass("java/lang/StringBuffer")));
+			code.addCode(new New(ConstantClass.getInstance("java/lang/StringBuffer")));
 			code.addCode(Mnemonic.DUP);
-			code.addCode(new Invokespecial(new ConstantMethodref(
+			code.addCode(new Invokespecial(ConstantMethodref.getInstance(
 					"java/lang/StringBuffer", "<init>", "()V")));
 			operateAddLeft(left, functions, space, code);
 			nv = right.getASTType(functions, space);
 			right.putCode(functions, space, code);
 			operateAddAppend(right, nv, functions, space, code);
-			code.addCode(new Invokevirtual(new ConstantMethodref(
+			code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 					"java/lang/StringBuffer", "toString", "()Ljava/lang/String;")));
 		}
 	}

@@ -17,6 +17,8 @@ package net.morilib.syaro.classfile;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class represents a constant pool of name and type.
@@ -25,19 +27,32 @@ import java.io.IOException;
  */
 public class ConstantNameAndType extends ConstantPool {
 
+	private static Map<ConstantNameAndType, ConstantNameAndType> flyweight =
+			new HashMap<ConstantNameAndType, ConstantNameAndType>();
 	private ConstantUtf8 name;
 	private ConstantUtf8 descriptor;
 
+	private ConstantNameAndType(String name, String desc) {
+		super(CONSTANT_NameAndType);
+		this.name = ConstantUtf8.getInstance(name);
+		this.descriptor = ConstantUtf8.getInstance(desc);
+	}
+
 	/**
-	 * constructs a constant pool of name and type.
+	 * gets a constant pool of name and type.
 	 * 
 	 * @param name name
 	 * @param desc descriptor
 	 */
-	public ConstantNameAndType(String name, String desc) {
-		super(CONSTANT_NameAndType);
-		this.name = new ConstantUtf8(name);
-		this.descriptor = new ConstantUtf8(desc);
+	public static ConstantNameAndType getInstance(String name, String desc) {
+		ConstantNameAndType res, obj;
+
+		obj = new ConstantNameAndType(name, desc);
+		if((res = flyweight.get(obj)) == null) {
+			res = obj;
+			flyweight.put(res, res);
+		}
+		return res;
 	}
 
 	/**

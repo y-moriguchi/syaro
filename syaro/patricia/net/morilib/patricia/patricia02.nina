@@ -337,8 +337,8 @@ public static void main(String[] args) throws Exception {
 	cf.setMajorVersion(45);
 	cf.setMinorVersion(3);
 	cf.setAccessFlag(Classfile.ACC_PUBLIC);
-	cf.setThisClass(new ConstantClass(args[0]));
-	cf.setSuperClass(new ConstantClass("java/lang/Object"));
+	cf.setThisClass(ConstantClass.getInstance(args[0]));
+	cf.setSuperClass(ConstantClass.getInstance("java/lang/Object"));
 	jp = parser.code.addCode(gt);
 	np = parser.code.addCode(Mnemonic.NOP);
 	parser.parse(System.in);

@@ -99,7 +99,7 @@ public class CallAST implements AST {
 				}
 			}
 		}
-		code.addCode(new Invokevirtual(new ConstantMethodref(
+		code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 				functions.getClassname(), name, desc)));
 	}
 

@@ -17,6 +17,8 @@ package net.morilib.syaro.classfile;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class represents a constant pool of long value.
@@ -25,14 +27,26 @@ import java.io.IOException;
  */
 public class ConstantLong extends ConstantPool {
 
+	private static Map<Long, ConstantLong> flyweight =
+			new HashMap<Long, ConstantLong>();
 	private long value;
 
-	/**
-	 * constructs a constant pool of long value.
-	 */
-	public ConstantLong(long value) {
+	private ConstantLong(long value) {
 		super(CONSTANT_Long);
 		this.value = value;
+	}
+
+	/**
+	 * gets a constant pool of long value.
+	 */
+	public static ConstantLong getInstance(long value) {
+		ConstantLong res;
+
+		if((res = flyweight.get(value)) == null) {
+			res = new ConstantLong(value);
+			flyweight.put(value, res);
+		}
+		return res;
 	}
 
 	/**

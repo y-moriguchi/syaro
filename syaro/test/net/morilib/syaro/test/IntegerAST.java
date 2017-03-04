@@ -35,7 +35,7 @@ public class IntegerAST implements AST {
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
-		code.addCode(new LdcW(new ConstantInteger(value)));
+		code.addCode(new LdcW(ConstantInteger.getInstance(value)));
 	}
 
 	@Override

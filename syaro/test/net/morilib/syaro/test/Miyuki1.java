@@ -294,12 +294,12 @@ public  class Miyuki1   {
 			if(($c == '(')) {
 				STATE = 1;
 				return 1;
+			} else if(($c >= 9 && $c <= '\n') || ($c == ' ')) {
+				STATE = 0;
+				return 1;
 			} else if(($c >= '0' && $c <= '9')) {
 				$buffer = new StringBuffer();UNGET($c);
 				STATE = 2;
-				return 1;
-			} else if(($c >= 9 && $c <= '\n') || ($c == ' ')) {
-				STATE = 0;
 				return 1;
 			}
 			return 0;
@@ -347,16 +347,16 @@ public  class Miyuki1   {
 		switch(STATE) {
 		case 2:
 			break;
-		case 3:
-			konst($int);
-			break;
-		case 0:
-			break;
-		case 4:
+		case 1:
 			break;
 		case 5:
 			break;
-		case 1:
+		case 4:
+			break;
+		case 0:
+			break;
+		case 3:
+			konst($int);
 			break;
 		}
 		return 1;
@@ -421,20 +421,20 @@ public  class Miyuki1   {
 		__lookahead_ok = true;
 		switch(STATE) {
 		case 0:
-			if(($c == '+')) {
+			if(($c == '-')) {
 				LOOKAHEAD_COMMIT();
 				STATE = 1;
 				return 1;
-			} else if(($c == '~')) {
+			} else if(($c >= 9 && $c <= '\n') || ($c == ' ')) {
+				STATE = 0;
+				return 1;
+			} else if(($c == '+')) {
 				LOOKAHEAD_COMMIT();
 				STATE = 2;
 				return 1;
-			} else if(($c == '-')) {
+			} else if(($c == '~')) {
 				LOOKAHEAD_COMMIT();
 				STATE = 3;
-				return 1;
-			} else if(($c >= 9 && $c <= '\n') || ($c == ' ')) {
-				STATE = 0;
 				return 1;
 			} else if($c >= 0) {
 				__stkpush(4, ENGINE_elem);
@@ -495,21 +495,21 @@ public  class Miyuki1   {
 		switch(STATE) {
 		case 4:
 			break;
+		case 1:
+			break;
 		case 2:
 			break;
 		case 5:
-			uminus();
-			break;
-		case 7:
-			break;
-		case 1:
+			bnot();
 			break;
 		case 3:
 			break;
-		case 0:
-			break;
 		case 6:
-			bnot();
+			break;
+		case 7:
+			uminus();
+			break;
+		case 0:
 			break;
 		}
 		return 1;
@@ -662,27 +662,27 @@ public  class Miyuki1   {
 
 	int shft_execaction(int  $c) {
 		switch(STATE) {
-		case 1:
+		case 6:
+			lshift();
 			break;
 		case 7:
 			break;
-		case 3:
-			break;
-		case 2:
-			break;
 		case 5:
 			break;
-		case 6:
-			lshift();
+		case 8:
+			break;
+		case 4:
 			break;
 		case 9:
 			rshift();
 			break;
-		case 4:
+		case 2:
+			break;
+		case 1:
+			break;
+		case 3:
 			break;
 		case 0:
-			break;
-		case 8:
 			break;
 		}
 		return 1;
@@ -812,17 +812,17 @@ public  class Miyuki1   {
 
 	int band_execaction(int  $c) {
 		switch(STATE) {
-		case 0:
-			break;
-		case 4:
+		case 2:
 			break;
 		case 1:
 			break;
-		case 2:
+		case 5:
 			break;
 		case 3:
 			break;
-		case 5:
+		case 4:
+			break;
+		case 0:
 			break;
 		case 6:
 			band();
@@ -897,15 +897,15 @@ public  class Miyuki1   {
 			}
 			return 0;
 		case 1:
-			if((__l__ && $c == '*')) {
+			if((__l__ && $c == '%')) {
 				LOOKAHEAD($c);
 				STATE = 2;
 				return 1;
-			} else if((__l__ && $c == '/')) {
+			} else if((__l__ && $c == '*')) {
 				LOOKAHEAD($c);
 				STATE = 3;
 				return 1;
-			} else if((__l__ && $c == '%')) {
+			} else if((__l__ && $c == '/')) {
 				LOOKAHEAD($c);
 				STATE = 4;
 				return 1;
@@ -987,30 +987,30 @@ public  class Miyuki1   {
 
 	int term_execaction(int  $c) {
 		switch(STATE) {
-		case 0:
-			break;
-		case 2:
-			break;
-		case 10:
+		case 8:
 			mul();
 			break;
-		case 3:
+		case 1:
 			break;
 		case 5:
 			break;
-		case 6:
-			mod();
-			break;
 		case 4:
-			break;
-		case 7:
 			break;
 		case 9:
 			break;
-		case 8:
+		case 3:
+			break;
+		case 10:
+			mod();
+			break;
+		case 6:
 			div();
 			break;
-		case 1:
+		case 2:
+			break;
+		case 0:
+			break;
+		case 7:
 			break;
 		}
 		return 1;
@@ -1085,11 +1085,11 @@ public  class Miyuki1   {
 			}
 			return 0;
 		case 1:
-			if((__l__ && $c == '-')) {
+			if((__l__ && $c == '+')) {
 				LOOKAHEAD($c);
 				STATE = 2;
 				return 1;
-			} else if((__l__ && $c == '+')) {
+			} else if((__l__ && $c == '-')) {
 				LOOKAHEAD($c);
 				STATE = 3;
 				return 1;
@@ -1150,23 +1150,23 @@ public  class Miyuki1   {
 
 	int poly_execaction(int  $c) {
 		switch(STATE) {
-		case 6:
+		case 5:
+			sub();
 			break;
-		case 3:
+		case 2:
+			break;
+		case 6:
 			break;
 		case 1:
 			break;
-		case 5:
-			add();
-			break;
-		case 7:
-			sub();
-			break;
-		case 4:
-			break;
 		case 0:
 			break;
-		case 2:
+		case 3:
+			break;
+		case 7:
+			add();
+			break;
+		case 4:
 			break;
 		}
 		return 1;
@@ -1279,11 +1279,11 @@ public  class Miyuki1   {
 
 	int bxor_execaction(int  $c) {
 		switch(STATE) {
-		case 1:
-			break;
 		case 2:
 			break;
 		case 0:
+			break;
+		case 1:
 			break;
 		case 4:
 			bxor();
@@ -1584,20 +1584,20 @@ public  class Miyuki1   {
 
 	int bior_execaction(int  $c) {
 		switch(STATE) {
-		case 0:
+		case 5:
 			break;
 		case 3:
 			break;
-		case 4:
-			break;
-		case 2:
-			break;
-		case 5:
+		case 1:
 			break;
 		case 6:
 			bior();
 			break;
-		case 1:
+		case 2:
+			break;
+		case 0:
+			break;
+		case 4:
 			break;
 		}
 		return 1;
@@ -1920,7 +1920,7 @@ public  class Miyuki1   {
 private static Code code = new Code();
 
 private void konst(Number num) {
-	code.addCode(new LdcW(new ConstantInteger(num.intValue())));
+	code.addCode(new LdcW(ConstantInteger.getInstance(num.intValue())));
 }
 
 private void bior() {
@@ -1968,7 +1968,7 @@ private void uminus() {
 }
 
 private void bnot() {
-	code.addCode(new LdcW(new ConstantInteger(0xffffffff)));
+	code.addCode(new LdcW(ConstantInteger.getInstance(0xffffffff)));
 	code.addCode(Mnemonic.IXOR);
 }
 
@@ -1979,15 +1979,15 @@ public static void main(String[] args) throws Exception {
 	cf.setMajorVersion(45);
 	cf.setMinorVersion(3);
 	cf.setAccessFlag(Classfile.ACC_PUBLIC);
-	cf.setThisClass(new ConstantClass(args[0]));
-	cf.setSuperClass(new ConstantClass("Ljava/lang/Object;"));
+	cf.setThisClass(ConstantClass.getInstance(args[0]));
+	cf.setSuperClass(ConstantClass.getInstance("Ljava/lang/Object;"));
 	mi.setAccessFlags(MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC);
 	code.setMaxStack(1024);
 	code.setMaxLocals(1);
-	code.addCode(new Getstatic(new ConstantFieldref(
+	code.addCode(new Getstatic(ConstantFieldref.getInstance(
 			"java/lang/System", "out", "Ljava/io/PrintStream;")));
 	parseAll(new StringReader(args[1]));
-	code.addCode(new Invokevirtual(new ConstantMethodref(
+	code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 			"java/io/PrintStream", "println", "(I)V")));
 	code.addCode(Mnemonic.RETURN);
 	mi.addAttribute(code);

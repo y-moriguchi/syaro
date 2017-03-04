@@ -48,7 +48,7 @@ public class FloatAST implements AST {
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
-		code.addCode(new LdcW(new ConstantFloat(value)));
+		code.addCode(new LdcW(ConstantFloat.getInstance(value)));
 	}
 
 	@Override

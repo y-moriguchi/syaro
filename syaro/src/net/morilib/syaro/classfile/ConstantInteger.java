@@ -17,6 +17,8 @@ package net.morilib.syaro.classfile;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class represents a constant pool of int value.
@@ -25,14 +27,26 @@ import java.io.IOException;
  */
 public class ConstantInteger extends ConstantPool {
 
+	private static Map<Integer, ConstantInteger> flyweight =
+			new HashMap<Integer, ConstantInteger>();
 	private int value;
 
-	/**
-	 * constructs a constant pool of int value.
-	 */
-	public ConstantInteger(int value) {
+	private ConstantInteger(int value) {
 		super(CONSTANT_Integer);
 		this.value = value;
+	}
+
+	/**
+	 * gets a constant pool of int value.
+	 */
+	public static ConstantInteger getInstance(int value) {
+		ConstantInteger res;
+
+		if((res = flyweight.get(value)) == null) {
+			res = new ConstantInteger(value);
+			flyweight.put(value, res);
+		}
+		return res;
 	}
 
 	/**
