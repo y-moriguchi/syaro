@@ -89,4 +89,25 @@ public class ConstantNameAndType extends ConstantPool {
 		ous.writeShort(gathered.getIndex(descriptor));
 	}
 
+	@Override
+	public int hashCode() {
+		int h = 17;
+
+		h = 37 * name.hashCode() + h;
+		h = 37 * descriptor.hashCode() + h;
+		return h;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		ConstantNameAndType r;
+
+		if(obj != null && obj instanceof ConstantNameAndType) {
+			r = (ConstantNameAndType)obj;
+			return name.equals(r.name) &&
+					descriptor.equals(r.descriptor);
+		}
+		return false;
+	}
+
 }
