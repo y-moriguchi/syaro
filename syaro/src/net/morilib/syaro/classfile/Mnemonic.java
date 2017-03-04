@@ -18,6 +18,11 @@ package net.morilib.syaro.classfile;
 import java.io.DataOutputStream;
 import java.io.IOException;
 
+import net.morilib.syaro.classfile.code.Bipush;
+import net.morilib.syaro.classfile.code.IConst;
+import net.morilib.syaro.classfile.code.LdcW;
+import net.morilib.syaro.classfile.code.Sipush;
+
 /**
  * This class represents Java VM instructions.
  * 
@@ -488,6 +493,24 @@ public abstract class Mnemonic implements ClassInfo {
 	 */
 	public byte getOpcode() {
 		return opcode;
+	}
+
+	/**
+	 * gets proper instruction to push int value
+	 * 
+	 * @param value int value
+	 * @return proper instruction
+	 */
+	public static Mnemonic pushInt(int value) {
+		if(value >= -1 && value <= 5) {
+			return new IConst(value);
+		} else if(value >= Byte.MIN_VALUE && value <= Byte.MAX_VALUE) {
+			return new Bipush((byte)value);
+		} else if(value >= Short.MIN_VALUE && value <= Short.MAX_VALUE) {
+			return new Sipush((short)value);
+		} else {
+			return new LdcW(ConstantInteger.getInstance(value));
+		}
 	}
 
 	/**

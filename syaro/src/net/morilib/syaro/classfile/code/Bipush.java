@@ -13,47 +13,53 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package net.morilib.patricia;
+package net.morilib.syaro.classfile.code;
 
-import net.morilib.syaro.classfile.Code;
+import java.io.DataOutputStream;
+import java.io.IOException;
+
+import net.morilib.syaro.classfile.GatheredConstantPool;
 import net.morilib.syaro.classfile.Mnemonic;
 
 /**
- * An abstract syntax tree for integer constant.
+ * This class represents a Java VM instruction bipush.
  * 
  * @author Yuichiro MORIGUCHI
  */
-public class IntegerAST implements AST {
+public class Bipush extends Mnemonic {
 
-	private int value;
+	private byte value;
 
 	/**
-	 * creates an AST for the value.
+	 * constructs an bipush instruction.
 	 * 
-	 * @param value the value
+	 * @param value byte value
 	 */
-	public IntegerAST(int value) {
+	public Bipush(byte value) {
+		super(16);
 		this.value = value;
 	}
 
 	/**
-	 * gets the value.
+	 * gets the byte value.
 	 */
 	public int getValue() {
 		return value;
 	}
 
 	@Override
-	public void putCode(FunctionSpace functions,
-			LocalVariableSpace space,
-			Code code) {
-		code.addCode(Mnemonic.pushInt(value));
+	public void gatherConstantPool(GatheredConstantPool gathered) {
 	}
 
 	@Override
-	public VariableType getASTType(FunctionSpace functions,
-			LocalVariableSpace space) {
-		return Primitive.INT;
+	protected void generateMnemonicCode(GatheredConstantPool gathered,
+			DataOutputStream ous) throws IOException {
+		ous.writeByte(value);
+	}
+
+	@Override
+	protected int getByteLength() {
+		return 2;
 	}
 
 }
