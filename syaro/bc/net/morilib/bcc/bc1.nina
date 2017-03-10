@@ -1,0 +1,271 @@
+#
+# Copyright 2016-2017 Yuichiro Moriguchi
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+--------------------------
+bc compiler
+
+@author Yuichiro MORIGUCHI
+--------------------------
+#machine DFABuilder
+#option targetLanguage=Java
+#label VAR=/[a-z][a-z0-9]*/
+#label LAHEADVAR=/?=[a-z][a-z0-9]*[ \t]*=/
+#label S=[ \t]
+#package net.morilib.bcc
+%{
+import java.io.FileOutputStream;
+import java.io.StringReader;
+import net.morilib.syaro.classfile.*;
+import net.morilib.syaro.classfile.code.*;
+%}
+    +-[\s]-+                         +-${S}-+        +-[\s]-+
+ *S*^******v*        @@@@@@@@@@@@@@ @^@@@@@@v@      @^@@@@@@v@
+ *          >-{expr}->putresult();>->        >-[\n]->        @
+ ************        @^@@@@@@@@@@@@ @@@@@@@@@@      @v@@@@@@@@
+                      +-{expr}-----------------------+
+-- expr --
+ *S*        @@@@@@@@@@@
+ * >-{asgn}->         @
+ ***        @@@@@@@@@@@
+-- asgn --
+             +-${S}-+         +-${S}-+
+ *S*        @^@@@@@@v@       *^******v* *AA<AST>**        @@@@@@@@@@@@@@@@@@@@
+ * >-{lior}->        >-+-"="->        >->%% = _e;>-{asgn}->asgn(${AA}, null);@
+ ***        @@@@@@@@@@ |     ********** **********        @@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AB<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"+="->        >->%% = _e;>-{asgn}->asgn(${AB}, AssignAST.Type.ADD);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AC<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"-="->        >->%% = _e;>-{asgn}->asgn(${AC}, AssignAST.Type.SUB);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AD<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"*="->        >->%% = _e;>-{asgn}->asgn(${AD}, AssignAST.Type.MUL);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AE<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"/="->        >->%% = _e;>-{asgn}->asgn(${AE}, AssignAST.Type.DIV);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AF<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"%="->        >->%% = _e;>-{asgn}->asgn(${AF}, AssignAST.Type.REM);@
+                       |      ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       |       +-${S}-+
+                       |      *^******v* *AJ<AST>**        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+                       +-"^="->        >->%% = _e;>-{asgn}->asgn(${AJ}, AssignAST.Type.POW);@
+                              ********** **********        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+-- lior --
+                    +-${S}-+              +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@            *^******v*        @@@@@@@@@@@@
+ * >-{land}->%% = _e;       >---"\|\|"--->        >-{land}->lior($A); >-(A)
+ ***        @@@@@@@@@@@@@@@@@            **********        @@@@@@@@@@@@
+-- land --
+                    +-${S}-+            +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@          *^******v*        @@@@@@@@@@@@
+ * >-{poly}->%% = _e;       >---"&&"--->        >-{poly}->land($A); >-(A)
+ ***        @@@@@@@@@@@@@@@@@          **********        @@@@@@@@@@@@
+-- poly --
+                    +-${S}-+            +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@          *^******v*        @@@@@@@@@@
+ * >-{term}->%% = _e;       >-+-"+/!="->        >-{term}->add($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@ |        **********        @@@@@@@@@@
+                              |         +-${S}-+
+                              |        *^******v*        @@@@@@@@@@
+                              +-"-/!="->        >-{term}->sub($A);>-(A)
+                                       **********        @@@@@@@@@@
+-- term --
+                     +-${S}-+            +-${S}-+
+ *S*         @A<AST>@^@@@@@@v@          *^******v*         @@@@@@@@@@
+ * >-{unary}->%% = _e;       >-+-"*/!="->        >-{unary}->mul($A);>-(A)
+ ***         @@@@@@@@@@@@@@@@@ |        **********         @@@@@@@@@@
+                               |          +-${S}-+
+                               |         *^******v*         @@@@@@@@@@
+                               +-"\//!="->        >-{unary}->div($A);>-(A)
+                               |         **********         @@@@@@@@@@
+                               |         +-${S}-+
+                               |        *^******v*         @@@@@@@@@@
+                               +-"%/!="->        >-{unary}->mod($A);>-(A)
+                                        **********         @@@@@@@@@@
+-- unary --
+    +-${S}-+         +-${S}-+
+ *S*^******v*       *^******v*        @@@@@@@@@@@
+ *          >-+-"-"->        >-{prex}->uminus();@
+ ************ |     **********        @@@@@@@@@@@
+              |      +-${S}-+
+              |     *^******v*        @@@@@@@@@@@
+              +-"+"->        >-{prex}->         @
+              |     **********        @@@@@@@@@@@
+              |      +-${S}-+
+              |     *^******v*        @@@@@@@@@@@
+              +-"!"->        >-{prex}->lnot();  @
+              |     **********        @@@@@@@@@@@
+              |       +-${S}-+
+              |      *^******v*        @@@@@@@@@@@
+              +-"++"->        >-{prex}->incpre();@
+              |      **********        @@@@@@@@@@@
+              |       +-${S}-+
+              |      *^******v*        @@@@@@@@@@@
+              +-"--"->        >-{prex}->decpre();@
+              |      **********        @@@@@@@@@@@
+              |
+              |        @@@
+              +-{prex}-> @
+                       @@@
+-- prex --
+             +-${S}-+
+ *S*        @^@@@@@@v@        @@@@@@@@@@@@
+ * >-{elem}->        >-+-"++"->incpost();@
+ ***        @@@@@@@@@@ |      @@@@@@@@@@@@
+                       |
+                       |      @@@@@@@@@@@@
+                       +-"--"->decpost();@
+                              @@@@@@@@@@@@
+-- elem --
+    +-${S}-+
+ *S*^******v*                           @@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ *          >-+-/[0-9]+|[0-9]*\.[0-9]+/->konst($buffer.toString());@
+ ************ |                         @@@@@@@@@@@@@@@@@@@@@@@@@@@@
+              |
+              |     ***        ***     @@@
+              +-'('-> >-{expr}-> >-')'-> @
+              |     ***        ***     @@@
+              |
+              |        @@@@@@@@@@@@@@@@@@@@@@@@@@
+              +-${VAR}->var($buffer.toString());@
+                       @@@@@@@@@@@@@@@@@@@@@@@@@@
+%%
+private FunctionSpace functions;
+private LocalVariableSpace local = new LocalVariableSpace();
+private Code code;
+private AST _e;
+
+private void putresult() {
+	code.addCode(new Getstatic(ConstantFieldref.getInstance(
+			"java/lang/System", "out", "Ljava/io/PrintStream;")));
+	_e.putCode(functions, local, code);
+	code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
+			"java/io/PrintStream", "println", "(Ljava/lang/Object;)V")));
+}
+
+private void asgn(AST a, AssignAST.Type op) {
+	_e = new AssignAST(op, a, _e);
+}
+
+private void konst(String str) {
+	_e = new DecimalAST(str);
+}
+
+private void lior(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.LOR, a, _e);
+}
+
+private void land(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.LAND, a, _e);
+}
+
+private void add(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.ADD, a, _e);
+}
+
+private void sub(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.SUB, a, _e);
+}
+
+private void mul(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.MUL, a, _e);
+}
+
+private void div(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.DIV, a, _e);
+}
+
+private void mod(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.REM, a, _e);
+}
+
+private void uminus() {
+	_e = new UnaryAST(UnaryAST.Type.NEG, _e);
+}
+
+private void lnot() {
+	_e = new UnaryAST(UnaryAST.Type.LNOT, _e);
+}
+
+private void incpre() {
+	_e = new IncDecAST(true, true, _e);
+}
+
+private void decpre() {
+	_e = new IncDecAST(false, true, _e);
+}
+
+private void incpost() {
+	_e = new IncDecAST(true, false, _e);
+}
+
+private void decpost() {
+	_e = new IncDecAST(false, false, _e);
+}
+
+private void var(String name) {
+	local.putVariable(name);
+	_e = new SymbolAST(name);
+}
+
+public static void main(String[] args) throws Exception {
+	Classfile cf = new Classfile();
+	MethodInfo mi = new MethodInfo("main", "([Ljava/lang/String;)V");
+	Bc1 parser = new Bc1();
+	Goto gt = new Goto(), gb = new Goto();
+	int jp, np;
+
+	parser.code = new Code();
+	parser.functions = new FunctionSpace(args[0]);
+	cf.setMajorVersion(45);
+	cf.setMinorVersion(3);
+	cf.setAccessFlag(Classfile.ACC_PUBLIC);
+	cf.setThisClass(ConstantClass.getInstance(args[0]));
+	cf.setSuperClass(ConstantClass.getInstance("Ljava/lang/Object;"));
+	mi.setAccessFlags(MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC);
+	jp = parser.code.addCode(gt);
+	np = parser.code.addCode(Mnemonic.NOP);
+	parser.parse(System.in);
+	parser.code.addCode(Mnemonic.RETURN);
+	gt.setOffset(parser.code.getCurrentOffset(jp));
+	parser.code.addCode(Mnemonic.pushInt(5));
+	parser.code.addCode(new IStore(1));
+	for(int i = 2; i < parser.local.getMax(); i++) {
+		parser.code.addCode(new IConst(0));
+		parser.code.addCode(new IStore(i));
+	}
+	gb.setOffset(parser.code.getAddress(np) - parser.code.getCurrentAddress());
+	parser.code.addCode(gb);
+	parser.code.setMaxStack(1024);
+	parser.code.setMaxLocals(parser.local.getMax());
+	mi.addAttribute(parser.code);
+	cf.addMethod(mi);
+
+	FileOutputStream fs = null;
+	try {
+		fs = new FileOutputStream(args[0] + ".class");
+		cf.generateClassFile(fs);
+	} finally {
+		if(fs != null) {
+			fs.close();
+		}
+	}
+}
