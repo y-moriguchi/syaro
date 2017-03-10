@@ -17,6 +17,8 @@ package net.morilib.syaro.classfile;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * This class represents a constant pool of string value.
@@ -25,14 +27,27 @@ import java.io.IOException;
  */
 public class ConstantString extends ConstantPool {
 
+	private static Map<String, ConstantString> pool =
+			new HashMap<String, ConstantString>();
 	private ConstantUtf8 value;
 
-	/**
-	 * constructs a constant pool of string value.
-	 */
-	public ConstantString(String value) {
+	private ConstantString(String value) {
 		super(CONSTANT_String);
 		this.value = ConstantUtf8.getInstance(value);
+	}
+
+	/**
+	 * gets a constant pool of string value.
+	 */
+	public static ConstantString getInstance(String str) {
+		ConstantString res;
+
+		res = pool.get(str);
+		if(res == null) {
+			res = new ConstantString(str);
+			pool.put(str, res);
+		}
+		return res;
 	}
 
 	/**
@@ -42,18 +57,12 @@ public class ConstantString extends ConstantPool {
 		return value.getString();
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.classfile.ClassInfo#gatherConstantPool(net.morilib.syaro.classfile.GatheredConstantPool)
-	 */
 	@Override
 	public void gatherConstantPool(GatheredConstantPool gathered) {
 		gathered.putConstantPool(this);
 		value.gatherConstantPool(gathered);
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.classfile.ConstantPool#generatePoolCode(net.morilib.syaro.classfile.GatheredConstantPool, java.io.DataOutputStream)
-	 */
 	@Override
 	protected void generatePoolCode(GatheredConstantPool gathered,
 			DataOutputStream ous) throws IOException {

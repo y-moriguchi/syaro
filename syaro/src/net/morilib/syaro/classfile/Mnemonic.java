@@ -188,6 +188,11 @@ public abstract class Mnemonic implements ClassInfo {
 	public static Mnemonic DUP2 = new Single(92);
 
 	/**
+	 * The instruction dup_x1.
+	 */
+	public static Mnemonic DUP_X1 = new Single(90);
+
+	/**
 	 * The instruction dup_x2.
 	 */
 	public static Mnemonic DUP_X2 = new Single(91);

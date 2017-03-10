@@ -35,7 +35,7 @@ public class StringAST implements AST {
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
-		code.addCode(new LdcW(new ConstantString(value)));
+		code.addCode(new LdcW(ConstantString.getInstance(value)));
 	}
 
 	@Override
