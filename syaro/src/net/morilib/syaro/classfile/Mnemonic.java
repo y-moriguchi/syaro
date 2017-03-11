@@ -20,7 +20,9 @@ import java.io.IOException;
 
 import net.morilib.syaro.classfile.code.Bipush;
 import net.morilib.syaro.classfile.code.IConst;
+import net.morilib.syaro.classfile.code.Invokespecial;
 import net.morilib.syaro.classfile.code.LdcW;
+import net.morilib.syaro.classfile.code.New;
 import net.morilib.syaro.classfile.code.Sipush;
 
 /**
@@ -482,6 +484,11 @@ public abstract class Mnemonic implements ClassInfo {
 	 */
 	public static Mnemonic LCMP = new Single(148);
 
+	/**
+	 * The instruction athrow.
+	 */
+	public static Mnemonic ATHROW = new Single(191);
+
 	private byte opcode;
 
 	/**
@@ -516,6 +523,20 @@ public abstract class Mnemonic implements ClassInfo {
 		} else {
 			return new LdcW(ConstantInteger.getInstance(value));
 		}
+	}
+
+	/**
+	 * generates codes of throwing an exception without arguments.
+	 * 
+	 * @param code container of instructions
+	 * @param name name of the exception
+	 */
+	public static void throwException(Code code, String name) {
+		code.addCode(new New(ConstantClass.getInstance(name)));
+		code.addCode(Mnemonic.DUP);
+		code.addCode(new Invokespecial(ConstantMethodref.getInstance(
+				name, "<init>", "()V")));
+		code.addCode(Mnemonic.ATHROW);
 	}
 
 	/**
