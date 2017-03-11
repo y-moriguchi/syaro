@@ -26,7 +26,7 @@ import java.util.Map;
 public class LocalVariableSpace {
 
 	private Map<String, Integer> space = new HashMap<String, Integer>();
-	private int max = 2;
+	private int max = 3;
 
 	/**
 	 * puts definition of a variable.

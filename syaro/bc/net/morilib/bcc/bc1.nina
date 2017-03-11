@@ -76,8 +76,34 @@ import net.morilib.syaro.classfile.code.*;
 -- land --
                     +-${S}-+            +-${S}-+
  *S*        @A<AST>@^@@@@@@v@          *^******v*        @@@@@@@@@@@@
- * >-{poly}->%% = _e;       >---"&&"--->        >-{poly}->land($A); >-(A)
+ * >-{loeq}->%% = _e;       >---"&&"--->        >-{loeq}->land($A); >-(A)
  ***        @@@@@@@@@@@@@@@@@          **********        @@@@@@@@@@@@
+-- loeq --
+                    +-${S}-+              +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@            *^******v*        @@@@@@@@@@
+ * >-{lcmp}->%% = _e;       >-+-"=="----->        >-{lcmp}->leq($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@ |          **********        @@@@@@@@@@
+                              |           +-${S}-+
+                              |          *^******v*        @@@@@@@@@@
+                              +-"!="----->        >-{lcmp}->lne($A);>-(A)
+                                         **********        @@@@@@@@@@
+-- lcmp --
+                    +-${S}-+                                +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@               ***            *^******v*        @@@@@@@@@@
+ * >-{poly}->%% = _e;       >-/?=[<>][^<>]/-> >-+-"<"------>        >-{poly}->llt($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@               *** |          **********        @@@@@@@@@@
+                                                |           +-${S}-+
+                                                |          *^******v*        @@@@@@@@@@
+                                                +-"<="----->        >-{poly}->lle($A);>-(A)
+                                                |          **********        @@@@@@@@@@
+                                                |           +-${S}-+
+                                                |          *^******v*        @@@@@@@@@@
+                                                +-">"------>        >-{poly}->lgt($A);>-(A)
+                                                |          **********        @@@@@@@@@@
+                                                |           +-${S}-+
+                                                |          *^******v*        @@@@@@@@@@
+                                                +-">="----->        >-{poly}->lge($A);>-(A)
+                                                           **********        @@@@@@@@@@
 -- poly --
                     +-${S}-+            +-${S}-+
  *S*        @A<AST>@^@@@@@@v@          *^******v*        @@@@@@@@@@
@@ -90,16 +116,21 @@ import net.morilib.syaro.classfile.code.*;
 -- term --
                      +-${S}-+            +-${S}-+
  *S*         @A<AST>@^@@@@@@v@          *^******v*         @@@@@@@@@@
- * >-{unary}->%% = _e;       >-+-"*/!="->        >-{unary}->mul($A);>-(A)
+ * >-{power}->%% = _e;       >-+-"*/!="->        >-{power}->mul($A);>-(A)
  ***         @@@@@@@@@@@@@@@@@ |        **********         @@@@@@@@@@
                                |          +-${S}-+
                                |         *^******v*         @@@@@@@@@@
-                               +-"\//!="->        >-{unary}->div($A);>-(A)
+                               +-"\//!="->        >-{power}->div($A);>-(A)
                                |         **********         @@@@@@@@@@
                                |         +-${S}-+
                                |        *^******v*         @@@@@@@@@@
-                               +-"%/!="->        >-{unary}->mod($A);>-(A)
+                               +-"%/!="->        >-{power}->mod($A);>-(A)
                                         **********         @@@@@@@@@@
+-- power --
+              +-${S}-+          +-${S}-+
+ *S*         @^@@@@@@v@        *^******v* *A<AST>***         @@@@@@@@@@
+ * >-{unary}->        >-"^/!="->        >->%% = _e;>-{power}->pow($A);@
+ ***         @@@@@@@@@@        ********** **********         @@@@@@@@@@
 -- unary --
     +-${S}-+         +-${S}-+
  *S*^******v*       *^******v*        @@@@@@@@@@@
@@ -177,6 +208,30 @@ private void land(AST a) {
 	_e = new BinaryAST(BinaryAST.Type.LAND, a, _e);
 }
 
+private void leq(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.EQ, a, _e);
+}
+
+private void lne(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.NE, a, _e);
+}
+
+private void llt(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.LT, a, _e);
+}
+
+private void lle(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.LE, a, _e);
+}
+
+private void lgt(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.GT, a, _e);
+}
+
+private void lge(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.GE, a, _e);
+}
+
 private void add(AST a) {
 	_e = new BinaryAST(BinaryAST.Type.ADD, a, _e);
 }
@@ -195,6 +250,10 @@ private void div(AST a) {
 
 private void mod(AST a) {
 	_e = new BinaryAST(BinaryAST.Type.REM, a, _e);
+}
+
+private void pow(AST a) {
+	_e = new BinaryAST(BinaryAST.Type.POW, a, _e);
 }
 
 private void uminus() {
