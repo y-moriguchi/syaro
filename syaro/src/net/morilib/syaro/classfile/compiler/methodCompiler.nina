@@ -20,10 +20,11 @@ method compiler
 --------------------------
 #machine DFABuilder
 #option targetLanguage=Java
-#label VAR=/[A-Za-z_][A-Za-z_0-9]*/
-#label LAHEADVAR=/?=[A-Za-z_][A-Za-z_0-9]*[ \t]*=/
-#label LAHEADDECL=/?=[A-Za-z_][A-Za-z_0-9]*(\[\])*[ \t\n]*[A-Za-z_][A-Za-z_0-9]*[ \t\n]*[,;]/
-#label LAHEADCAST=/?=\([ \t\n]*[A-Za-z][A-Za-z0-9]*(\[\])*[ \t\n]*\)[A-Za-z_0-9\.\(]/
+#label VAR=/[A-Za-z_][A-Za-z_0-9_]*/
+#label TYPE=/[A-Za-z_][A-Za-z_0-9_]*/
+#label LAHEADVAR=/?=[A-Za-z_][A-Za-z_0-9_]*[ \t]*=/
+#label LAHEADDECL=/?=[A-Za-z_][A-Za-z_0-9_]*(\[\])*[ \t\n]*[A-Za-z_][A-Za-z_0-9_]*[ \t\n]*[,;]/
+#label LAHEADCAST=/?=\([ \t\n]*[A-Za-z_][A-Za-z0-9_]*(\[\])*[ \t\n]*\)[A-Za-z_0-9\.\(]/
 #label S=[ \t\n]
 #package net.morilib.syaro.classfile.compiler
 %{
@@ -292,10 +293,10 @@ import net.morilib.syaro.classfile.code.*;
   | *%% = decltype;   >->        >-')'-> >-{unary}->cast($A);@
   | ******************* **********     ***         @@@@@@@@@@@
   |        +-${S}-+
-  |       *^******v*        *E<String>****************
-  +-"new"->        >-${VAR}->%% = $buffer.toString();*
-          **********        *v************************
-           +-----------------+
+  |       *^******v*         *E<String>****************
+  +-"new"->        >-${TYPE}->%% = $buffer.toString();*
+          **********         *v************************
+           +------------------+
            |
           *v*     ***        ***     *F<Integer>*
           * >-'['-> >-{expr}-> >-']'->%% = 0;   *
@@ -435,11 +436,13 @@ private int localStart;
 private int localRet;
 private NameAndType funcnt;
 private java.util.List<NameAndType> funcargs;
+private java.util.List<NameAndType> localvars;
 private FunctionDefinition funcdefobj;
 private VariableType decltype;
 private SAST _s;
 private AST _e;
 private StringBuilder strbuilder;
+private int methodFlags;
 
 private VariableType getTypeFromName(String tname) {
 	if(tname.equals("byte")) {
@@ -457,7 +460,7 @@ private VariableType getTypeFromName(String tname) {
 	} else if(tname.equals("double")) {
 		return Primitive.DOUBLE;
 	} else {
-		throw new RuntimeException("unknown type " + tname);
+		return new SymbolVariable(tname);
 	}
 }
 
@@ -477,17 +480,22 @@ private void getFuncdef() {
 	for(NameAndType x : funcargs) {
 		a.add(x.getType());
 	}
-	funcdefobj = new FunctionDefinition(funcnt.getType(), a);
+	funcdefobj = new FunctionDefinition(functions.getClassname(),
+			funcnt.getName(), funcnt.getType(), a);
 }
 
 private void funcbegin() {
 	getFuncdef();
-	local = new LocalVariableSpace(funcdefobj.getReturnType());
+	local = new LocalVariableSpace(funcdefobj.getReturnType(),
+			(methodFlags & MethodInfo.ACC_STATIC) != 0);
 	for(NameAndType t : funcargs) {
 		local.putVariable(t.getName(), t.getType());
 	}
+	for(NameAndType t : localvars) {
+		local.putVariable(t.getName(), t.getType());
+	}
 	method = new MethodInfo(funcnt.getName(), funcdefobj.getDescriptor());
-	method.setAccessFlags(MethodInfo.ACC_PUBLIC);
+	method.setAccessFlags(methodFlags);
 	code = new Code();
 	gotoInst = new Goto();
 	localStart = code.addCode(gotoInst);
@@ -497,7 +505,9 @@ private void funcbegin() {
 private void funcend() {
 	Goto gb = new Goto();
 	int fargs = 0;
+	int off;
 
+	off = (methodFlags & MethodInfo.ACC_STATIC) != 0 ? 0 : 1;
 	gotoInst.setOffset(code.getCurrentOffset(localStart));
 	for(NameAndType x : funcargs) {
 		if(x.getType().equals(Primitive.DOUBLE) || x.getType().equals(Primitive.LONG)) {
@@ -824,17 +834,20 @@ private void simple() {
 }
 
 public static void compile(Classfile classfile,
-		String name,
-		VariableType returnType,
+		int methodFlags,
+		NameAndType returnType,
 		java.util.List<NameAndType> args,
+		java.util.List<NameAndType> localvars,
 		FunctionSpace functionSpace,
 		String code) {
 	MethodCompiler mc = new MethodCompiler();
 
 	try {
 		mc.classfile = classfile;
-		mc.funcnt = new NameAndType(name, returnType);
+		mc.methodFlags = methodFlags;
+		mc.funcnt = returnType;
 		mc.funcargs = new java.util.ArrayList<NameAndType>(args);
+		mc.localvars = new java.util.ArrayList<NameAndType>(localvars);
 		mc.functions = functionSpace;
 		mc.func();
 		mc.parse(new StringReader(code));

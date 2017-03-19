@@ -31,23 +31,17 @@ public class LocalVariableSpace {
 	private Map<String, VariableType> types = new HashMap<String, VariableType>();
 	private List<VariableType> typeList = new ArrayList<VariableType>();
 	private VariableType thisReturnType;
-	private int max = 1;
-
-	/**
-	 * creates a namespace of local variables.
-	 * the type of a class which has this namespace is integer.
-	 */
-	public LocalVariableSpace() {
-		this(Primitive.INT);
-	}
+	private int max;
 
 	/**
 	 * creates a namespace of local variables.
 	 * 
 	 * @param rettype the type of a class which has this namespace
+	 * @param isStatic the type which has this namespace is static
 	 */
-	public LocalVariableSpace(VariableType rettype) {
+	public LocalVariableSpace(VariableType rettype, boolean isStatic) {
 		this.thisReturnType = rettype;
+		this.max = isStatic ? 0 : 1;
 	}
 
 	/**

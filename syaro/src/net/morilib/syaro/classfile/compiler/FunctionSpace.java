@@ -15,7 +15,11 @@
  */
 package net.morilib.syaro.classfile.compiler;
 
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -97,6 +101,59 @@ public class FunctionSpace {
 	 */
 	public Map<String, VariableType> getGlobalMap() {
 		return new HashMap<String, VariableType>(global);
+	}
+
+	private VariableType convertType(Class<?> cls) {
+		if(cls.equals(Byte.TYPE)) {
+			return Primitive.BYTE;
+		} else if(cls.equals(Character.TYPE)) {
+			return Primitive.CHAR;
+		} else if(cls.equals(Double.TYPE)) {
+			return Primitive.DOUBLE;
+		} else if(cls.equals(Float.TYPE)) {
+			return Primitive.FLOAT;
+		} else if(cls.equals(Integer.TYPE)) {
+			return Primitive.INT;
+		} else if(cls.equals(Long.TYPE)) {
+			return Primitive.LONG;
+		} else if(cls.equals(Short.TYPE)) {
+			return Primitive.SHORT;
+		} else {
+			return new SymbolVariable(cls.getName());
+		}
+	}
+
+	/**
+	 * imports a static method by reflection.
+	 * 
+	 * @param classe class object
+	 * @param name the name of method
+	 */
+	public void importMethod(Class<?> classe, String name) {
+		Method[] mths;
+		Method mth = null;
+		List<VariableType> vt;
+
+		mths = classe.getMethods();
+		for(int i = 0; i < mths.length; i++) {
+			if(mths[i].getName().equals(name) &&
+					Modifier.isStatic(mths[i].getModifiers())) {
+				if(mth != null) {
+					throw new IllegalArgumentException("method name is ambiguous");
+				}
+				mth = mths[i];
+			}
+		}
+		if(mth == null) {
+			throw new IllegalArgumentException("method not found");
+		}
+		vt = new ArrayList<VariableType>();
+		for(Class<?> prm : mth.getParameterTypes()) {
+			vt.add(convertType(prm));
+		}
+		putSpace(mth.getName(), new FunctionDefinition(
+				classe.getCanonicalName().replace('.', '/'),
+				mth.getName(), convertType(mth.getReturnType()), vt));
 	}
 
 }

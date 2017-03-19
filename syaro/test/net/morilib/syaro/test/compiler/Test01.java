@@ -15,45 +15,142 @@
  */
 package net.morilib.syaro.test.compiler;
 
-import java.io.FileOutputStream;
+import java.io.ByteArrayOutputStream;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 
+import junit.framework.TestCase;
 import net.morilib.syaro.classfile.Classfile;
 import net.morilib.syaro.classfile.ConstantClass;
+import net.morilib.syaro.classfile.MethodInfo;
+import net.morilib.syaro.classfile.compiler.FunctionDefinition;
 import net.morilib.syaro.classfile.compiler.FunctionSpace;
 import net.morilib.syaro.classfile.compiler.MethodCompiler;
 import net.morilib.syaro.classfile.compiler.NameAndType;
 import net.morilib.syaro.classfile.compiler.Primitive;
+import net.morilib.syaro.classfile.compiler.VariableType;
 
 /**
  * Test code for MethodCompiler.
  * 
  * @author Yuichiro MORIGUCHI
  */
-public class Test01 {
+public class Test01 extends TestCase {
 
-	public static void main(String[] args) throws Exception {
+	static Object execclass(String code,
+			FunctionSpace fn,
+			VariableType returnType,
+			List<NameAndType> fargs,
+			List<NameAndType> flocals,
+			Class<?>[] clc,
+			Object[] args) throws Exception {
 		Classfile cf = new Classfile();
-		FunctionSpace fn = new FunctionSpace(args[0]);
 
 		cf.setMajorVersion(45);
 		cf.setMinorVersion(3);
 		cf.setAccessFlag(Classfile.ACC_PUBLIC);
-		cf.setThisClass(ConstantClass.getInstance(args[0]));
-		cf.setSuperClass(ConstantClass.getInstance("Ljava/lang/Object;"));
-		MethodCompiler.compile(cf, "test", Primitive.INT,
-				new ArrayList<NameAndType>(), fn,
-				"return 1+2*3;");
+		cf.setThisClass(ConstantClass.getInstance("Test01"));
+		cf.setSuperClass(ConstantClass.getInstance("java/lang/Object"));
+		MethodCompiler.compile(cf,
+				MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC,
+				new NameAndType("test", returnType),
+				fargs,
+				flocals,
+				fn,
+				code);
 
-		FileOutputStream fs = null;
-		try {
-			fs = new FileOutputStream(args[0] + ".class");
-			cf.generateClassFile(fs);
-		} finally {
-			if(fs != null) {
-				fs.close();
-			}
-		}
+		ByteArrayOutputStream fs = new ByteArrayOutputStream();
+		cf.generateClassFile(fs);
+
+		ByteArrayClassLoader cl = new ByteArrayClassLoader();
+		cl.addClass("Test01", fs.toByteArray());
+		Class<?> classe = Class.forName("Test01", true, cl);
+		Method method = classe.getMethod("test", clc);
+		return method.invoke(null, args);
+	}
+
+	public void testA0001() throws Exception {
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+
+		obj = execclass("return 1+2*3;",
+				fn, Primitive.INT, fa, fl,
+				new Class<?>[] {},
+				new Object[] {});
+		assertEquals(7, ((Integer)obj).intValue());
+	}
+
+	public void testA0002() throws Exception {
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+
+		fa.add(new NameAndType("a", Primitive.INT));
+		obj = execclass("return 1+2*a;",
+				fn, Primitive.INT, fa, fl,
+				new Class<?>[] { Integer.TYPE },
+				new Object[] { 5 });
+		assertEquals(11, ((Integer)obj).intValue());
+	}
+
+	public void testA0003() throws Exception {
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		code = "b = a; b++; return b;";
+		fa.add(new NameAndType("a", Primitive.INT));
+		fl.add(new NameAndType("b", Primitive.INT));
+		obj = execclass(code,
+				fn, Primitive.INT, fa, fl,
+				new Class<?>[] { Integer.TYPE },
+				new Object[] { 72 });
+		assertEquals(73, ((Integer)obj).intValue());
+	}
+
+	public void testA0004() throws Exception {
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		code = "return sqr(a);";
+		fa.add(new NameAndType("a", Primitive.DOUBLE));
+		fn.putSpace("sqr", new FunctionDefinition(
+				"java/lang/Math",
+				"sqrt",
+				Primitive.DOUBLE,
+				Arrays.asList(new VariableType[] { Primitive.DOUBLE })));
+		obj = execclass(code,
+				fn, Primitive.DOUBLE, fa, fl,
+				new Class<?>[] { Double.TYPE },
+				new Object[] { 841.0 });
+		assertEquals(29.0, ((Double)obj).doubleValue());
+	}
+
+	public void testA0005() throws Exception {
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		code = "return sqrt(a);";
+		fa.add(new NameAndType("a", Primitive.DOUBLE));
+		fn.importMethod(Math.class, "sqrt");
+		obj = execclass(code,
+				fn, Primitive.DOUBLE, fa, fl,
+				new Class<?>[] { Double.TYPE },
+				new Object[] { 841.0 });
+		assertEquals(29.0, ((Double)obj).doubleValue());
 	}
 
 }

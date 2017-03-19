@@ -20,8 +20,7 @@ import java.util.List;
 
 import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.ConstantMethodref;
-import net.morilib.syaro.classfile.code.ALoad;
-import net.morilib.syaro.classfile.code.Invokevirtual;
+import net.morilib.syaro.classfile.code.Invokestatic;
 
 /**
  * An abstract syntax tree of method call.
@@ -90,7 +89,6 @@ public class CallAST implements AST {
 		name = getName(callee);
 		func = getFunction(functions, callee);
 		desc = func.getDescriptor();
-		code.addCode(new ALoad(0));
 		fvar = func.getArgumentTypes();
 		if(fvar.size() != arguments.size()) {
 			throw new RuntimeException("arity is not the same");
@@ -115,8 +113,8 @@ public class CallAST implements AST {
 				}
 			}
 		}
-		code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
-				functions.getClassname(), name, desc)));
+		code.addCode(new Invokestatic(ConstantMethodref.getInstance(
+				func.getThisType().getName(), func.getMethodName(), desc)));
 	}
 
 	@Override

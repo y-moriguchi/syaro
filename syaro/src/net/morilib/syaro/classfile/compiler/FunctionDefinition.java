@@ -25,18 +25,41 @@ import java.util.List;
  */
 public class FunctionDefinition {
 
+	private SymbolVariable thisType;
+	private String methodName;
 	private VariableType returnType;
 	private List<VariableType> argumentTypes;
 
 	/**
 	 * creates the definition of a function.
 	 * 
-	 * @param ret the type of return value
-	 * @param args the list of types of arguments
+	 * @param typeName type name of this function
+	 * @param methodName method name of this function
+	 * @param returnType the type of return value
+	 * @param argumentTypes the list of types of arguments
 	 */
-	public FunctionDefinition(VariableType ret, List<VariableType> args) {
-		this.returnType = ret;
-		this.argumentTypes = new ArrayList<VariableType>(args);
+	public FunctionDefinition(String typeName,
+			String methodName,
+			VariableType returnType,
+			List<VariableType> argumentTypes) {
+		this.thisType = new SymbolVariable(typeName);
+		this.methodName = methodName;
+		this.returnType = returnType;
+		this.argumentTypes = new ArrayList<VariableType>(argumentTypes);
+	}
+
+	/**
+	 * gets the type of this function.
+	 */
+	public SymbolVariable getThisType() {
+		return thisType;
+	}
+
+	/**
+	 * gets the method name.
+	 */
+	public String getMethodName() {
+		return methodName;
 	}
 
 	/**
