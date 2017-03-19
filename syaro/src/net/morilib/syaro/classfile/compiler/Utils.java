@@ -15,6 +15,8 @@
  */
 package net.morilib.syaro.classfile.compiler;
 
+import java.util.List;
+
 import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.ConstantClass;
 import net.morilib.syaro.classfile.ConstantFieldref;
@@ -25,7 +27,9 @@ import net.morilib.syaro.classfile.code.AStore;
 import net.morilib.syaro.classfile.code.DStore;
 import net.morilib.syaro.classfile.code.FStore;
 import net.morilib.syaro.classfile.code.IStore;
+import net.morilib.syaro.classfile.code.Invokeinterface;
 import net.morilib.syaro.classfile.code.Invokespecial;
+import net.morilib.syaro.classfile.code.Invokestatic;
 import net.morilib.syaro.classfile.code.Invokevirtual;
 import net.morilib.syaro.classfile.code.LStore;
 import net.morilib.syaro.classfile.code.New;
@@ -38,6 +42,10 @@ import net.morilib.syaro.classfile.compiler.BinaryAST.Type;
  * @author Yuichiro MORIGUCHI
  */
 public class Utils {
+
+	public static final SyaroClass STRING = new SyaroClass(String.class);
+
+	public static final SyaroClass OBJECT = new SyaroClass(Object.class);
 
 	/**
 	 * puts the codes of converting to long.
@@ -386,6 +394,202 @@ public class Utils {
 			operateAddAppend(right, nv, functions, space, code);
 			code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 					"java/lang/StringBuffer", "toString", "()Ljava/lang/String;")));
+		}
+	}
+
+	/**
+	 * convert reflection type to type representation of this program.
+	 * 
+	 * @param cls reflection type
+	 * @return type representation of this program
+	 */
+	public static VariableType convertType(Class<?> cls) {
+		if(cls.equals(Byte.TYPE)) {
+			return Primitive.BYTE;
+		} else if(cls.equals(Character.TYPE)) {
+			return Primitive.CHAR;
+		} else if(cls.equals(Double.TYPE)) {
+			return Primitive.DOUBLE;
+		} else if(cls.equals(Float.TYPE)) {
+			return Primitive.FLOAT;
+		} else if(cls.equals(Integer.TYPE)) {
+			return Primitive.INT;
+		} else if(cls.equals(Long.TYPE)) {
+			return Primitive.LONG;
+		} else if(cls.equals(Short.TYPE)) {
+			return Primitive.SHORT;
+		} else if(cls.equals(Object.class)) {
+			return QuasiPrimitive.OBJECT;
+		} else if(cls.equals(String.class)) {
+			return QuasiPrimitive.STRING;
+		} else {
+			return new SymbolType(cls.getName());
+		}
+	}
+
+	/**
+	 * gets the name of symbol AST.
+	 * 
+	 * @param ast AST
+	 * @return the name
+	 */
+	public static String getName(AST ast) {
+		if(!(ast instanceof SymbolAST)) {
+			throw new RuntimeException("not a function");
+		}
+		return ((SymbolAST)ast).getName();
+	}
+
+	private static void putCodeInvokeArgument(List<VariableType> fvar,
+			List<AST> arguments,
+			FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code) {
+		Primitive ap, fp;
+		VariableType at;
+		AST a;
+
+		for(int i = 0; i < arguments.size(); i++) {
+			a = arguments.get(i);
+			at = arguments.get(i).getASTType(functions, space);
+			a.putCode(functions, space, code);
+			if(!at.isConversible(fvar.get(i))) {
+				throw new RuntimeException("type mismatch");
+			} else if(fvar.get(i).isPrimitive()) {
+				ap = (Primitive)at;
+				fp = (Primitive)fvar.get(i);
+				if(fp.isConversible(Primitive.INT)) {
+					// do nothing
+				} else if(fp.isConversible(Primitive.LONG)) {
+					Utils.putConversionLong(ap, code);
+				} else if(fp.isConversible(Primitive.FLOAT)) {
+					Utils.putConversionFloat(ap, code);
+				} else {
+					Utils.putConversionDouble(ap, code);
+				}
+			}
+		}
+	}
+
+	/**
+	 * puts Java VM codes for invoke a static method.
+	 * 
+	 * @param typeName type name of the class which has method to invoke
+	 * @param methodName method name
+	 * @param methodDescriptor method descriptor
+	 * @param fvar type definitions of method
+	 * @param arguments ASTs of arguments
+	 * @param functions function name space
+	 * @param space local variable name space
+	 * @param code instruction container
+	 */
+	public static void putCodeInvokeStaic(String typeName,
+			String methodName,
+			String methodDescriptor,
+			List<VariableType> fvar,
+			List<AST> arguments,
+			FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code) {
+		FunctionDefinition func;
+		String name, desc;
+
+		if(fvar.size() != arguments.size()) {
+			throw new RuntimeException("arity is not the same");
+		}
+		putCodeInvokeArgument(fvar, arguments, functions, space, code);
+		code.addCode(new Invokestatic(ConstantMethodref.getInstance(
+				typeName, methodName, methodDescriptor)));
+	}
+
+	/**
+	 * puts Java VM codes for invoke a non static method.
+	 * 
+	 * @param typeName type name of the class which has method to invoke
+	 * @param methodName method name
+	 * @param methodDescriptor method descriptor
+	 * @param fvar type definitions of method
+	 * @param arguments ASTs of arguments
+	 * @param functions function name space
+	 * @param space local variable name space
+	 * @param code instruction container
+	 */
+	public static void putCodeInvokeVirtual(String typeName,
+			String methodName,
+			String methodDescriptor,
+			List<VariableType> fvar,
+			List<AST> arguments,
+			FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code) {
+		FunctionDefinition func;
+		String name;
+		Primitive ap, fp;
+		VariableType at;
+		AST a;
+
+		if(fvar.size() != arguments.size()) {
+			throw new RuntimeException("arity is not the same");
+		}
+		putCodeInvokeArgument(fvar, arguments, functions, space, code);
+		code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
+				typeName, methodName, methodDescriptor)));
+	}
+
+	/**
+	 * puts Java VM codes for invoke a interface method.
+	 * 
+	 * @param typeName type name of the class which has method to invoke
+	 * @param methodName method name
+	 * @param methodDescriptor method descriptor
+	 * @param fvar type definitions of method
+	 * @param arguments ASTs of arguments
+	 * @param functions function name space
+	 * @param space local variable name space
+	 * @param code instruction container
+	 */
+	public static void putCodeInvokeInterface(String typeName,
+			String methodName,
+			String methodDescriptor,
+			List<VariableType> fvar,
+			List<AST> arguments,
+			FunctionSpace functions,
+			LocalVariableSpace space,
+			Code code) {
+		FunctionDefinition func;
+		String name;
+		Primitive ap, fp;
+		VariableType at;
+		AST a;
+
+		if(fvar.size() != arguments.size()) {
+			throw new RuntimeException("arity is not the same");
+		}
+		putCodeInvokeArgument(fvar, arguments, functions, space, code);
+		code.addCode(new Invokeinterface(ConstantMethodref.getInstance(
+				typeName, methodName, methodDescriptor)));
+	}
+
+	static String getDescriptor(VariableType returnType,
+			List<VariableType> argumentTypes) {
+		StringBuilder b = new StringBuilder();
+
+		b.append("(");
+		for(VariableType v : argumentTypes) {
+			b.append(v.getDescriptor());
+		}
+		b.append(")");
+		b.append(returnType.getDescriptor());
+		return b.toString();
+	}
+
+	static VariableType getTypeFromName(String name) {
+		if(name.equals("String")) {
+			return QuasiPrimitive.STRING;
+		} else if(name.equals("Object")) {
+			return QuasiPrimitive.OBJECT;
+		} else {
+			return new SymbolType(name);
 		}
 	}
 

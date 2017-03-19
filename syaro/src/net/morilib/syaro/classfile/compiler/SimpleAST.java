@@ -45,8 +45,10 @@ public class SimpleAST implements SAST {
 			List<Integer> breakIndices,
 			int continueAddress,
 			List<Integer> continueIndices) {
-		if(expr instanceof CallAST && ((CallAST)expr).isSubroutine(functions)) {
-			((CallAST)expr).putCodeSimple(functions, space, code);
+		if(expr instanceof CallAST) {
+			throw new RuntimeException("class or instance modifier needed");
+		} else if(expr instanceof DotAST) {
+			expr.putCode(functions, space, code);
 		} else if(expr.getASTType(functions, space).equals(Primitive.LONG) ||
 				expr.getASTType(functions, space).equals(Primitive.DOUBLE)) {
 			expr.putCode(functions, space, code);

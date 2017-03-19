@@ -20,7 +20,7 @@ package net.morilib.syaro.classfile.compiler;
  * 
  * @author Yuichiro MORIGUCHI
  */
-public class SymbolVariable implements VariableType {
+public class SymbolType implements VariableType {
 
 	private String name;
 
@@ -29,7 +29,7 @@ public class SymbolVariable implements VariableType {
 	 * 
 	 * @param name name of type
 	 */
-	public SymbolVariable(String name) {
+	public SymbolType(String name) {
 		if(name == null) {
 			throw new NullPointerException();
 		}
@@ -55,15 +55,15 @@ public class SymbolVariable implements VariableType {
 
 	@Override
 	public boolean isConversible(VariableType type) {
-		if(type instanceof SymbolVariable) {
-			return name.equals(((SymbolVariable)type).name);
+		if(type instanceof SymbolType) {
+			return name.equals(((SymbolType)type).name);
 		}
 		return false;
 	}
 
 	@Override
 	public boolean isCastable(VariableType type) {
-		return type instanceof SymbolVariable;
+		return type instanceof SymbolType;
 	}
 
 }

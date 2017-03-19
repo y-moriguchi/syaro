@@ -19,8 +19,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import net.morilib.syaro.classfile.Code;
-import net.morilib.syaro.classfile.ConstantMethodref;
-import net.morilib.syaro.classfile.code.Invokestatic;
 
 /**
  * An abstract syntax tree of method call.
@@ -41,6 +39,14 @@ public class CallAST implements AST {
 		this.callee = callee;
 	}
 
+	public AST getCallee() {
+		return callee;
+	}
+
+	public List<AST> getArguments() {
+		return new ArrayList<AST>(arguments);
+	}
+
 	/**
 	 * adds a argument.
 	 * 
@@ -50,93 +56,17 @@ public class CallAST implements AST {
 		arguments.add(arg);
 	}
 
-	private FunctionDefinition getFunction(FunctionSpace space, AST ast) {
-		if(!(ast instanceof SymbolAST)) {
-			throw new RuntimeException("not a function");
-		}
-		return space.getDefinition(((SymbolAST)ast).getName());
-	}
-
-	private String getName(AST ast) {
-		if(!(ast instanceof SymbolAST)) {
-			throw new RuntimeException("not a function");
-		}
-		return ((SymbolAST)ast).getName();
-	}
-
-	/**
-	 * return true if this is a subroutine.
-	 * 
-	 * @param functions function space
-	 */
-	public boolean isSubroutine(FunctionSpace functions) {
-		FunctionDefinition func;
-
-		func = getFunction(functions, callee);
-		return func.getReturnType().equals(Primitive.VOID);
-	}
-
-	void putCodeSimple(FunctionSpace functions,
-			LocalVariableSpace space,
-			Code code) {
-		FunctionDefinition func;
-		List<VariableType> fvar;
-		String name, desc;
-		Primitive ap, fp;
-		VariableType at;
-		AST a;
-
-		name = getName(callee);
-		func = getFunction(functions, callee);
-		desc = func.getDescriptor();
-		fvar = func.getArgumentTypes();
-		if(fvar.size() != arguments.size()) {
-			throw new RuntimeException("arity is not the same");
-		}
-		for(int i = 0; i < arguments.size(); i++) {
-			a = arguments.get(i);
-			at = arguments.get(i).getASTType(functions, space);
-			a.putCode(functions, space, code);
-			if(!at.isConversible(fvar.get(i))) {
-				throw new RuntimeException("type mismatch");
-			} else if(fvar.get(i).isPrimitive()) {
-				ap = (Primitive)at;
-				fp = (Primitive)fvar.get(i);
-				if(fp.isConversible(Primitive.INT)) {
-					// do nothing
-				} else if(fp.isConversible(Primitive.LONG)) {
-					Utils.putConversionLong(ap, code);
-				} else if(fp.isConversible(Primitive.FLOAT)) {
-					Utils.putConversionFloat(ap, code);
-				} else {
-					Utils.putConversionDouble(ap, code);
-				}
-			}
-		}
-		code.addCode(new Invokestatic(ConstantMethodref.getInstance(
-				func.getThisType().getName(), func.getMethodName(), desc)));
-	}
-
 	@Override
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
-		FunctionDefinition func;
-
-		func = getFunction(functions, callee);
-		if(func.getReturnType().equals(Primitive.VOID)) {
-			throw new RuntimeException("cannot call subroutine");
-		}
-		putCodeSimple(functions, space, code);
+		throw new RuntimeException("class or instance modifier needed");
 	}
 
 	@Override
 	public VariableType getASTType(FunctionSpace functions,
 			LocalVariableSpace space) {
-		FunctionDefinition func;
-
-		func = getFunction(functions, callee);
-		return func.getReturnType();
+		throw new RuntimeException("class or instance modifier needed");
 	}
 
 }

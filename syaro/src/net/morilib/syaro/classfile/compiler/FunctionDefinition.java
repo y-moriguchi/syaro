@@ -25,7 +25,7 @@ import java.util.List;
  */
 public class FunctionDefinition {
 
-	private SymbolVariable thisType;
+	private SymbolType thisType;
 	private String methodName;
 	private VariableType returnType;
 	private List<VariableType> argumentTypes;
@@ -42,7 +42,7 @@ public class FunctionDefinition {
 			String methodName,
 			VariableType returnType,
 			List<VariableType> argumentTypes) {
-		this.thisType = new SymbolVariable(typeName);
+		this.thisType = new SymbolType(typeName);
 		this.methodName = methodName;
 		this.returnType = returnType;
 		this.argumentTypes = new ArrayList<VariableType>(argumentTypes);
@@ -51,7 +51,7 @@ public class FunctionDefinition {
 	/**
 	 * gets the type of this function.
 	 */
-	public SymbolVariable getThisType() {
+	public SymbolType getThisType() {
 		return thisType;
 	}
 
@@ -82,15 +82,7 @@ public class FunctionDefinition {
 	 * @return descriptor
 	 */
 	public String getDescriptor() {
-		StringBuilder b = new StringBuilder();
-
-		b.append("(");
-		for(VariableType v : argumentTypes) {
-			b.append(v.getDescriptor());
-		}
-		b.append(")");
-		b.append(returnType.getDescriptor());
-		return b.toString();
+		return Utils.getDescriptor(returnType, argumentTypes);
 	}
 
 }

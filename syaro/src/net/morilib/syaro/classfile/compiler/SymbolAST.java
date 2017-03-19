@@ -16,11 +16,9 @@
 package net.morilib.syaro.classfile.compiler;
 
 import net.morilib.syaro.classfile.Code;
-import net.morilib.syaro.classfile.ConstantFieldref;
 import net.morilib.syaro.classfile.code.ALoad;
 import net.morilib.syaro.classfile.code.DLoad;
 import net.morilib.syaro.classfile.code.FLoad;
-import net.morilib.syaro.classfile.code.Getfield;
 import net.morilib.syaro.classfile.code.ILoad;
 import net.morilib.syaro.classfile.code.LLoad;
 
@@ -70,10 +68,7 @@ public class SymbolAST implements AST {
 				code.addCode(new ALoad(idx));
 			}
 		} else {
-			type = functions.getGlobal(name);
-			code.addCode(new ALoad(0));
-			code.addCode(new Getfield(ConstantFieldref.getInstance(
-					functions.getClassname(), name, type.getDescriptor())));
+			throw new UndefinedSymbolException(name);
 		}
 	}
 
@@ -85,7 +80,7 @@ public class SymbolAST implements AST {
 		if(idx >= 0) {
 			return space.getType(name);
 		} else {
-			return functions.getGlobal(name);
+			throw new UndefinedSymbolException(name);
 		}
 	}
 

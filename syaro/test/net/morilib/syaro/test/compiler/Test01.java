@@ -18,18 +18,17 @@ package net.morilib.syaro.test.compiler;
 import java.io.ByteArrayOutputStream;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import junit.framework.TestCase;
 import net.morilib.syaro.classfile.Classfile;
 import net.morilib.syaro.classfile.ConstantClass;
 import net.morilib.syaro.classfile.MethodInfo;
-import net.morilib.syaro.classfile.compiler.FunctionDefinition;
 import net.morilib.syaro.classfile.compiler.FunctionSpace;
 import net.morilib.syaro.classfile.compiler.MethodCompiler;
 import net.morilib.syaro.classfile.compiler.NameAndType;
 import net.morilib.syaro.classfile.compiler.Primitive;
+import net.morilib.syaro.classfile.compiler.QuasiPrimitive;
 import net.morilib.syaro.classfile.compiler.VariableType;
 
 /**
@@ -122,13 +121,9 @@ public class Test01 extends TestCase {
 		Object obj;
 		String code;
 
-		code = "return sqr(a);";
+		code = "return Math.sqrt(a);";
 		fa.add(new NameAndType("a", Primitive.DOUBLE));
-		fn.putSpace("sqr", new FunctionDefinition(
-				"java/lang/Math",
-				"sqrt",
-				Primitive.DOUBLE,
-				Arrays.asList(new VariableType[] { Primitive.DOUBLE })));
+		fn.importClass(Math.class);
 		obj = execclass(code,
 				fn, Primitive.DOUBLE, fa, fl,
 				new Class<?>[] { Double.TYPE },
@@ -143,14 +138,29 @@ public class Test01 extends TestCase {
 		Object obj;
 		String code;
 
-		code = "return sqrt(a);";
-		fa.add(new NameAndType("a", Primitive.DOUBLE));
-		fn.importMethod(Math.class, "sqrt");
+		code = "return a.length();";
+		fa.add(new NameAndType("a", QuasiPrimitive.STRING));
 		obj = execclass(code,
-				fn, Primitive.DOUBLE, fa, fl,
-				new Class<?>[] { Double.TYPE },
-				new Object[] { 841.0 });
-		assertEquals(29.0, ((Double)obj).doubleValue());
+				fn, Primitive.INT, fa, fl,
+				new Class<?>[] { String.class },
+				new Object[] { "1234567890" });
+		assertEquals(10, ((Integer)obj).intValue());
+	}
+
+	public void testA0006() throws Exception {
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		code = "return Integer.MAX_VALUE;";
+		fn.importClass(Integer.class);
+		obj = execclass(code,
+				fn, Primitive.INT, fa, fl,
+				new Class<?>[] {},
+				new Object[] {});
+		assertEquals(Integer.MAX_VALUE, ((Integer)obj).intValue());
 	}
 
 }

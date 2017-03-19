@@ -33,6 +33,7 @@ public class FunctionSpace {
 	private Map<String, FunctionDefinition> space =
 			new HashMap<String, FunctionDefinition>();
 	private Map<String, VariableType> global = new HashMap<String, VariableType>();
+	private Map<String, SyaroClass> classes = new HashMap<String, SyaroClass>();
 
 	/**
 	 * creates a namespace.
@@ -103,26 +104,6 @@ public class FunctionSpace {
 		return new HashMap<String, VariableType>(global);
 	}
 
-	private VariableType convertType(Class<?> cls) {
-		if(cls.equals(Byte.TYPE)) {
-			return Primitive.BYTE;
-		} else if(cls.equals(Character.TYPE)) {
-			return Primitive.CHAR;
-		} else if(cls.equals(Double.TYPE)) {
-			return Primitive.DOUBLE;
-		} else if(cls.equals(Float.TYPE)) {
-			return Primitive.FLOAT;
-		} else if(cls.equals(Integer.TYPE)) {
-			return Primitive.INT;
-		} else if(cls.equals(Long.TYPE)) {
-			return Primitive.LONG;
-		} else if(cls.equals(Short.TYPE)) {
-			return Primitive.SHORT;
-		} else {
-			return new SymbolVariable(cls.getName());
-		}
-	}
-
 	/**
 	 * imports a static method by reflection.
 	 * 
@@ -149,11 +130,52 @@ public class FunctionSpace {
 		}
 		vt = new ArrayList<VariableType>();
 		for(Class<?> prm : mth.getParameterTypes()) {
-			vt.add(convertType(prm));
+			vt.add(Utils.convertType(prm));
 		}
 		putSpace(mth.getName(), new FunctionDefinition(
 				classe.getCanonicalName().replace('.', '/'),
-				mth.getName(), convertType(mth.getReturnType()), vt));
+				mth.getName(), Utils.convertType(mth.getReturnType()),
+				vt));
+	}
+
+	/**
+	 * imports a class by reflection.
+	 * 
+	 * @param classe class object
+	 */
+	public void importClass(Class<?> classe) {
+		if(classe.isArray()) {
+			throw new IllegalArgumentException("array can not be impoted");
+		} else if(classe.isAnnotation()) {
+			throw new IllegalArgumentException("annotation can not be impoted");
+		} else if(classes.containsKey(classe.getSimpleName())) {
+			throw new IllegalArgumentException("class has been already imported");
+		}
+		classes.put(classe.getSimpleName(), new SyaroClass(classe));
+	}
+
+	/**
+	 * gets a class by variable type
+	 * 
+	 * @param type variable type
+	 */
+	public SyaroClass getClass(VariableType type) {
+		String name;
+
+		if(type.equals(QuasiPrimitive.OBJECT)) {
+			return Utils.OBJECT;
+		} else if(type.equals(QuasiPrimitive.STRING)) {
+			return Utils.STRING;
+		} else if(type instanceof SymbolType) {
+			name = ((SymbolType)type).getName();
+			if(classes.containsKey(name)) {
+				return classes.get(name);
+			} else {
+				throw new RuntimeException("class " + name + " not defined");
+			}
+		} else {
+			throw new RuntimeException("illegal type");
+		}
 	}
 
 }
