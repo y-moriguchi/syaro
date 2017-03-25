@@ -16,7 +16,9 @@
 package net.morilib.syaro.classfile.compiler;
 
 import net.morilib.syaro.classfile.Code;
+import net.morilib.syaro.classfile.ConstantClass;
 import net.morilib.syaro.classfile.Mnemonic;
+import net.morilib.syaro.classfile.code.Checkcast;
 
 /**
  * An abstract syntax tree of cast.
@@ -111,6 +113,9 @@ public class CastAST implements AST {
 			} else if(type.equals(Primitive.FLOAT)) {
 				code.addCode(Mnemonic.D2F);
 			}
+		} else {
+			code.addCode(new Checkcast(ConstantClass.getInstance(
+					functions.getClass(type).getName())));
 		}
 	}
 

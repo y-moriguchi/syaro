@@ -22,20 +22,25 @@ package net.morilib.syaro.classfile.compiler;
  */
 public enum QuasiPrimitive implements VariableType {
 
-	OBJECT("Ljava/lang/Object;", 0),
-	STRING("Ljava/lang/String;", 1);
+	OBJECT("java/lang/Object", 0),
+	STRING("java/lang/String", 1);
 
-	private String descriptor;
+	private String typeName;
 	private int level;
 
 	private QuasiPrimitive(String d, int l) {
-		descriptor = d;
+		typeName = d;
 		level = l;
 	}
 
 	@Override
-	public String getDescriptor() {
-		return descriptor;
+	public String getDescriptor(FunctionSpace functions) {
+		return "L" + typeName + ";";
+	}
+
+	@Override
+	public String getClassName(FunctionSpace space) {
+		return typeName;
 	}
 
 	@Override

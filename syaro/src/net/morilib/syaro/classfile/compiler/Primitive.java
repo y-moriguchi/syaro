@@ -42,7 +42,7 @@ public enum Primitive implements VariableType {
 	}
 
 	@Override
-	public String getDescriptor() {
+	public String getDescriptor(FunctionSpace functions) {
 		return descriptor;
 	}
 
@@ -71,6 +71,11 @@ public enum Primitive implements VariableType {
 	@Override
 	public boolean isCastable(VariableType type) {
 		return type instanceof Primitive;
+	}
+
+	@Override
+	public String getClassName(FunctionSpace space) {
+		return null;
 	}
 
 	/**

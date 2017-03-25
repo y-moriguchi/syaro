@@ -98,8 +98,8 @@ public class SyaroMethod {
 	 * 
 	 * @return descriptor
 	 */
-	public String getDescriptor() {
-		return Utils.getDescriptor(returnType, argumentTypes);
+	public String getDescriptor(FunctionSpace functions) {
+		return Utils.getDescriptor(functions, returnType, argumentTypes);
 	}
 
 }

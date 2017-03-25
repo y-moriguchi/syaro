@@ -297,19 +297,31 @@ import net.morilib.syaro.classfile.code.*;
   +-"new"->        >-${TYPE}->%% = $buffer.toString();*
           **********         *v************************
            +------------------+
+           | +-${S}-+
+          *v*^******v*
+          *          *
+          *v**********
            |
           *v*     ***        ***     *F<Integer>*
           * >-'['-> >-{expr}-> >-']'->%% = 0;   *
-          ***     ***        ***     *v**********
-                   +------------------+
-                   |+--------+
-                  *vv*      *^************
-                  *  >-'[]'->%F = $F + 1;*
-                  *v**      **************
-                   |
-                  @v@@@@@@@@@@@@@@@@@@@@@
-                  @newarray($E, _e, $F);@
-                  @@@@@@@@@@@@@@@@@@@@@@@
+          *v*     ***        ***     *v**********
+           |       +------------------+
+           |       |+--------+
+           |      *vv*      *^************
+           |      *  >-'[]'->%F = $F + 1;*
+           |      *v**      **************
+           |       |
+           |      @v@@@@@@@@@@@@@@@@@@@@@
+           |      @newarray($E, _e, $F);@
+           |      @@@@@@@@@@@@@@@@@@@@@@@
+           |                 +-${S}-+              +-${S}-+
+           |     *AR<NewAST>*^******v* ***        *^******v*****
+           +-'('->%% = beginnew($E); >-> >-{expr}->addnew($AR);*
+                 *v******************* *^*        *v**v*********
+                  |                     +--','-----+  |
+                  |     @@@@@@@@@@@@@                 |
+                  +-')'->neu($AR);  <-')'-------------+
+                        @@@@@@@@@@@@@
 -- unary --
     +-${S}-+         +-${S}-+
  *S*^******v*       *^******v*        @@@@@@@@@@@
@@ -465,7 +477,7 @@ private VariableType getTypeFromName(String tname) {
 	} else if(tname.equals("double")) {
 		return Primitive.DOUBLE;
 	} else {
-		return new SymbolVariable(tname);
+		return new SymbolType(tname);
 	}
 }
 
@@ -499,7 +511,7 @@ private void funcbegin() {
 	for(NameAndType t : localvars) {
 		local.putVariable(t.getName(), t.getType());
 	}
-	method = new MethodInfo(funcnt.getName(), funcdefobj.getDescriptor());
+	method = new MethodInfo(funcnt.getName(), funcdefobj.getDescriptor(functions));
 	method.setAccessFlags(methodFlags);
 	code = new Code();
 	gotoInst = new Goto();
@@ -788,6 +800,18 @@ private void addcall(CallAST call) {
 
 private void call(CallAST call) {
 	_e = call;
+}
+
+private NewAST beginnew(String tname) {
+	return new NewAST(getTypeFromName(tname));
+}
+
+private void addnew(NewAST neu) {
+	neu.addArgument(_e);
+}
+
+private void neu(NewAST neu) {
+	_e = neu;
 }
 
 private void var(String name) {

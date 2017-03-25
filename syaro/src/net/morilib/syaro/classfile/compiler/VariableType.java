@@ -25,7 +25,13 @@ public interface VariableType {
 	/**
 	 * gets the descriptor of the type.
 	 */
-	public String getDescriptor();
+	public String getDescriptor(FunctionSpace space);
+
+	/**
+	 * gets the class name of the type.
+	 * This returns null if the type is not class (primitive type etc.).
+	 */
+	public String getClassName(FunctionSpace functions);
 
 	/**
 	 * gets true if the type is primitive.

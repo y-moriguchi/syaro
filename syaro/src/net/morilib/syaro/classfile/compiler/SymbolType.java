@@ -44,8 +44,13 @@ public class SymbolType implements VariableType {
 	}
 
 	@Override
-	public String getDescriptor() {
-		return "L" + name + ";";
+	public String getDescriptor(FunctionSpace functions) {
+		return "L" + functions.getClass(this).getName() + ";";
+	}
+
+	@Override
+	public String getClassName(FunctionSpace functions) {
+		return functions.getClass(this).getName();
 	}
 
 	@Override

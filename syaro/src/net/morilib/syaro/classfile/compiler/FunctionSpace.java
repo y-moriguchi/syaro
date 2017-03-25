@@ -155,6 +155,18 @@ public class FunctionSpace {
 	}
 
 	/**
+	 * adds a class representation of this program.
+	 * 
+	 * @param classe class object
+	 */
+	public void addClass(String name, SyaroClass classe) {
+		if(classes.containsKey(name)) {
+			throw new IllegalArgumentException("class has been already defined");
+		}
+		classes.put(name, classe);
+	}
+
+	/**
 	 * gets a class by variable type
 	 * 
 	 * @param type variable type

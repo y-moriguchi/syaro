@@ -20,6 +20,7 @@ import java.util.List;
 
 import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.ConstantFieldref;
+import net.morilib.syaro.classfile.Mnemonic;
 import net.morilib.syaro.classfile.code.Getfield;
 import net.morilib.syaro.classfile.code.Getstatic;
 
@@ -45,17 +46,20 @@ public class DotAST implements AST {
 		return right;
 	}
 
-	private boolean isInstance(FunctionSpace functions,
+	private boolean isArrayLength(FunctionSpace functions,
 			LocalVariableSpace space) {
+		VariableType type;
+		String name;
+
 		try {
-			left.getASTType(functions, space);
-			return true;
-		} catch(UndefinedSymbolException e) {
-			if(left instanceof SymbolAST) {
+			type = left.getASTType(functions, space);
+			if(!(right instanceof SymbolAST)) {
 				return false;
-			} else {
-				throw e;
 			}
+			name = Utils.getName(right);
+			return type instanceof ArrayType && name.equals("length");
+		} catch(UndefinedSymbolException e) {
+			return false;
 		}
 	}
 
@@ -80,6 +84,9 @@ public class DotAST implements AST {
 			vtyp.add(ast.getASTType(functions, space));
 		}
 		mth = cls.findMethod(name, vtyp);
+		if(mth == null) {
+			throw new RuntimeException("method not found " + name);
+		}
 		return mth;
 	}
 
@@ -91,7 +98,7 @@ public class DotAST implements AST {
 		SyaroField fld;
 
 		if(right instanceof CallAST) {
-			if(isInstance(functions, space)) {
+			if(Utils.isInstance(left, functions, space)) {
 				cls = getClassdef(functions, space);
 				mth = findMethod(cls, functions, space);
 				left.putCode(functions, space, code);
@@ -100,14 +107,14 @@ public class DotAST implements AST {
 				} else if(cls.isInterface()) {
 					Utils.putCodeInvokeInterface(cls.getName(),
 							mth.getName(),
-							mth.getDescriptor(),
+							mth.getDescriptor(functions),
 							mth.getArgumentTypes(),
 							((CallAST)right).getArguments(),
 							functions, space, code);
 				} else {
 					Utils.putCodeInvokeVirtual(cls.getName(),
 							mth.getName(),
-							mth.getDescriptor(),
+							mth.getDescriptor(functions),
 							mth.getArgumentTypes(),
 							((CallAST)right).getArguments(),
 							functions, space, code);
@@ -119,7 +126,7 @@ public class DotAST implements AST {
 				if(mth.isStatic()) {
 					Utils.putCodeInvokeStaic(cls.getName(),
 							mth.getName(),
-							mth.getDescriptor(),
+							mth.getDescriptor(functions),
 							mth.getArgumentTypes(),
 							((CallAST)right).getArguments(),
 							functions, space, code);
@@ -128,7 +135,10 @@ public class DotAST implements AST {
 				}
 			}
 		} else if(right instanceof SymbolAST) {
-			if(isInstance(functions, space)) {
+			if(isArrayLength(functions, space)) {
+				left.putCode(functions, space, code);
+				code.addCode(Mnemonic.ARRAYLENGTH);
+			} else if(Utils.isInstance(left, functions, space)) {
 				cls = getClassdef(functions, space);
 				fld = cls.getField(Utils.getName(right));
 				left.putCode(functions, space, code);
@@ -137,7 +147,7 @@ public class DotAST implements AST {
 				} else {
 					code.addCode(new Getfield(ConstantFieldref.getInstance(
 							cls.getName(), fld.getName(),
-							fld.getType().getDescriptor())));
+							fld.getType().getDescriptor(functions))));
 				}
 			} else {
 				cls = functions.getClass(Utils.getTypeFromName(
@@ -146,7 +156,7 @@ public class DotAST implements AST {
 				if(fld.isStatic()) {
 					code.addCode(new Getstatic(ConstantFieldref.getInstance(
 							cls.getName(), fld.getName(),
-							fld.getType().getDescriptor())));
+							fld.getType().getDescriptor(functions))));
 				} else {
 					throw new RuntimeException("method is not static");
 				}
@@ -164,7 +174,7 @@ public class DotAST implements AST {
 		SyaroField fld;
 
 		if(right instanceof CallAST) {
-			if(isInstance(functions, space)) {
+			if(Utils.isInstance(left, functions, space)) {
 				cls = getClassdef(functions, space);
 			} else {
 				cls = functions.getClass(Utils.getTypeFromName(
@@ -173,7 +183,9 @@ public class DotAST implements AST {
 			mth = findMethod(cls, functions, space);
 			return mth.getReturnType();
 		} else if(right instanceof SymbolAST) {
-			if(isInstance(functions, space)) {
+			if(isArrayLength(functions, space)) {
+				return Primitive.INT;
+			} else if(Utils.isInstance(left, functions, space)) {
 				cls = getClassdef(functions, space);
 			} else {
 				cls = functions.getClass(Utils.getTypeFromName(

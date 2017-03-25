@@ -15,74 +15,67 @@
  */
 package net.morilib.syaro.classfile.compiler;
 
+import java.lang.reflect.Constructor;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
- * An class represents the definition of a function.
+ * Constructor representation of this program.
  * 
  * @author Yuichiro MORIGUCHI
  */
-public class FunctionDefinition {
+public class SyaroConstructor {
 
-	private SymbolType thisType;
-	private String methodName;
-	private VariableType returnType;
+	private String name;
 	private List<VariableType> argumentTypes;
 
 	/**
-	 * creates the definition of a function.
+	 * constructs a constructor by parameter.
 	 * 
-	 * @param typeName type name of this function
-	 * @param methodName method name of this function
-	 * @param returnType the type of return value
-	 * @param argumentTypes the list of types of arguments
+	 * @param name field name
+	 * @param argumentTypes types of argument
 	 */
-	public FunctionDefinition(String typeName,
-			String methodName,
-			VariableType returnType,
+	public SyaroConstructor(String name,
 			List<VariableType> argumentTypes) {
-		this.thisType = new SymbolType(typeName);
-		this.methodName = methodName;
-		this.returnType = returnType;
+		this.name = name;
 		this.argumentTypes = new ArrayList<VariableType>(argumentTypes);
 	}
 
 	/**
-	 * gets the type of this function.
+	 * constructs a constructor by reflection.
+	 * 
+	 * @param method reflection method object
 	 */
-	public SymbolType getThisType() {
-		return thisType;
+	public SyaroConstructor(Constructor<?> method) {
+		this.name = method.getName();
+		this.argumentTypes = new ArrayList<VariableType>();
+		for(Class<?> cls : method.getParameterTypes()) {
+			this.argumentTypes.add(Utils.convertType(cls));
+		}
 	}
 
 	/**
-	 * gets the method name.
+	 * gets the name of this definition.
 	 */
-	public String getMethodName() {
-		return methodName;
+	public String getName() {
+		return name;
 	}
 
 	/**
-	 * gets the type of return value.
-	 */
-	public VariableType getReturnType() {
-		return returnType;
-	}
-
-	/**
-	 * gets the list of types of arguments.
+	 * gets the argument types of this definition.
 	 */
 	public List<VariableType> getArgumentTypes() {
-		return argumentTypes;
+		return Collections.unmodifiableList(argumentTypes);
 	}
 
 	/**
-	 * returns the descriptor of this function.
+	 * returns the descriptor of this method.
 	 * 
 	 * @return descriptor
 	 */
 	public String getDescriptor(FunctionSpace functions) {
-		return Utils.getDescriptor(functions, returnType, argumentTypes);
+		return Utils.getDescriptor(functions, Primitive.VOID, argumentTypes);
 	}
 
 }

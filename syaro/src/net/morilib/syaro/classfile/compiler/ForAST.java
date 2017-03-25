@@ -63,8 +63,10 @@ public class ForAST implements SAST {
 		If _if;
 		Goto _gt;
 
-		initialize.putCode(functions, space, code);
-		code.addCode(Mnemonic.POP);
+		if(initialize != null) {
+			initialize.putCode(functions, space, code);
+			code.addCode(Mnemonic.POP);
+		}
 		addr = code.getCurrentAddress();
 		condition.putCode(functions, space, code);
 		_if = new If(If.Cond.EQ);

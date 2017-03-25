@@ -22,7 +22,6 @@ import net.morilib.syaro.classfile.ConstantClass;
 import net.morilib.syaro.classfile.ConstantFieldref;
 import net.morilib.syaro.classfile.ConstantMethodref;
 import net.morilib.syaro.classfile.Mnemonic;
-import net.morilib.syaro.classfile.code.ALoad;
 import net.morilib.syaro.classfile.code.AStore;
 import net.morilib.syaro.classfile.code.DStore;
 import net.morilib.syaro.classfile.code.FStore;
@@ -34,6 +33,7 @@ import net.morilib.syaro.classfile.code.Invokevirtual;
 import net.morilib.syaro.classfile.code.LStore;
 import net.morilib.syaro.classfile.code.New;
 import net.morilib.syaro.classfile.code.Putfield;
+import net.morilib.syaro.classfile.code.Putstatic;
 import net.morilib.syaro.classfile.compiler.BinaryAST.Type;
 
 /**
@@ -167,34 +167,67 @@ public class Utils {
 			LocalVariableSpace space,
 			Code code) {
 		VariableType type;
+		SyaroClass cls;
+		SyaroField fld;
+		AST al, ar;
 		String name;
 		int idx;
 
-		idx = getLocalIndex(space, node);
-		if(idx >= 0) {
-			if(node.getASTType(functions, space).isConversible(Primitive.INT)) {
-				code.addCode(new IStore(idx));
-			} else if(node.getASTType(functions, space).equals(Primitive.LONG)) {
-				code.addCode(new LStore(idx));
-			} else if(node.getASTType(functions, space).equals(Primitive.FLOAT)) {
-				code.addCode(new FStore(idx));
-			} else if(node.getASTType(functions, space).equals(Primitive.DOUBLE)) {
-				code.addCode(new DStore(idx));
+		if(node instanceof DotAST) {
+			al = ((DotAST)node).getLeft();
+			ar = ((DotAST)node).getRight();
+			if(!(ar instanceof SymbolAST)) {
+				throw new RuntimeException("illegal field specifition");
+			}
+			name = ((SymbolAST)ar).getName();
+			if(isInstance(al, functions, space)) {
+				al.putCode(functions, space, code);
+				if(node.getASTType(functions, space).equals(Primitive.DOUBLE)) {
+					code.addCode(Mnemonic.DUP_X2);
+					code.addCode(Mnemonic.POP);
+				} else {
+					code.addCode(Mnemonic.SWAP);
+				}
+				cls = functions.getClass(al.getASTType(functions, space));
+				if((fld = cls.getField(name)) == null) {
+					throw new RuntimeException("field " + name + " is not found");
+				} else if(fld.isStatic()) {
+					throw new RuntimeException("field " + name + " is static");
+				}
+				type = fld.getType();
+				code.addCode(new Putfield(ConstantFieldref.getInstance(
+						cls.getName(), name, type.getDescriptor(functions))));
 			} else {
-				code.addCode(new AStore(idx));
+				cls = functions.getClass(Utils.getTypeFromName(
+						Utils.getName(al)));
+				if((fld = cls.getField(name)) == null) {
+					throw new RuntimeException("field " + name + " is not found");
+				} else if(!fld.isStatic()) {
+					throw new RuntimeException("field " + name + " is not static");
+				}
+				type = fld.getType();
+				code.addCode(new Putstatic(ConstantFieldref.getInstance(
+						cls.getName(), name, type.getDescriptor(functions))));
 			}
 		} else {
-			code.addCode(new ALoad(0));
-			if(node.getASTType(functions, space).equals(Primitive.DOUBLE)) {
-				code.addCode(Mnemonic.DUP_X2);
-				code.addCode(Mnemonic.POP);
+			idx = getLocalIndex(space, node);
+			if(idx >= 0) {
+				if(node.getASTType(functions, space).isConversible(Primitive.INT)) {
+					code.addCode(new IStore(idx));
+				} else if(node.getASTType(functions, space).equals(Primitive.LONG)) {
+					code.addCode(new LStore(idx));
+				} else if(node.getASTType(functions, space).equals(Primitive.FLOAT)) {
+					code.addCode(new FStore(idx));
+				} else if(node.getASTType(functions, space).equals(Primitive.DOUBLE)) {
+					code.addCode(new DStore(idx));
+				} else {
+					code.addCode(new AStore(idx));
+				}
 			} else {
-				code.addCode(Mnemonic.SWAP);
+				name = getVarName(node);
+				throw new RuntimeException(
+						"local variable " + name + " is not defined");
 			}
-			name = getVarName(node);
-			type = functions.getGlobal(name);
-			code.addCode(new Putfield(ConstantFieldref.getInstance(
-					functions.getClassname(), name, type.getDescriptor())));
 		}
 	}
 
@@ -339,7 +372,7 @@ public class Utils {
 		if(type.isPrimitive()) {
 			code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 					"java/lang/StringBuffer", "append",
-					"(" + type.getDescriptor() + ")Ljava/lang/StringBuffer;")));
+					"(" + type.getDescriptor(functions) + ")Ljava/lang/StringBuffer;")));
 		} else {
 			code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
 					"java/lang/StringBuffer", "append",
@@ -423,7 +456,7 @@ public class Utils {
 		} else if(cls.equals(String.class)) {
 			return QuasiPrimitive.STRING;
 		} else {
-			return new SymbolType(cls.getName());
+			return new SymbolType(cls.getSimpleName());
 		}
 	}
 
@@ -570,16 +603,17 @@ public class Utils {
 				typeName, methodName, methodDescriptor)));
 	}
 
-	static String getDescriptor(VariableType returnType,
+	static String getDescriptor(FunctionSpace functions,
+			VariableType returnType,
 			List<VariableType> argumentTypes) {
 		StringBuilder b = new StringBuilder();
 
 		b.append("(");
 		for(VariableType v : argumentTypes) {
-			b.append(v.getDescriptor());
+			b.append(v.getDescriptor(functions));
 		}
 		b.append(")");
-		b.append(returnType.getDescriptor());
+		b.append(returnType.getDescriptor(functions));
 		return b.toString();
 	}
 
@@ -590,6 +624,28 @@ public class Utils {
 			return QuasiPrimitive.OBJECT;
 		} else {
 			return new SymbolType(name);
+		}
+	}
+
+	/**
+	 * returns true if the ast is an instance.
+	 * 
+	 * @param ast ast
+	 * @param functions function space
+	 * @param space local variable namespace
+	 * @return
+	 */
+	public static boolean isInstance(AST ast, FunctionSpace functions,
+			LocalVariableSpace space) {
+		try {
+			ast.getASTType(functions, space);
+			return true;
+		} catch(UndefinedSymbolException e) {
+			if(ast instanceof SymbolAST) {
+				return false;
+			} else {
+				throw e;
+			}
 		}
 	}
 

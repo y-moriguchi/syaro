@@ -41,8 +41,13 @@ public class ArrayType implements VariableType {
 	}
 
 	@Override
-	public String getDescriptor() {
-		return element.getDescriptor() + "[";
+	public String getDescriptor(FunctionSpace functions) {
+		return "[" + element.getDescriptor(functions);
+	}
+
+	@Override
+	public String getClassName(FunctionSpace functions) {
+		return null;
 	}
 
 	@Override

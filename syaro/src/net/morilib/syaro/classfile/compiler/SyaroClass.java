@@ -15,6 +15,7 @@
  */
 package net.morilib.syaro.classfile.compiler;
 
+import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -34,6 +35,7 @@ public class SyaroClass {
 	private String name;
 	private boolean _interface;
 	private List<SyaroMethod> methods;
+	private List<SyaroConstructor> constructors;
 	private Map<String, SyaroField> fields;
 
 	/**
@@ -42,14 +44,17 @@ public class SyaroClass {
 	 * @param name Java class name
 	 * @param isInterface true if this definition is interface
 	 * @param methods methods
+	 * @param constructors constructors
 	 * @param fields fields
 	 */
 	public SyaroClass(String name, boolean isInterface,
 			List<SyaroMethod> methods,
+			List<SyaroConstructor> constructors,
 			List<SyaroField> fields) {
 		this.name = name;
 		this._interface = isInterface;
 		this.methods = new ArrayList<SyaroMethod>(methods);
+		this.constructors = new ArrayList<SyaroConstructor>(constructors);
 		this.fields = new HashMap<String, SyaroField>();
 		for(SyaroField fld : fields) {
 			this.fields.put(fld.getName(), fld);
@@ -71,6 +76,13 @@ public class SyaroClass {
 			mod = mth.getModifiers();
 			if(!Modifier.isPrivate(mod)) {
 				this.methods.add(new SyaroMethod(mth));
+			}
+		}
+		this.constructors = new ArrayList<SyaroConstructor>();
+		for(Constructor<?> con : classe.getConstructors()) {
+			mod = con.getModifiers();
+			if(!Modifier.isPrivate(mod)) {
+				this.constructors.add(new SyaroConstructor(con));
 			}
 		}
 		this.fields = new HashMap<String, SyaroField>();
@@ -117,26 +129,91 @@ public class SyaroClass {
 		return fields.get(name);
 	}
 
+	private boolean isConversible(List<VariableType> args,
+			List<VariableType> prms) {
+		for(int i = 0; i < args.size(); i++) {
+			if(!args.get(i).isConversible(prms.get(i))) {
+				return false;
+			}
+		}
+		return true;
+	}
+
+	private boolean isConversible(List<VariableType> args,
+			SyaroMethod mth) {
+		List<VariableType> prms = mth.getArgumentTypes();
+
+		for(int i = 0; i < args.size(); i++) {
+			if(!args.get(i).isConversible(prms.get(i))) {
+				return false;
+			}
+		}
+		return true;
+	}
+
 	/**
 	 * finds the method by name and types of parameters.
+	 * 
+	 * This returns a method whose arguments are the nearest conversible.
+	 * If conversible arguments are not found, this attempts to return
+	 * a method whose name and arity of arguments are equal.
+	 * If such method is not found or found more than two,
+	 * this returns null.
 	 */
 	public SyaroMethod findMethod(String name, List<VariableType> args) {
 		List<VariableType> prms;
+		SyaroMethod resn = null;  // returns if arguments is not conversible
+		SyaroMethod res = null;   // the nearest conversible
+		int count = 0;
 
-		outer: for(SyaroMethod mth : methods) {
+		for(SyaroMethod mth : methods) {
 			if(mth.getName().equals(name)) {
 				prms = mth.getArgumentTypes();
 				if(args.size() == prms.size()) {
-					for(int i = 0; i < args.size(); i++) {
-						if(!args.get(i).isConversible(prms.get(i))) {
-							continue outer;
-						}
+					if(!isConversible(args, mth)) {
+						resn = mth;
+						count++;
+						continue;
 					}
-					return mth;
+					if(res == null || isConversible(mth.getArgumentTypes(), res)) {
+						res = mth;
+					}
 				}
 			}
 		}
-		return null;
+		return res != null ? res : count == 1 ? resn : null;
+	}
+
+	/**
+	 * finds the constructor by name and types of parameters.
+	 * 
+	 * This returns a constructor whose arguments are the nearest conversible.
+	 * If conversible arguments are not found, this attempts to return
+	 * a method whose name and arity of arguments are equal.
+	 * If such method is not found or found more than two,
+	 * this returns null.
+	 */
+	public SyaroConstructor findConstructor(List<VariableType> args) {
+		List<VariableType> prms;
+		SyaroConstructor resn = null;  // returns if arguments is not conversible
+		SyaroConstructor res = null;   // the nearest conversible
+		int count = 0;
+
+		for(SyaroConstructor con : constructors) {
+			prms = con.getArgumentTypes();
+			if(args.size() == prms.size()) {
+				if(!isConversible(args, con.getArgumentTypes())) {
+					resn = con;
+					count++;
+					continue;
+				}
+				if(res == null || isConversible(con.getArgumentTypes(),
+						res.getArgumentTypes())) {
+					res = con;
+				}
+			}
+		}
+		return res != null ? res : count == 1 ? resn : null;
 	}
 
 }
