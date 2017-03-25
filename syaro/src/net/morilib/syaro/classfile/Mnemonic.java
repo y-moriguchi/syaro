@@ -489,6 +489,11 @@ public abstract class Mnemonic implements ClassInfo {
 	 */
 	public static Mnemonic ATHROW = new Single(191);
 
+	/**
+	 * The instruction arraylength.
+	 */
+	public static Mnemonic ARRAYLENGTH = new Single(190);
+
 	private byte opcode;
 
 	/**
