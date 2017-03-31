@@ -81,29 +81,30 @@ public class ExceptionTable implements ClassInfo {
 
 	/**
 	 * sets the class info of catch type.
+	 * If the given type is null, this handler catches all exceptions.
 	 */
 	public void setCatchType(ConstantClass catchType) {
 		this.catchType = catchType;
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.classfile.ClassInfo#gatherConstantPool(net.morilib.syaro.classfile.GatheredConstantPool)
-	 */
 	@Override
 	public void gatherConstantPool(GatheredConstantPool gathered) {
-		gathered.putConstantPool(catchType);
+		if(catchType != null) {
+			catchType.gatherConstantPool(gathered);
+		}
 	}
 
-	/* (non-Javadoc)
-	 * @see net.morilib.syaro.classfile.ClassInfo#generateCode(net.morilib.syaro.classfile.GatheredConstantPool, java.io.DataOutputStream)
-	 */
 	@Override
 	public void generateCode(GatheredConstantPool gathered, DataOutputStream ous)
 			throws IOException {
 		ous.writeShort(startPc);
 		ous.writeShort(endPc);
 		ous.writeShort(handlerPc);
-		ous.writeShort(gathered.getIndex(catchType));
+		if(catchType != null) {
+			ous.writeShort(gathered.getIndex(catchType));
+		} else {
+			ous.writeShort(0);
+		}
 	}
 
 }
