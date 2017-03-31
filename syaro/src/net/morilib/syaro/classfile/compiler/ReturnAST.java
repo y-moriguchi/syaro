@@ -19,6 +19,17 @@ import java.util.List;
 
 import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.Mnemonic;
+import net.morilib.syaro.classfile.code.ALoad;
+import net.morilib.syaro.classfile.code.AStore;
+import net.morilib.syaro.classfile.code.DLoad;
+import net.morilib.syaro.classfile.code.DStore;
+import net.morilib.syaro.classfile.code.FLoad;
+import net.morilib.syaro.classfile.code.FStore;
+import net.morilib.syaro.classfile.code.ILoad;
+import net.morilib.syaro.classfile.code.IStore;
+import net.morilib.syaro.classfile.code.Jsr;
+import net.morilib.syaro.classfile.code.LLoad;
+import net.morilib.syaro.classfile.code.LStore;
 
 /**
  * An abstract syntax tree for return statement.
@@ -38,18 +49,60 @@ public class ReturnAST implements SAST {
 		this.expr = expr;
 	}
 
+	private void putFinally(Code code, LocalVariableSpace space,
+			List<Integer> returnFinallyAddresses) {
+		VariableType rettype = space.getThisReturnType();
+
+		if(returnFinallyAddresses.size() > 0) {
+			if(rettype.isConversible(Primitive.INT)) {
+				code.addCode(new IStore(space.getMax()));
+			} else if(rettype.equals(Primitive.LONG)) {
+				code.addCode(new LStore(space.getMax()));
+			} else if(rettype.equals(Primitive.FLOAT)) {
+				code.addCode(new FStore(space.getMax()));
+			} else if(rettype.equals(Primitive.DOUBLE)) {
+				code.addCode(new DStore(space.getMax()));
+			} else {
+				code.addCode(new AStore(space.getMax()));
+			}
+			for(int addr : returnFinallyAddresses) {
+				code.addCode(new Jsr(addr - code.getCurrentAddress()));
+			}
+			if(rettype.isConversible(Primitive.INT)) {
+				code.addCode(new ILoad(space.getMax()));
+			} else if(rettype.equals(Primitive.LONG)) {
+				code.addCode(new LLoad(space.getMax()));
+			} else if(rettype.equals(Primitive.FLOAT)) {
+				code.addCode(new FLoad(space.getMax()));
+			} else if(rettype.equals(Primitive.DOUBLE)) {
+				code.addCode(new DLoad(space.getMax()));
+			} else {
+				code.addCode(new ALoad(space.getMax()));
+			}
+		}
+	}
+
+	private void putFinally(Code code, List<Integer> returnFinallyAddresses) {
+		for(int addr : returnFinallyAddresses) {
+			code.addCode(new Jsr(addr - code.getCurrentAddress()));
+		}
+	}
+
 	@Override
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code,
 			List<Integer> breakIndices,
 			int continueAddress,
-			List<Integer> continueIndices) {
+			List<Integer> continueIndices,
+			List<Integer> loopFinallyAddresses,
+			List<Integer> returnFinallyAddresses) {
 		VariableType t;
 		Primitive ep;
 
 		if(expr != null) {
 			expr.putCode(functions, space, code);
+			putFinally(code, space, returnFinallyAddresses);
 			t = expr.getASTType(functions, space);
 			if(!t.isConversible(space.getThisReturnType())) {
 				throw new RuntimeException("type mismatch");
@@ -73,6 +126,7 @@ public class ReturnAST implements SAST {
 				code.addCode(Mnemonic.ARETURN);
 			}
 		} else {
+			putFinally(code, returnFinallyAddresses);
 			code.addCode(Mnemonic.RETURN);
 		}
 	}

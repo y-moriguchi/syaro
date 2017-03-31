@@ -44,11 +44,21 @@ public class SimpleAST implements SAST {
 			Code code,
 			List<Integer> breakIndices,
 			int continueAddress,
-			List<Integer> continueIndices) {
+			List<Integer> continueIndices,
+			List<Integer> loopFinallyAddresses,
+			List<Integer> returnFinallyAddresses) {
+		VariableType tp;
+
 		if(expr instanceof CallAST) {
 			throw new RuntimeException("class or instance modifier needed");
 		} else if(expr instanceof DotAST) {
+			tp = expr.getASTType(functions, space);
 			expr.putCode(functions, space, code);
+			if(tp.equals(Primitive.LONG) || tp.equals(Primitive.DOUBLE)) {
+				code.addCode(Mnemonic.POP2);
+			} else if(!tp.equals(Primitive.VOID)) {
+				code.addCode(Mnemonic.POP);
+			}
 		} else if(expr.getASTType(functions, space).equals(Primitive.LONG) ||
 				expr.getASTType(functions, space).equals(Primitive.DOUBLE)) {
 			expr.putCode(functions, space, code);

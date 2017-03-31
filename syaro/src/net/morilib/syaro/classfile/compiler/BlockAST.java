@@ -44,10 +44,13 @@ public class BlockAST implements SAST {
 			Code code,
 			List<Integer> breakIndices,
 			int continueAddress,
-			List<Integer> continueIndices) {
+			List<Integer> continueIndices,
+			List<Integer> loopFinallyAddresses,
+			List<Integer> returnFinallyAddresses) {
 		for(SAST s : block) {
 			s.putCode(functions, space,
-					code, breakIndices, continueAddress, continueIndices);
+					code, breakIndices, continueAddress, continueIndices,
+					loopFinallyAddresses, returnFinallyAddresses);
 		}
 	}
 

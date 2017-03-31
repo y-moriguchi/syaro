@@ -55,9 +55,9 @@ import net.morilib.syaro.classfile.code.*;
                      @@@@@@@@@@@@@@@@@@@
 -- stmtlist --
            +----------+
- @S@@@@@@@@v@        @^@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
- @          >-{stmt}->_s.putCode(functions, local, code, null, -1, null);@
- @v@@@@@@^@v@        @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+ @S@@@@@@@@v@        @^@@@@@@@@@@@
+ @          >-{stmt}->putCodes();@
+ @v@@@@@@^@v@        @@@@@@@@@@@@@
   +-${S}-+ |
            |
            |                  @@@
@@ -141,10 +141,62 @@ import net.morilib.syaro.classfile.code.*;
               +-"return"->_e = null;>-{expr}->        >-';'->_return();@
               |          **********v*        **********     @^@@@@@@@@@@
               |                    +--------------------';'--+
+              |
+              |          +-${S}-+          +-${S}-+
+              |         *^******v*        *^******v*     @@@@@@@@@@@
+              +-"throw"->        >-{expr}->        >-';'->_throw();@
+              |         **********        **********     @@@@@@@@@@@
+              |
+              |       ***        @@@
+              +-"try"-> >-{trys}-> @
+              |       ***        @@@
+              |
               |         +-${S}-+
               |        *^******v*     @@@@@@@@@@@
               +-{expr}->        >-';'->simple();@
                        **********     @@@@@@@@@@@
+-- trys --
+    +-${S}-+
+ *S*^******v*
+ *          >----------------------------+
+ ************                            |
+                                         |
+ *AA<java.util.List<CatchEntry>>*********v****
+ *%% = new java.util.ArrayList<CatchEntry>();*
+ *v*******************************************
+  |                     +-${S}-+
+ *v*        *AB<SAST>* *^******v*
+ * >-{stmt}->%% = _s;>->        *
+ ***        ********** *v********
+     +------------------+
+     |
+     |           +-${S}-+       +-${S}-+
+ *BA*v*         *^******v*     *^******v*         *AC<String>***************
+ *    >-"catch"->        >-'('->        >-${TYPE}->%% = $buffer.toString();*
+ *v****         **********     **********         *v************************
+  |     +------------------------------------------+
+  |     |  +-${S}-+                                     +-${S}-+
+  |     | *^******v*        *AD<String>*************** *^******v*
+  |     +->        >-${VAR}->%% = $buffer.toString();>->        *
+  |       **********        ************************** *v********
+  |     +-----------------------------------------------+
+  |     |
+  |     |                                                +-${S}-+
+  |     |     ***        ****************************** *^******v*
+  |     +-')'-> >-{stmt}->addcatch($AA, $AC, $AD, _s);>->        >-(BA)
+  |           ***        ****************************** **********
+  +--------+
+ *AE<SAST>*v*
+ *%% = null;*
+ *v**********
+  | +-${S}-+
+ *v*^******v*           ***        ***********
+ *          >-"finally"-> >-{stmt}->%AE = _s;>-(BB)
+ **********v*           ***        ***********
+           |
+ @BB@@@@@@@v@@@@@@@@@@@@@@@@@@
+ @_s = _catch($AB, $AA, $AE);@
+ @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
 -- expr --
  *S*        @@@@@@@@@@@
  * >-{asgn}->         @
@@ -461,6 +513,12 @@ private AST _e;
 private StringBuilder strbuilder;
 private int methodFlags;
 
+private void putCodes() {
+	_s.putCode(functions, local, code, null, -1, null,
+			new java.util.ArrayList<Integer>(),
+			new java.util.ArrayList<Integer>());
+}
+
 private VariableType getTypeFromName(String tname) {
 	if(tname.equals("byte")) {
 		return Primitive.BYTE;
@@ -508,6 +566,7 @@ private void funcbegin() {
 	for(NameAndType t : funcargs) {
 		local.putVariable(t.getName(), t.getType());
 	}
+	local.putVariable(null, QuasiPrimitive.OBJECT);
 	for(NameAndType t : localvars) {
 		local.putVariable(t.getName(), t.getType());
 	}
@@ -556,7 +615,7 @@ private void funcend() {
 	gb.setOffset(code.getAddress(localRet) - code.getCurrentAddress());
 	code.addCode(gb);
 	code.setMaxStack(1024);
-	code.setMaxLocals(local.getMax());
+	code.setMaxLocals(local.getMax() + 2);
 	method.addAttribute(code);
 	classfile.addMethod(method);
 }
@@ -864,6 +923,19 @@ private void _return() {
 
 private void simple() {
 	_s = new SimpleAST(_e);
+}
+
+private void _throw() {
+	_s = new ThrowAST(_e);
+}
+
+private void addcatch(java.util.List<CatchEntry> lst, String tname,
+		String vname, SAST s) {
+	lst.add(new CatchEntry(getTypeFromName(tname), vname, s));
+}
+
+private SAST _catch(SAST body, java.util.List<CatchEntry> lst, SAST fn) {
+	return new TryAST(body, lst, fn);
 }
 
 public static void compile(Classfile classfile,

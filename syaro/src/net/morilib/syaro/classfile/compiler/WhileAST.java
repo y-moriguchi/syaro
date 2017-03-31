@@ -49,7 +49,9 @@ public class WhileAST implements SAST {
 			Code code,
 			List<Integer> breakIndices,
 			int continueAddress,
-			List<Integer> continueIndices) {
+			List<Integer> continueIndices,
+			List<Integer> loopFinallyAddresses,
+			List<Integer> returnFinallyAddresses) {
 		List<Integer> brk = new ArrayList<Integer>();
 		int addr, ifa;
 		If _if;
@@ -59,7 +61,8 @@ public class WhileAST implements SAST {
 		condition.putCode(functions, space, code);
 		_if = new If(If.Cond.EQ);
 		ifa = code.addCode(_if);
-		statement.putCode(functions, space, code, brk, addr, null);
+		statement.putCode(functions, space, code, brk, addr, null,
+				new ArrayList<Integer>(), returnFinallyAddresses);
 		_gt = new Goto();
 		_gt.setOffset(addr - code.getCurrentAddress());
 		code.addCode(_gt);

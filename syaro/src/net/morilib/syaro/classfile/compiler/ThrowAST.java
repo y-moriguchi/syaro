@@ -15,42 +15,31 @@
  */
 package net.morilib.syaro.classfile.compiler;
 
+import java.util.List;
+
+import net.morilib.syaro.classfile.Code;
+import net.morilib.syaro.classfile.Mnemonic;
+
 /**
- * A class storing variable name and type.
- * 
  * @author Yuichiro MORIGUCHI
+ *
  */
-public class NameAndType {
+public class ThrowAST implements SAST {
 
-	private String name;
-	private VariableType type;
+	private AST expr;
 
-	/**
-	 * constructs a pair of variable name and type.
-	 * 
-	 * @param name variable name
-	 * @param type variable type
-	 */
-	public NameAndType(String name, VariableType type) {
-		if(name == null || type == null) {
-			throw new NullPointerException();
-		}
-		this.name = name;
-		this.type = type;
+	public ThrowAST(AST expr) {
+		this.expr = expr;
 	}
 
-	/**
-	 * gets the variable name.
-	 */
-	public String getName() {
-		return name;
-	}
-
-	/**
-	 * gets the variable type.
-	 */
-	public VariableType getType() {
-		return type;
+	@Override
+	public void putCode(FunctionSpace functions, LocalVariableSpace space,
+			Code code, List<Integer> breakIndices, int continueAddress,
+			List<Integer> continueIndices,
+			List<Integer> loopFinallyAddresses,
+			List<Integer> returnFinallyAddresses) {
+		expr.putCode(functions, space, code);
+		code.addCode(Mnemonic.ATHROW);
 	}
 
 }

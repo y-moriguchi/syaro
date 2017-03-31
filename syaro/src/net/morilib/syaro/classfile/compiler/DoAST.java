@@ -49,13 +49,16 @@ public class DoAST implements SAST {
 			Code code,
 			List<Integer> breakIndices,
 			int continueAddress,
-			List<Integer> continueIndices) {
+			List<Integer> continueIndices,
+			List<Integer> loopFinallyAddresses,
+			List<Integer> returnFinallyAddresses) {
 		List<Integer> brk = new ArrayList<Integer>();
 		int addr;
 		If _if;
 
 		addr = code.getCurrentAddress();
-		statement.putCode(functions, space, code, brk, addr, null);
+		statement.putCode(functions, space, code, brk, addr, null,
+				new ArrayList<Integer>(), returnFinallyAddresses);
 		condition.putCode(functions, space, code);
 		_if = new If(If.Cond.NE);
 		_if.setOffset(addr - code.getCurrentAddress());

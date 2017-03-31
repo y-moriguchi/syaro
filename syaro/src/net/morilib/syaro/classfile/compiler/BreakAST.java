@@ -19,6 +19,7 @@ import java.util.List;
 
 import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.code.Goto;
+import net.morilib.syaro.classfile.code.Jsr;
 
 /**
  * An abstract syntax tree for break statement.
@@ -33,9 +34,14 @@ public class BreakAST implements SAST {
 			Code code,
 			List<Integer> breakIndices,
 			int continueAddress,
-			List<Integer> continueIndices) {
+			List<Integer> continueIndices,
+			List<Integer> loopFinallyAddresses,
+			List<Integer> returnFinallyAddresses) {
 		if(breakIndices == null) {
 			throw new RuntimeException("invalid break");
+		}
+		for(int addr : loopFinallyAddresses) {
+			code.addCode(new Jsr(addr - code.getCurrentAddress()));
 		}
 		breakIndices.add(code.addCode(new Goto()));
 	}

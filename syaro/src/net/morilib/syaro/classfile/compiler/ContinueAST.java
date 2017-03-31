@@ -19,6 +19,7 @@ import java.util.List;
 
 import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.code.Goto;
+import net.morilib.syaro.classfile.code.Jsr;
 
 /**
  * An abstract syntax tree for continue statement.
@@ -33,9 +34,14 @@ public class ContinueAST implements SAST {
 			Code code,
 			List<Integer> breakIndices,
 			int continueAddress,
-			List<Integer> continueIndices) {
+			List<Integer> continueIndices,
+			List<Integer> loopFinallyAddresses,
+			List<Integer> returnFinallyAddresses) {
 		Goto _gt;
 
+		for(int addr : loopFinallyAddresses) {
+			code.addCode(new Jsr(addr - code.getCurrentAddress()));
+		}
 		if(continueAddress >= 0) {
 			_gt = new Goto();
 			_gt.setOffset(continueAddress - code.getCurrentAddress());

@@ -16,41 +16,31 @@
 package net.morilib.syaro.classfile.compiler;
 
 /**
- * A class storing variable name and type.
- * 
  * @author Yuichiro MORIGUCHI
+ *
  */
-public class NameAndType {
+public class CatchEntry {
 
-	private String name;
 	private VariableType type;
+	private String variableName;
+	private SAST ast;
 
-	/**
-	 * constructs a pair of variable name and type.
-	 * 
-	 * @param name variable name
-	 * @param type variable type
-	 */
-	public NameAndType(String name, VariableType type) {
-		if(name == null || type == null) {
-			throw new NullPointerException();
-		}
-		this.name = name;
+	public CatchEntry(VariableType type, String variableName, SAST ast) {
 		this.type = type;
+		this.variableName = variableName;
+		this.ast = ast;
 	}
 
-	/**
-	 * gets the variable name.
-	 */
-	public String getName() {
-		return name;
-	}
-
-	/**
-	 * gets the variable type.
-	 */
 	public VariableType getType() {
 		return type;
+	}
+
+	public String getVarialeName() {
+		return variableName;
+	}
+
+	public SAST getAst() {
+		return ast;
 	}
 
 }

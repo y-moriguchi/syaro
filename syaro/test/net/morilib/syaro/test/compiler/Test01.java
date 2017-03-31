@@ -356,6 +356,129 @@ public class Test01 extends TestCase {
 		assertEquals(765, ((Integer)obj).intValue());
 	}
 
+	public void testA0016() throws Exception {
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		code = "try {" +
+				" throw new RuntimeException();" +
+				" return 961;" +
+				"} catch(RuntimeException e) {" +
+				" return 765;" +
+				"}";
+		fn.importClass(RuntimeException.class);
+		fl.add(new NameAndType("e", new SymbolType("RuntimeException")));
+		obj = execclass(code,
+				fn, Primitive.INT, fa, fl,
+				new Class<?>[] { },
+				new Object[] { });
+		assertEquals(765, ((Integer)obj).intValue());
+	}
+
+	public void testA0017() throws Exception {
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		System.setProperty("syaro.test", "961");
+		code = "try {" +
+				" a = 765; return a;" +
+				"} finally {" +
+				" System.setProperty(\"syaro.test\", \"346\");" +
+				"}";
+		fn.importClass(System.class);
+		fl.add(new NameAndType("a", Primitive.INT));
+		obj = execclass(code,
+				fn, Primitive.INT, fa, fl,
+				new Class<?>[] { },
+				new Object[] { });
+		assertEquals(765, ((Integer)obj).intValue());
+		assertEquals("346", System.getProperty("syaro.test"));
+	}
+
+	public void testA0018() throws Exception {
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		code = "for(a = 1; a < 10; a++) {" +
+				" try {" +
+				"  if(a == 5) break;" +
+				" } finally {" +
+				"  b += 1000;" +
+				" }" +
+				"}" +
+				"return b;";
+		fl.add(new NameAndType("a", Primitive.INT));
+		fl.add(new NameAndType("b", Primitive.INT));
+		obj = execclass(code,
+				fn, Primitive.INT, fa, fl,
+				new Class<?>[] { },
+				new Object[] { });
+		assertEquals(5000, ((Integer)obj).intValue());
+	}
+
+	public void testA0019() throws Exception {
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		code = "b = 0;" +
+				"try {" +
+				" for(a = 10; a >= 0; a--) {" +
+				"  try {" +
+				"   10 / a;" +
+				"  } finally {" +
+				"   b += 10 - a;" +
+				"  }" +
+				" }" +
+				"} catch(ArithmeticException e) { b += 1000; }" +
+				"return b;";
+		fn.importClass(ArithmeticException.class);
+		fl.add(new NameAndType("a", Primitive.INT));
+		fl.add(new NameAndType("b", Primitive.INT));
+		fl.add(new NameAndType("e", new SymbolType("ArithmeticException")));
+		obj = execclass(code,
+				fn, Primitive.INT, fa, fl,
+				new Class<?>[] { },
+				new Object[] { });
+		assertEquals(1055, ((Integer)obj).intValue());
+	}
+
+	public void testA0020() throws Exception {
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		code = "try {" +
+				" a = 0; a = 1 / 0;" +
+				"} catch(ArithmeticException e) {" +
+				" a += 765;" +
+				"} finally {" +
+				" a += 346;" +
+				"}" +
+				"return a;";
+		fn.importClass(ArithmeticException.class);
+		fl.add(new NameAndType("a", Primitive.INT));
+		fl.add(new NameAndType("e", new SymbolType("ArithmeticException")));
+		obj = execclass(code,
+				fn, Primitive.INT, fa, fl,
+				new Class<?>[] { },
+				new Object[] { });
+		assertEquals(1111, ((Integer)obj).intValue());
+	}
+
 	static final String TO_DECIMAL =
 			"BBASE2 = BigInteger.valueOf(100);\n" +
 			"t = new byte[b.toString().length()];\n" +

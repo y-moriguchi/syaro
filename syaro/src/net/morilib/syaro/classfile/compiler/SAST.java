@@ -35,12 +35,16 @@ public interface SAST {
 	 * @param breakIndices code indices to jump by break statement
 	 * @param continueAddress
 	 * @param continueIndices
+	 * @param loopFinallyAddresses addresses of finally block (loop)
+	 * @param returnFinallyAddresses addresses of finally block (return)
 	 */
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code,
 			List<Integer> breakIndices,
 			int continueAddress,
-			List<Integer> continueIndices);
+			List<Integer> continueIndices,
+			List<Integer> loopFinallyAddresses,
+			List<Integer> returnFinallyAddresses);
 
 }

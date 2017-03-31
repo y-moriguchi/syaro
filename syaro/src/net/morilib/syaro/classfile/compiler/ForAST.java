@@ -56,7 +56,9 @@ public class ForAST implements SAST {
 			Code code,
 			List<Integer> breakIndices,
 			int continueAddress,
-			List<Integer> continueIndices) {
+			List<Integer> continueIndices,
+			List<Integer> loopFinallyAddresses,
+			List<Integer> returnFinallyAddresses) {
 		List<Integer> brk = new ArrayList<Integer>();
 		List<Integer> cnt = new ArrayList<Integer>();
 		int addr, ifa;
@@ -71,7 +73,8 @@ public class ForAST implements SAST {
 		condition.putCode(functions, space, code);
 		_if = new If(If.Cond.EQ);
 		ifa = code.addCode(_if);
-		statement.putCode(functions, space, code, brk, -1, cnt);
+		statement.putCode(functions, space, code, brk, -1, cnt,
+				new ArrayList<Integer>(), returnFinallyAddresses);
 		for(int x : cnt) {
 			((Goto)code.getCode(x)).setOffset(code.getCurrentOffset(x));
 		}
