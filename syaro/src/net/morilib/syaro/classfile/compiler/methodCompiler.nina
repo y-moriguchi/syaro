@@ -151,6 +151,10 @@ import net.morilib.syaro.classfile.code.*;
               +-"try"-> >-{trys}-> @
               |       ***        @@@
               |
+              |          ***           @@@
+              +-"switch"-> >-{switchs}-> @
+              |          ***           @@@
+              |
               |         +-${S}-+
               |        *^******v*     @@@@@@@@@@@
               +-{expr}->        >-';'->simple();@
@@ -197,6 +201,44 @@ import net.morilib.syaro.classfile.code.*;
  @BB@@@@@@@v@@@@@@@@@@@@@@@@@@
  @_s = _catch($AB, $AA, $AE);@
  @@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+-- switchs --
+    +-${S}-+
+ *S*^******v*
+ *          *
+ *v**********
+  |       +-${S}-+                     +-${S}-+
+ *v*     *^******v*        *AA<AST>** *^******v*     ***
+ * >-'('->        >-{expr}->%% = _e;>->        >-')'-> *
+ ***     **********        ********** **********     *v*
+  +---------------------------------------------------+
+  |+-${S}-+
+ *v^******v*     ***
+ *         >-'{'-> *
+ ***********     *v*
+                  |
+ *AB<SwitchAST>***v********
+ *%% = new SwitchAST($AA);*
+ ****v*********************
+     |+-${S}-+
+ *BA*v^******v*
+ *            *
+ *v************
+  |         +-${S}-+          +-${S}-+
+  |        *^******v*        *^******v*     ******************
+  +-"case"->        >-{expr}->        >-':'->$AB.addCase(_e);>-(BA)
+  |        **********        **********     ******************
+  |            +-${S}-+ 
+  |           *^******v*     *******************
+  +-"default"->        >-':'->$AB.addDefault();>-(BA)
+  |           **********     *******************
+  |
+  |     @@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  +-"}"->$AB.endSwitch(); _s = $AB;@
+  |     @@@@@@@@@@@@@@@@@@@@@@@@@@@@
+  |
+  |        ***********************
+  +-{stmt}->$AB.addStatement(_s);>-(BA)
+           ***********************
 -- expr --
  *S*        @@@@@@@@@@@
  * >-{asgn}->         @
@@ -534,6 +576,10 @@ private VariableType getTypeFromName(String tname) {
 		return Primitive.FLOAT;
 	} else if(tname.equals("double")) {
 		return Primitive.DOUBLE;
+	} else if(tname.equals("Object")) {
+		return QuasiPrimitive.OBJECT;
+	} else if(tname.equals("String")) {
+		return QuasiPrimitive.STRING;
 	} else {
 		return new SymbolType(tname);
 	}
@@ -592,19 +638,19 @@ private void funcend() {
 			fargs++;
 		}
 	}
-	for(int i = fargs + 1; i < local.getMax(); i++) {
-		if(local.getType(i - fargs) == null) {
+	for(int i = fargs + off + 1; i < local.getMax(); i++) {
+		if(local.getType(i) == null) {
 			// do nothing
-		} else if(local.getType(i - fargs).isConversible(Primitive.INT)) {
+		} else if(local.getType(i).isConversible(Primitive.INT)) {
 			code.addCode(new IConst(0));
 			code.addCode(new IStore(i));
-		} else if(local.getType(i - fargs).equals(Primitive.LONG)) {
+		} else if(local.getType(i).equals(Primitive.LONG)) {
 			code.addCode(new LConst(0));
 			code.addCode(new LStore(i));
-		} else if(local.getType(i - fargs).equals(Primitive.FLOAT)) {
+		} else if(local.getType(i).equals(Primitive.FLOAT)) {
 			code.addCode(new FConst(0));
 			code.addCode(new FStore(i));
-		} else if(local.getType(i - fargs).equals(Primitive.DOUBLE)) {
+		} else if(local.getType(i).equals(Primitive.DOUBLE)) {
 			code.addCode(new DConst(0));
 			code.addCode(new DStore(i));
 		} else {

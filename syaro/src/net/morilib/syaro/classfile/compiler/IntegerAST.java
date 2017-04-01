@@ -37,6 +37,13 @@ public class IntegerAST implements AST {
 		this.value = value;
 	}
 
+	/**
+	 * gets the value.
+	 */
+	public int getValue() {
+		return value;
+	}
+
 	@Override
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,

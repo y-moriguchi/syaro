@@ -19,6 +19,7 @@ import java.io.DataOutputStream;
 import java.io.IOException;
 import java.util.Map;
 import java.util.SortedMap;
+import java.util.SortedSet;
 import java.util.TreeMap;
 
 import net.morilib.syaro.classfile.GatheredConstantPool;
@@ -41,6 +42,18 @@ public class LookupSwitch extends Mnemonic {
 	public LookupSwitch(SortedMap<Integer, Integer> npairs, int defaultAddress) {
 		super(171);
 		this.npairs = new TreeMap<Integer, Integer>(npairs);
+		this.defaultAddress = defaultAddress;
+	}
+
+	/**
+	 * constructs a lookupswitch instruction.
+	 */
+	public LookupSwitch(SortedSet<Integer> npairs, int defaultAddress) {
+		super(171);
+		this.npairs = new TreeMap<Integer, Integer>();
+		for(int i : npairs) {
+			this.npairs.put(i, -1);
+		}
 		this.defaultAddress = defaultAddress;
 	}
 

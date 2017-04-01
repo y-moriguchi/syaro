@@ -172,7 +172,13 @@ public class AssignAST implements AST, OperationMnemonics {
 			LocalVariableSpace space,
 			Code code) {
 		Utils.putCodeArrayRef(left, functions, space, code);
-		Utils.operateAdd(left, right, functions, space, code);
+		if(mnemonic == null) {
+			right.putCode(functions, space, code);
+		} else if(mnemonic.equals(Type.ADD)) {
+			Utils.operateAdd(left, right, functions, space, code);
+		} else {
+			throw new RuntimeException("cannot operate string except +");
+		}
 		Utils.putDup(left, code);
 		Utils.setVar(left, functions, space, code);
 	}

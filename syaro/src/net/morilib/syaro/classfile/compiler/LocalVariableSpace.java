@@ -31,6 +31,7 @@ public class LocalVariableSpace {
 	private Map<String, VariableType> types = new HashMap<String, VariableType>();
 	private List<VariableType> typeList = new ArrayList<VariableType>();
 	private VariableType thisReturnType;
+	private boolean isStatic;
 	private int max;
 
 	/**
@@ -41,6 +42,7 @@ public class LocalVariableSpace {
 	 */
 	public LocalVariableSpace(VariableType rettype, boolean isStatic) {
 		this.thisReturnType = rettype;
+		this.isStatic = isStatic;
 		this.max = isStatic ? 0 : 1;
 	}
 
@@ -107,7 +109,7 @@ public class LocalVariableSpace {
 	 * @param idx the index
 	 */
 	public VariableType getType(int idx) {
-		return typeList.get(idx - 1);
+		return typeList.get(idx - (isStatic ? 0 : 1));
 	}
 
 	/**

@@ -60,6 +60,21 @@ public class Test01 extends TestCase {
 		return method.invoke(null, args);
 	}
 
+	static Class<?> createTestClass(Classfile cf) throws Exception {
+		ByteArrayOutputStream fs = new ByteArrayOutputStream();
+		cf.generateClassFile(fs);
+
+		ByteArrayClassLoader cl = new ByteArrayClassLoader();
+		cl.addClass("Test01", fs.toByteArray());
+		return Class.forName("Test01", true, cl);
+	}
+
+	static Object invokeTestClass(Class<?> classe, String methodName,
+			int val) throws Exception {
+		Method method = classe.getMethod(methodName, new Class<?>[] { Integer.TYPE });
+		return method.invoke(null, new Object[] { val });
+	}
+
 	static Object execclass(String code,
 			FunctionSpace fn,
 			VariableType returnType,
@@ -477,6 +492,51 @@ public class Test01 extends TestCase {
 				new Class<?>[] { },
 				new Object[] { });
 		assertEquals(1111, ((Integer)obj).intValue());
+	}
+
+	public void testA0021() throws Exception {
+		Classfile cf = new Classfile();
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		cf.setMajorVersion(45);
+		cf.setMinorVersion(3);
+		cf.setAccessFlag(Classfile.ACC_PUBLIC);
+		cf.setThisClass(ConstantClass.getInstance("Test01"));
+		cf.setSuperClass(ConstantClass.getInstance("java/lang/Object"));
+
+		code = "switch(a) {" +
+				" case 72: r = \"chihaya\"; break;" +
+				" case 85: r = \"ritsuko\"; break;" +
+				" case 89:" +
+				" case 90: r = \"takane\"; break;" +
+				" default: r = \"unknown\"; break;" +
+				"}" +
+				"return r;";
+		fa.add(new NameAndType("a", Primitive.INT));
+		fl.add(new NameAndType("r", QuasiPrimitive.STRING));
+		MethodCompiler.compile(cf,
+				MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC,
+				new NameAndType("test", QuasiPrimitive.STRING),
+				fa,
+				fl,
+				fn,
+				code);
+
+		Class<?> cls = createTestClass(cf);
+		obj = invokeTestClass(cls, "test", 72);
+		assertEquals("chihaya", obj);
+		obj = invokeTestClass(cls, "test", 85);
+		assertEquals("ritsuko", obj);
+		obj = invokeTestClass(cls, "test", 89);
+		assertEquals("takane", obj);
+		obj = invokeTestClass(cls, "test", 90);
+		assertEquals("takane", obj);
+		obj = invokeTestClass(cls, "test", 70);
+		assertEquals("unknown", obj);
 	}
 
 	static final String TO_DECIMAL =
