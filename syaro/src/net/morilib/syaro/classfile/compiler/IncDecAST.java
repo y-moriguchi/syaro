@@ -70,7 +70,7 @@ public class IncDecAST implements AST {
 		} else if(t.equals(Primitive.DOUBLE)) {
 			val = new DConst(1);
 		} else {
-			throw new RuntimeException("type mismatch");
+			throw new SemanticsException("type mismatch");
 		}
 		Utils.putCodeArrayRef(node, functions, space, code);
 		if(isPre) {

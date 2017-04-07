@@ -47,9 +47,9 @@ public class NewArrayAST implements AST {
 		VariableType t;
 
 		if(!size.getASTType(functions, space).isConversible(Primitive.INT)) {
-			throw new RuntimeException("size must be int");
+			throw new SemanticsException("size must be int");
 		} else if(type.isPrimitive()) {
-			throw new RuntimeException("can not new primitives");
+			throw new SemanticsException("can not new primitives");
 		}
 		size.putCode(functions, space, code);
 		t = ((ArrayType)type).getElement();

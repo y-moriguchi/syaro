@@ -96,7 +96,7 @@ public class Utils {
 	 */
 	public static String getVarName(AST ast) {
 		if(!(ast instanceof SymbolAST)) {
-			throw new RuntimeException("not a lvalue");
+			throw new SemanticsException("not a lvalue");
 		}
 		return ((SymbolAST)ast).getName();
 	}
@@ -177,7 +177,7 @@ public class Utils {
 			al = ((DotAST)node).getLeft();
 			ar = ((DotAST)node).getRight();
 			if(!(ar instanceof SymbolAST)) {
-				throw new RuntimeException("illegal field specifition");
+				throw new SemanticsException("illegal field specifition");
 			}
 			name = ((SymbolAST)ar).getName();
 			if(isInstance(al, functions, space)) {
@@ -190,9 +190,9 @@ public class Utils {
 				}
 				cls = functions.getClass(al.getASTType(functions, space));
 				if((fld = cls.getField(name)) == null) {
-					throw new RuntimeException("field " + name + " is not found");
+					throw new SemanticsException("field " + name + " is not found");
 				} else if(fld.isStatic()) {
-					throw new RuntimeException("field " + name + " is static");
+					throw new SemanticsException("field " + name + " is static");
 				}
 				type = fld.getType();
 				code.addCode(new Putfield(ConstantFieldref.getInstance(
@@ -201,15 +201,19 @@ public class Utils {
 				cls = functions.getClass(Utils.getTypeFromName(
 						Utils.getName(al)));
 				if((fld = cls.getField(name)) == null) {
-					throw new RuntimeException("field " + name + " is not found");
+					throw new SemanticsException("field " + name + " is not found");
 				} else if(!fld.isStatic()) {
-					throw new RuntimeException("field " + name + " is not static");
+					throw new SemanticsException("field " + name + " is not static");
 				}
 				type = fld.getType();
 				code.addCode(new Putstatic(ConstantFieldref.getInstance(
 						cls.getName(), name, type.getDescriptor(functions))));
 			}
 		} else {
+			name = Utils.getVarName(node);
+			if(functions.isConstant(name)) {
+				throw new SemanticsException("symbol " + name + " is constant");
+			}
 			idx = getLocalIndex(space, node);
 			if(idx >= 0) {
 				if(node.getASTType(functions, space).isConversible(Primitive.INT)) {
@@ -225,7 +229,7 @@ public class Utils {
 				}
 			} else {
 				name = getVarName(node);
-				throw new RuntimeException(
+				throw new SemanticsException(
 						"local variable " + name + " is not defined");
 			}
 		}
@@ -323,7 +327,7 @@ public class Utils {
 			right.putCode(functions, space, code);
 			code.addCode(type.getMnemonic());
 		} else if(type.getMnemonicLong() == null) {
-			throw new RuntimeException("type mismatch");
+			throw new SemanticsException("type mismatch");
 		} else if(lp.isConversible(Primitive.LONG) &&
 				rp.isConversible(Primitive.INT)) {
 			left.putCode(functions, space, code);
@@ -340,7 +344,7 @@ public class Utils {
 				rp.isConversible(Primitive.LONG)) {
 			if(type.getMnemonicLong().equals(Mnemonic.LSHL) ||
 					type.getMnemonicLong().equals(Mnemonic.LSHR)) {
-				throw new RuntimeException("type mismatch");
+				throw new SemanticsException("type mismatch");
 			}
 			left.putCode(functions, space, code);
 			Utils.putConversionLong(lp, code);
@@ -348,7 +352,7 @@ public class Utils {
 			Utils.putConversionLong(rp, code);
 			code.addCode(type.getMnemonicLong());
 		} else if(type.getMnemonicFloat() == null) {
-			throw new RuntimeException("type mismatch");
+			throw new SemanticsException("type mismatch");
 		} else if(lp.isConversible(Primitive.FLOAT) &&
 				rp.isConversible(Primitive.FLOAT)) {
 			left.putCode(functions, space, code);
@@ -357,7 +361,7 @@ public class Utils {
 			Utils.putConversionFloat(rp, code);
 			code.addCode(type.getMnemonicFloat());
 		} else if(type.getMnemonicDouble() == null) {
-			throw new RuntimeException("type mismatch");
+			throw new SemanticsException("type mismatch");
 		} else {
 			left.putCode(functions, space, code);
 			Utils.putConversionDouble(lp, code);
@@ -468,7 +472,7 @@ public class Utils {
 	 */
 	public static String getName(AST ast) {
 		if(!(ast instanceof SymbolAST)) {
-			throw new RuntimeException("not a function");
+			throw new SemanticsException("not a function");
 		}
 		return ((SymbolAST)ast).getName();
 	}
@@ -487,7 +491,7 @@ public class Utils {
 			at = arguments.get(i).getASTType(functions, space);
 			a.putCode(functions, space, code);
 			if(!at.isConversible(fvar.get(i))) {
-				throw new RuntimeException("type mismatch");
+				throw new SemanticsException("type mismatch");
 			} else if(fvar.get(i).isPrimitive()) {
 				ap = (Primitive)at;
 				fp = (Primitive)fvar.get(i);
@@ -528,7 +532,7 @@ public class Utils {
 		String name, desc;
 
 		if(fvar.size() != arguments.size()) {
-			throw new RuntimeException("arity is not the same");
+			throw new SemanticsException("arity is not the same");
 		}
 		putCodeInvokeArgument(fvar, arguments, functions, space, code);
 		code.addCode(new Invokestatic(ConstantMethodref.getInstance(
@@ -562,7 +566,7 @@ public class Utils {
 		AST a;
 
 		if(fvar.size() != arguments.size()) {
-			throw new RuntimeException("arity is not the same");
+			throw new SemanticsException("arity is not the same");
 		}
 		putCodeInvokeArgument(fvar, arguments, functions, space, code);
 		code.addCode(new Invokevirtual(ConstantMethodref.getInstance(
@@ -596,7 +600,7 @@ public class Utils {
 		AST a;
 
 		if(fvar.size() != arguments.size()) {
-			throw new RuntimeException("arity is not the same");
+			throw new SemanticsException("arity is not the same");
 		}
 		putCodeInvokeArgument(fvar, arguments, functions, space, code);
 		code.addCode(new Invokeinterface(ConstantMethodref.getInstance(

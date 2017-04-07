@@ -79,7 +79,7 @@ public class NewAST implements AST {
 		}
 		con = cls.findConstructor(vtyp);
 		if(con == null) {
-			throw new RuntimeException("constructor not found");
+			throw new SemanticsException("constructor not found");
 		}
 		return con;
 	}
@@ -93,7 +93,7 @@ public class NewAST implements AST {
 
 		name = type.getClassName(functions);
 		if(name == null) {
-			throw new RuntimeException("cannot instantiate");
+			throw new SemanticsException("cannot instantiate");
 		}
 		con = findConstructor(functions.getClass(type), functions, space);
 		code.addCode(new New(ConstantClass.getInstance(name)));

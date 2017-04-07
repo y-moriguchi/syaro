@@ -16,6 +16,7 @@
 package net.morilib.syaro.classfile.compiler;
 
 import net.morilib.syaro.classfile.Code;
+import net.morilib.syaro.classfile.Mnemonic;
 import net.morilib.syaro.classfile.code.ALoad;
 import net.morilib.syaro.classfile.code.DLoad;
 import net.morilib.syaro.classfile.code.FLoad;
@@ -54,7 +55,9 @@ public class SymbolAST implements AST {
 		VariableType type;
 		int idx = space.getIndex(name);
 
-		if(idx >= 0) {
+		if(functions.isConstant(name)) {
+			code.addCode(Mnemonic.pushInt(functions.getConstant(name)));
+		} else if(idx >= 0) {
 			type = space.getType(name);
 			if(type.isConversible(Primitive.INT)) {
 				code.addCode(new ILoad(idx));
@@ -77,7 +80,9 @@ public class SymbolAST implements AST {
 			LocalVariableSpace space) {
 		int idx = space.getIndex(name);
 
-		if(idx >= 0) {
+		if(functions.isConstant(name)) {
+			return Primitive.INT;
+		} else if(idx >= 0) {
 			return space.getType(name);
 		} else {
 			throw new UndefinedSymbolException(name);

@@ -105,7 +105,7 @@ public class ReturnAST implements SAST {
 			putFinally(code, space, returnFinallyAddresses);
 			t = expr.getASTType(functions, space);
 			if(!t.isConversible(space.getThisReturnType())) {
-				throw new RuntimeException("type mismatch");
+				throw new SemanticsException("type mismatch");
 			} else if(space.getThisReturnType().isPrimitive()) {
 				ep = (Primitive)space.getThisReturnType();
 				if(ep.isConversible(Primitive.INT)) {
@@ -120,7 +120,7 @@ public class ReturnAST implements SAST {
 					Utils.putConversionDouble(ep, code);
 					code.addCode(Mnemonic.DRETURN);
 				} else {
-					throw new RuntimeException("subroutine must not return value");
+					throw new SemanticsException("subroutine must not return value");
 				}
 			} else {
 				code.addCode(Mnemonic.ARETURN);

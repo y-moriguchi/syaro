@@ -74,7 +74,7 @@ public class TryAST implements SAST {
 						functions)));
 				index = space.getIndex(ce.getVarialeName());
 				if(index < 0) {
-					throw new RuntimeException(
+					throw new SemanticsException(
 							"variable " + ce.getVarialeName() + " is not defined");
 				}
 				code.addCode(new AStore(index));
@@ -85,7 +85,7 @@ public class TryAST implements SAST {
 			gt1.setOffset(code.getCurrentOffset(gi1));
 		} else {
 			if(catches.size() == 0 && _finally == null) {
-				throw new RuntimeException("invalid try-catch-finally");
+				throw new SemanticsException("invalid try-catch-finally");
 			}
 			gt2 = new Goto();
 			gi2 = code.addCode(gt2);
@@ -120,7 +120,7 @@ public class TryAST implements SAST {
 							ce.getType().getClassName(functions)));
 					index = space.getIndex(ce.getVarialeName());
 					if(index < 0) {
-						throw new RuntimeException(
+						throw new SemanticsException(
 								"variable " + ce.getVarialeName() + " is not defined");
 					}
 					code.addCode(new AStore(index));

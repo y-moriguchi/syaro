@@ -47,7 +47,7 @@ public class CastAST implements AST {
 
 		node.putCode(functions, space, code);
 		if(!ntype.isCastable(type)) {
-			throw new RuntimeException("can not cast");
+			throw new SemanticsException("can not cast");
 		} else if(ntype.isConversible(Primitive.INT)) {
 			if(type.equals(Primitive.BYTE)) {
 				code.addCode(Mnemonic.I2B);

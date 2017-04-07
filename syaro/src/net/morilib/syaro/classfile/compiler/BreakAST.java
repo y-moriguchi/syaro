@@ -38,7 +38,7 @@ public class BreakAST implements SAST {
 			List<Integer> loopFinallyAddresses,
 			List<Integer> returnFinallyAddresses) {
 		if(breakIndices == null) {
-			throw new RuntimeException("invalid break");
+			throw new SemanticsException("invalid break");
 		}
 		for(int addr : loopFinallyAddresses) {
 			code.addCode(new Jsr(addr - code.getCurrentAddress()));

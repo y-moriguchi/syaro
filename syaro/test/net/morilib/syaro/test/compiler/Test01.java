@@ -539,6 +539,127 @@ public class Test01 extends TestCase {
 		assertEquals("unknown", obj);
 	}
 
+	public void testA0022() throws Exception {
+		Classfile cf = new Classfile();
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		cf.setMajorVersion(45);
+		cf.setMinorVersion(3);
+		cf.setAccessFlag(Classfile.ACC_PUBLIC);
+		cf.setThisClass(ConstantClass.getInstance("Test01"));
+		cf.setSuperClass(ConstantClass.getInstance("java/lang/Object"));
+
+		code = "switch(a) {" +
+				" case  1: r = \"Jan\"; break;" +
+				" case  2: r = \"Feb\"; break;" +
+				" case  3: r = \"Mar\"; break;" +
+				" case  4: r = \"Apr\"; break;" +
+				" case  5: r = \"May\"; break;" +
+				" case  6: r = \"Jun\"; break;" +
+				" case  7: r = \"Jul\"; break;" +
+				" case  8: r = \"Aug\"; break;" +
+				" case  9: r = \"Sep\"; break;" +
+				" case 10: r = \"Oct\"; break;" +
+				" case 11: r = \"Nov\"; break;" +
+				" case 12: r = \"Dec\"; break;" +
+				" default: r = \"unknown\"; break;" +
+				"}" +
+				"return r;";
+		fa.add(new NameAndType("a", Primitive.INT));
+		fl.add(new NameAndType("r", QuasiPrimitive.STRING));
+		MethodCompiler.compile(cf,
+				MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC,
+				new NameAndType("test", QuasiPrimitive.STRING),
+				fa,
+				fl,
+				fn,
+				code);
+
+		Class<?> cls = createTestClass(cf);
+		obj = invokeTestClass(cls, "test", 1);
+		assertEquals("Jan", obj);
+		obj = invokeTestClass(cls, "test", 2);
+		assertEquals("Feb", obj);
+		obj = invokeTestClass(cls, "test", 3);
+		assertEquals("Mar", obj);
+		obj = invokeTestClass(cls, "test", 4);
+		assertEquals("Apr", obj);
+		obj = invokeTestClass(cls, "test", 5);
+		assertEquals("May", obj);
+		obj = invokeTestClass(cls, "test", 6);
+		assertEquals("Jun", obj);
+		obj = invokeTestClass(cls, "test", 7);
+		assertEquals("Jul", obj);
+		obj = invokeTestClass(cls, "test", 8);
+		assertEquals("Aug", obj);
+		obj = invokeTestClass(cls, "test", 9);
+		assertEquals("Sep", obj);
+		obj = invokeTestClass(cls, "test", 10);
+		assertEquals("Oct", obj);
+		obj = invokeTestClass(cls, "test", 11);
+		assertEquals("Nov", obj);
+		obj = invokeTestClass(cls, "test", 12);
+		assertEquals("Dec", obj);
+		obj = invokeTestClass(cls, "test", 70);
+		assertEquals("unknown", obj);
+	}
+
+	public void testA0023() throws Exception {
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+
+		fn.importConstant(Integer.class);
+
+		obj = execclass("return SIZE;",
+				fn, Primitive.INT, fa, fl,
+				new Class<?>[] {},
+				new Object[] {});
+		assertEquals(Integer.SIZE, ((Integer)obj).intValue());
+	}
+
+	public void testA0024() throws Exception {
+		Classfile cf = new Classfile();
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		cf.setMajorVersion(45);
+		cf.setMinorVersion(3);
+		cf.setAccessFlag(Classfile.ACC_PUBLIC);
+		cf.setThisClass(ConstantClass.getInstance("Test01"));
+		cf.setSuperClass(ConstantClass.getInstance("java/lang/Object"));
+		fn.importConstant(Integer.class);
+
+		code = "switch(a) {" +
+				" case SIZE: r = \"int\"; break;" +
+				" default: r = \"unknown\"; break;" +
+				"}" +
+				"return r;";
+		fa.add(new NameAndType("a", Primitive.INT));
+		fl.add(new NameAndType("r", QuasiPrimitive.STRING));
+		MethodCompiler.compile(cf,
+				MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC,
+				new NameAndType("test", QuasiPrimitive.STRING),
+				fa,
+				fl,
+				fn,
+				code);
+
+		Class<?> cls = createTestClass(cf);
+		obj = invokeTestClass(cls, "test", Integer.SIZE);
+		assertEquals("int", obj);
+		obj = invokeTestClass(cls, "test", 70);
+		assertEquals("unknown", obj);
+	}
+
 	static final String TO_DECIMAL =
 			"BBASE2 = BigInteger.valueOf(100);\n" +
 			"t = new byte[b.toString().length()];\n" +

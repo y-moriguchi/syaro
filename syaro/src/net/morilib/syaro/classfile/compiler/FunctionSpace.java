@@ -15,6 +15,7 @@
  */
 package net.morilib.syaro.classfile.compiler;
 
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.util.ArrayList;
@@ -34,6 +35,7 @@ public class FunctionSpace {
 			new HashMap<String, FunctionDefinition>();
 	private Map<String, VariableType> global = new HashMap<String, VariableType>();
 	private Map<String, SyaroClass> classes = new HashMap<String, SyaroClass>();
+	private Map<String, Integer> constants = new HashMap<String, Integer>();
 
 	/**
 	 * creates a namespace.
@@ -69,7 +71,7 @@ public class FunctionSpace {
 	 */
 	public FunctionDefinition getDefinition(String name) {
 		if(!space.containsKey(name)) {
-			throw new RuntimeException("function " + name + " is not defined");
+			throw new SemanticsException("function " + name + " is not defined");
 		}
 		return space.get(name);
 	}
@@ -92,7 +94,7 @@ public class FunctionSpace {
 	 */
 	public VariableType getGlobal(String name) {
 		if(!global.containsKey(name)) {
-			throw new RuntimeException("variable " + name + "is not defined");
+			throw new SemanticsException("variable " + name + "is not defined");
 		}
 		return global.get(name);
 	}
@@ -157,6 +159,7 @@ public class FunctionSpace {
 	/**
 	 * adds a class representation of this program.
 	 * 
+	 * @param name class name
 	 * @param classe class object
 	 */
 	public void addClass(String name, SyaroClass classe) {
@@ -183,11 +186,78 @@ public class FunctionSpace {
 			if(classes.containsKey(name)) {
 				return classes.get(name);
 			} else {
-				throw new RuntimeException("class " + name + " not defined");
+				throw new SemanticsException("class " + name + " not defined");
 			}
 		} else {
-			throw new RuntimeException("illegal type");
+			throw new SemanticsException("illegal type");
 		}
+	}
+
+	/**
+	 * imports integer constants by reflection.
+	 * 
+	 * @param classe class object
+	 */
+	public void importConstant(Class<?> classe) {
+		String name;
+		int mod;
+
+		if(classe.isArray()) {
+			throw new IllegalArgumentException("array can not be impoted");
+		} else if(classe.isAnnotation()) {
+			throw new IllegalArgumentException("annotation can not be impoted");
+		}
+		for(Field fl : classe.getFields()) {
+			mod = fl.getModifiers();
+			if(Modifier.isPublic(mod) &&
+					Modifier.isStatic(mod) &&
+					Modifier.isFinal(mod) &&
+					fl.getType().equals(Integer.TYPE)) {
+				name = fl.getName();
+				if(constants.containsKey(name)) {
+					throw new IllegalArgumentException("constant has been already imported");
+				}
+				try {
+					constants.put(name, fl.getInt(null));
+				} catch (IllegalAccessException e) {
+					throw new RuntimeException(e);
+				}
+			}
+		}
+	}
+
+	/**
+	 * adds an integer constant.
+	 * 
+	 * @param name constant name
+	 * @param value constant value
+	 */
+	public void addConstant(String name, int value) {
+		if(constants.containsKey(name)) {
+			throw new IllegalArgumentException("constant has been already defined");
+		}
+		constants.put(name, value);
+	}
+
+	/**
+	 * gets a constant by name.
+	 * 
+	 * @param name constant name
+	 */
+	public int getConstant(String name) {
+		if(!constants.containsKey(name)) {
+			throw new SemanticsException("class " + name + " not defined");
+		}
+		return constants.get(name);
+	}
+
+	/**
+	 * returns true if the given name is constant.
+	 * 
+	 * @param name name
+	 */
+	public boolean isConstant(String name) {
+		return constants.containsKey(name);
 	}
 
 }

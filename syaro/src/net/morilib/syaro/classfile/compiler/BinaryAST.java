@@ -141,7 +141,7 @@ public class BinaryAST implements AST {
 			Utils.operateAdd(left, right, functions, space, code);
 		} else if(!left.getASTType(functions, space).isPrimitive() ||
 				!right.getASTType(functions, space).isPrimitive()) {
-			throw new RuntimeException();
+			throw new SemanticsException();
 		} else if(type.mnemonic != null) {
 			Utils.operatePrimitive(left, right, type, functions, space, code);
 		} else {
@@ -212,7 +212,7 @@ public class BinaryAST implements AST {
 			((BinaryAST)node).left.putCode(functions, space, code);
 			t = ((BinaryAST)node).left.getASTType(functions, space);
 			if(!t.isPrimitive()) {
-				throw new RuntimeException("type mismatch");
+				throw new SemanticsException("type mismatch");
 			}
 			putCodeCmp(t, code);
 			code.addCode(Mnemonic.DUP);
@@ -244,9 +244,9 @@ public class BinaryAST implements AST {
 		lp = bnode.left.getASTType(functions, space);
 		rp = bnode.right.getASTType(functions, space);
 		if(lp.isPrimitive() != rp.isPrimitive()) {
-			throw new RuntimeException("type mismatch");
+			throw new SemanticsException("type mismatch");
 		} else if(!lp.isPrimitive() && !rp.isPrimitive() && acond == null) {
-			throw new RuntimeException("type mismatch");
+			throw new SemanticsException("type mismatch");
 		}
 		if(lp.isConversible(Primitive.INT) && rp.isConversible(Primitive.INT)) {
 			bnode.left.putCode(functions, space, code);
@@ -327,7 +327,7 @@ public class BinaryAST implements AST {
 		} else if(type.equals(Type.IADD)) {
 			return QuasiPrimitive.STRING;
 		} else {
-			throw new RuntimeException("type mismatch");
+			throw new SemanticsException("type mismatch");
 		}
 	}
 

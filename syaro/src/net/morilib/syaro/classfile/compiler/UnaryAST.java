@@ -106,7 +106,7 @@ public class UnaryAST implements AST {
 			} else if(t.equals(Primitive.DOUBLE)) {
 				code.addCode(type.mnemonicDouble);
 			} else {
-				throw new RuntimeException("type mismatch");
+				throw new SemanticsException("type mismatch");
 			}
 		} else {
 			switch(type) {
@@ -122,7 +122,7 @@ public class UnaryAST implements AST {
 					code.addCode(Mnemonic.LXOR);
 					break;
 				} else {
-					throw new RuntimeException("type mismatch");
+					throw new SemanticsException("type mismatch");
 				}
 			case ILNOT:
 				node.putCode(functions, space, code);
@@ -138,7 +138,7 @@ public class UnaryAST implements AST {
 					code.addCode(new DConst(0.0));
 					code.addCode(Mnemonic.DCMPG);
 				} else {
-					throw new RuntimeException("type mismatch");
+					throw new SemanticsException("type mismatch");
 				}
 				lbl0 = code.addCode(new If(If.Cond.NE));
 				code.addCode(new IConst(1));

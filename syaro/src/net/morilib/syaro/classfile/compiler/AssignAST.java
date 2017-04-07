@@ -129,7 +129,7 @@ public class AssignAST implements AST, OperationMnemonics {
 			LocalVariableSpace space,
 			Code code) {
 		if(mnemonic != null) {
-			throw new RuntimeException("not mnemonic instance");
+			throw new SemanticsException("not mnemonic instance");
 		} else {
 			Utils.putCodeArrayRef(left, functions, space, code);
 			right.putCode(functions, space, code);
@@ -152,7 +152,7 @@ public class AssignAST implements AST, OperationMnemonics {
 			Utils.operatePrimitive(left, right, this, functions, space, code);
 		}
 		if(!rp.isConversible(lp)) {
-			throw new RuntimeException("type mismatch");
+			throw new SemanticsException("type mismatch");
 		} else if(lp.isConversible(Primitive.INT)) {
 			Utils.putDup(left, code);
 		} else if(lp.equals(Primitive.LONG)) {
@@ -177,7 +177,7 @@ public class AssignAST implements AST, OperationMnemonics {
 		} else if(mnemonic.equals(Type.ADD)) {
 			Utils.operateAdd(left, right, functions, space, code);
 		} else {
-			throw new RuntimeException("cannot operate string except +");
+			throw new SemanticsException("cannot operate string except +");
 		}
 		Utils.putDup(left, code);
 		Utils.setVar(left, functions, space, code);
@@ -194,7 +194,7 @@ public class AssignAST implements AST, OperationMnemonics {
 		if(l.equals(QuasiPrimitive.STRING)) {
 			putCodeString(functions, space, code);
 		} else if(!l.isConversible(r)) {
-			throw new RuntimeException("type mismatch");
+			throw new SemanticsException("type mismatch");
 		} else if(!l.isPrimitive() || !r.isPrimitive()) {
 			putCodeReference(functions, space, code);
 		} else {

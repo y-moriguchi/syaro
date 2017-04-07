@@ -49,7 +49,7 @@ public class ContinueAST implements SAST {
 		} else if(continueIndices != null) {
 			continueIndices.add(code.addCode(new Goto()));
 		} else {
-			throw new RuntimeException("invalid continue");
+			throw new SemanticsException("invalid continue");
 		}
 	}
 

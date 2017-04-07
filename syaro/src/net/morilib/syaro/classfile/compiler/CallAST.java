@@ -60,13 +60,13 @@ public class CallAST implements AST {
 	public void putCode(FunctionSpace functions,
 			LocalVariableSpace space,
 			Code code) {
-		throw new RuntimeException("class or instance modifier needed");
+		throw new SemanticsException("class or instance modifier needed");
 	}
 
 	@Override
 	public VariableType getASTType(FunctionSpace functions,
 			LocalVariableSpace space) {
-		throw new RuntimeException("class or instance modifier needed");
+		throw new SemanticsException("class or instance modifier needed");
 	}
 
 }

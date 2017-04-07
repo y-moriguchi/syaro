@@ -85,7 +85,7 @@ public class DotAST implements AST {
 		}
 		mth = cls.findMethod(name, vtyp);
 		if(mth == null) {
-			throw new RuntimeException("method not found " + name);
+			throw new SemanticsException("method not found " + name);
 		}
 		return mth;
 	}
@@ -103,7 +103,7 @@ public class DotAST implements AST {
 				mth = findMethod(cls, functions, space);
 				left.putCode(functions, space, code);
 				if(mth.isStatic()) {
-					throw new RuntimeException("method is static");
+					throw new SemanticsException("method is static");
 				} else if(cls.isInterface()) {
 					Utils.putCodeInvokeInterface(cls.getName(),
 							mth.getName(),
@@ -131,7 +131,7 @@ public class DotAST implements AST {
 							((CallAST)right).getArguments(),
 							functions, space, code);
 				} else {
-					throw new RuntimeException("method is not static");
+					throw new SemanticsException("method is not static");
 				}
 			}
 		} else if(right instanceof SymbolAST) {
@@ -143,7 +143,7 @@ public class DotAST implements AST {
 				fld = cls.getField(Utils.getName(right));
 				left.putCode(functions, space, code);
 				if(fld.isStatic()) {
-					throw new RuntimeException("method is static");
+					throw new SemanticsException("method is static");
 				} else {
 					code.addCode(new Getfield(ConstantFieldref.getInstance(
 							cls.getName(), fld.getName(),
@@ -158,11 +158,11 @@ public class DotAST implements AST {
 							cls.getName(), fld.getName(),
 							fld.getType().getDescriptor(functions))));
 				} else {
-					throw new RuntimeException("method is not static");
+					throw new SemanticsException("method is not static");
 				}
 			}
 		} else {
-			throw new RuntimeException();
+			throw new SemanticsException();
 		}
 	}
 

@@ -16,29 +16,26 @@
 package net.morilib.syaro.classfile.compiler;
 
 /**
- * An exception throws when a symbol is not defined.
+ * An exception of semantics.
  * 
  * @author Yuichiro MORIGUCHI
  */
-public class UndefinedSymbolException extends SemanticsException {
+public class SemanticsException extends RuntimeException {
 
-	private String symbolName;
-
-	/**
-	 * constructs an exception.
-	 * 
-	 * @param name symbol name
-	 */
-	public UndefinedSymbolException(String name) {
+	public SemanticsException() {
 		super();
-		this.symbolName = name;
 	}
 
-	/**
-	 * gets the symbol name.
-	 */
-	public String getSymbolName() {
-		return symbolName;
+	public SemanticsException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+	public SemanticsException(String message) {
+		super(message);
+	}
+
+	public SemanticsException(Throwable cause) {
+		super(cause);
 	}
 
 }

@@ -50,7 +50,7 @@ public class SimpleAST implements SAST {
 		VariableType tp;
 
 		if(expr instanceof CallAST) {
-			throw new RuntimeException("class or instance modifier needed");
+			throw new SemanticsException("class or instance modifier needed");
 		} else if(expr instanceof DotAST) {
 			tp = expr.getASTType(functions, space);
 			expr.putCode(functions, space, code);

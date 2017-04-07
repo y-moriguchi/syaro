@@ -43,40 +43,44 @@ public class SwitchAST implements SAST {
 		this.expr = expr;
 	}
 
-	private static int getIntegerFromAST(AST ast) {
-		return ((IntegerAST)ast).getValue();
+	private static int getIntegerFromAST(FunctionSpace functions, AST ast) {
+		if(ast instanceof IntegerAST) {
+			return ((IntegerAST)ast).getValue();
+		} else if(ast instanceof SymbolAST &&
+				functions.isConstant(((SymbolAST)ast).getName())) {
+			return functions.getConstant(((SymbolAST)ast).getName());
+		} else {
+			throw new SemanticsException("case label must be integer or constant");
+		}
 	}
 
-	public void endSwitch() {
+	public void endSwitch(FunctionSpace functions) {
 		int val;
 
 		if(stmtBuffer != null) {
 			if(caseBuffer != null) {
-				val = getIntegerFromAST(caseBuffer);
+				val = getIntegerFromAST(functions, caseBuffer);
 				if(statementMap.containsKey(val)) {
-					throw new RuntimeException("duplicate case label");
+					throw new SemanticsException("duplicate case label");
 				}
 				statementMap.put(val, stmtBuffer);
 			} else {
 				if(defaultStmt != null) {
-					throw new RuntimeException("duplicated default label");
+					throw new SemanticsException("duplicated default label");
 				}
 				defaultStmt = stmtBuffer;
 			}
 		}
 	}
 
-	public void addCase(AST ast) {
-		if(!(ast instanceof IntegerAST)) {
-			throw new RuntimeException("case label must be integer");
-		}
-		endSwitch();
+	public void addCase(FunctionSpace functions, AST ast) {
+		endSwitch(functions);
 		stmtBuffer = new ArrayList<SAST>();
 		caseBuffer = ast;
 	}
 
-	public void addDefault() {
-		endSwitch();
+	public void addDefault(FunctionSpace functions) {
+		endSwitch(functions);
 		stmtBuffer = new ArrayList<SAST>();
 		caseBuffer = null;
 	}
@@ -163,7 +167,7 @@ public class SwitchAST implements SAST {
 		SortedSet<Integer> npairs;
 
 		if(!expr.getASTType(functions, space).isConversible(Primitive.INT)) {
-			throw new RuntimeException("expression of case must be int");
+			throw new SemanticsException("expression of case must be int");
 		}
 
 		expr.putCode(functions, space, code);
