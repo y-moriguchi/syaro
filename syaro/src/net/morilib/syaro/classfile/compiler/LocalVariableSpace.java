@@ -84,6 +84,13 @@ public class LocalVariableSpace {
 	}
 
 	/**
+	 * returns true if this method is static.
+	 */
+	public boolean isStatic() {
+		return isStatic;
+	}
+
+	/**
 	 * gets the index of the variable which indicates by the name.
 	 * 
 	 * @param var the name

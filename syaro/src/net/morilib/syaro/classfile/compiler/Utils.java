@@ -182,6 +182,10 @@ public class Utils {
 		return space.getIndex(Utils.getVarName(ast));
 	}
 
+	private static boolean isReservedWord(String name) {
+		return name.equals("this") || name.equals("null");
+	}
+
 	private static void setVarNotRef(AST node,
 			FunctionSpace functions,
 			LocalVariableSpace space,
@@ -233,6 +237,8 @@ public class Utils {
 			name = Utils.getVarName(node);
 			if(functions.isConstant(name)) {
 				throw new SemanticsException("symbol " + name + " is constant");
+			} else if(isReservedWord(name)) {
+				throw new SemanticsException(name + " is reserved word");
 			}
 			idx = getLocalIndex(space, node);
 			if(idx >= 0) {

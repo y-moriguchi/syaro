@@ -139,12 +139,17 @@ public class BinaryAST implements AST {
 			Code code) {
 		if(type.equals(Type.IADD)) {
 			Utils.operateAdd(left, right, functions, space, code);
-		} else if(!left.getASTType(functions, space).isPrimitive() ||
-				!right.getASTType(functions, space).isPrimitive()) {
-			throw new SemanticsException();
 		} else if(type.mnemonic != null) {
+			if(!left.getASTType(functions, space).isPrimitive() ||
+					!right.getASTType(functions, space).isPrimitive()) {
+				throw new SemanticsException();
+			}
 			Utils.operatePrimitive(left, right, type, functions, space, code);
 		} else {
+			if(left.getASTType(functions, space).isPrimitive() !=
+					right.getASTType(functions, space).isPrimitive()) {
+				throw new SemanticsException();
+			}
 			switch(type) {
 			case ILOR:
 				putCodeLogical(this, functions, space, code, Type.ILOR, If.Cond.NE);

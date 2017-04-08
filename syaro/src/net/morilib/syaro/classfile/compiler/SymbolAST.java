@@ -55,7 +55,14 @@ public class SymbolAST implements AST {
 		VariableType type;
 		int idx = space.getIndex(name);
 
-		if(functions.isConstant(name)) {
+		if(name.equals("null")) {
+			code.addCode(Mnemonic.ACONST_NULL);
+		} else if(name.equals("this")) {
+			if(space.isStatic()) {
+				throw new SemanticsException("this method is static");
+			}
+			code.addCode(new ALoad(0));
+		} else if(functions.isConstant(name)) {
 			code.addCode(Mnemonic.pushInt(functions.getConstant(name)));
 		} else if(idx >= 0) {
 			type = space.getType(name);
@@ -80,7 +87,14 @@ public class SymbolAST implements AST {
 			LocalVariableSpace space) {
 		int idx = space.getIndex(name);
 
-		if(functions.isConstant(name)) {
+		if(name.equals("null")) {
+			return QuasiPrimitive.OBJECT;
+		} else if(name.equals("this")) {
+			if(space.isStatic()) {
+				throw new SemanticsException("this method is static");
+			}
+			return new SymbolType(functions.getClassname());
+		} else if(functions.isConstant(name)) {
 			return Primitive.INT;
 		} else if(idx >= 0) {
 			return space.getType(name);

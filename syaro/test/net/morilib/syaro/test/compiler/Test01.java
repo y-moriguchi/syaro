@@ -17,6 +17,8 @@ package net.morilib.syaro.test.compiler;
 
 import java.awt.GridBagConstraints;
 import java.io.ByteArrayOutputStream;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Field;
 import java.lang.reflect.Method;
 import java.math.BigInteger;
 import java.util.ArrayList;
@@ -25,9 +27,14 @@ import java.util.List;
 
 import junit.framework.TestCase;
 import net.morilib.syaro.classfile.Classfile;
+import net.morilib.syaro.classfile.Code;
 import net.morilib.syaro.classfile.ConstantClass;
+import net.morilib.syaro.classfile.ConstantMethodref;
 import net.morilib.syaro.classfile.FieldInfo;
 import net.morilib.syaro.classfile.MethodInfo;
+import net.morilib.syaro.classfile.Mnemonic;
+import net.morilib.syaro.classfile.code.ALoad;
+import net.morilib.syaro.classfile.code.Invokespecial;
 import net.morilib.syaro.classfile.compiler.ArrayType;
 import net.morilib.syaro.classfile.compiler.FunctionSpace;
 import net.morilib.syaro.classfile.compiler.MethodCompiler;
@@ -69,6 +76,11 @@ public class Test01 extends TestCase {
 		return Class.forName("Test01", true, cl);
 	}
 
+	static Object instantiateTestClass(Class<?> classe) throws Exception {
+		Constructor<?> constr = classe.getConstructor();
+		return constr.newInstance();
+	}
+
 	static Object invokeTestClass(Class<?> classe, String methodName,
 			int val) throws Exception {
 		Method method = classe.getMethod(methodName, new Class<?>[] { Integer.TYPE });
@@ -79,6 +91,18 @@ public class Test01 extends TestCase {
 			Object val) throws Exception {
 		Method method = classe.getMethod(methodName, new Class<?>[] { Object.class });
 		return method.invoke(null, new Object[] { val });
+	}
+
+	static Object invokeThisTestClass(Class<?> classe, String methodName,
+			Object ins) throws Exception {
+		Method method = classe.getMethod(methodName, new Class<?>[] {});
+		return method.invoke(ins, new Object[] {});
+	}
+
+	static Object getFieldTestClass(Class<?> classe, Object ins,
+			String name) throws Exception {
+		Field field = classe.getField(name);
+		return field.get(ins);
 	}
 
 	static Object execclass(String code,
@@ -800,6 +824,95 @@ public class Test01 extends TestCase {
 		assertEquals(9l, obj);
 		obj = invokeTestClass(cls, "test", 70);
 		assertEquals(0l, obj);
+	}
+
+	public void testA0029() throws Exception {
+		Classfile cf = new Classfile();
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		cf.setMajorVersion(45);
+		cf.setMinorVersion(3);
+		cf.setAccessFlag(Classfile.ACC_PUBLIC);
+		cf.setThisClass(ConstantClass.getInstance("Test01"));
+		cf.setSuperClass(ConstantClass.getInstance("java/lang/Object"));
+		fn.importClass(Integer.class);
+
+		code = "return a == null;";
+		fa.add(new NameAndType("a", QuasiPrimitive.OBJECT));
+		MethodCompiler.compile(cf,
+				MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC,
+				new NameAndType("test", Primitive.INT),
+				fa,
+				fl,
+				fn,
+				code);
+
+		Class<?> cls = createTestClass(cf);
+		obj = invokeTestClass(cls, "test", null);
+		assertEquals(1, obj);
+		obj = invokeTestClass(cls, "test", Integer.valueOf(72));
+		assertEquals(0, obj);
+	}
+
+	public void testA0030() throws Exception {
+		Classfile cf = new Classfile();
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		MethodInfo mt;
+		FieldInfo fd;
+		Object obj, ins;
+		String code;
+		Code cd;
+
+		cf.setMajorVersion(45);
+		cf.setMinorVersion(3);
+		cf.setAccessFlag(Classfile.ACC_PUBLIC);
+		cf.setThisClass(ConstantClass.getInstance("Test01"));
+		cf.setSuperClass(ConstantClass.getInstance("java/lang/Object"));
+		fn.importClass(Integer.class);
+
+		fn.addClass("Test01", new SyaroClass("Test01",
+				false,
+				Arrays.asList(new SyaroMethod[0]),
+				Arrays.asList(new SyaroConstructor[0]),
+				Arrays.asList(new SyaroField[] {
+						new SyaroField("a", Primitive.INT, false)
+				})));
+
+		fd = new FieldInfo("a", "I");
+		fd.setAccessFlags(FieldInfo.ACC_PUBLIC);
+		cf.addField(fd);
+
+		mt = new MethodInfo("<init>", "()V");
+		mt.setAccessFlags(MethodInfo.ACC_PUBLIC);
+		cd = new Code();
+		cd.addCode(new ALoad(0));
+		cd.addCode(new Invokespecial(ConstantMethodref.getInstance("java/lang/Object", "<init>",
+				"()V")));
+		cd.addCode(Mnemonic.RETURN);
+		cd.setMaxStack(1024);
+		cd.setMaxLocals(1);
+		mt.addAttribute(cd);
+		cf.addMethod(mt);
+
+		code = "this.a = 765;";
+		MethodCompiler.compile(cf,
+				MethodInfo.ACC_PUBLIC,
+				new NameAndType("test", Primitive.VOID),
+				fa,
+				fl,
+				fn,
+				code);
+
+		Class<?> cls = createTestClass(cf);
+		ins = instantiateTestClass(cls);
+		invokeThisTestClass(cls, "test", ins);
+		assertEquals(765, getFieldTestClass(cls, ins, "a"));
 	}
 
 	static final String TO_DECIMAL =
