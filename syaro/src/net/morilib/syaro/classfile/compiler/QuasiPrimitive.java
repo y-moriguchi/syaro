@@ -51,7 +51,7 @@ public enum QuasiPrimitive implements VariableType {
 	@Override
 	public boolean isConversible(VariableType type) {
 		if(level == 0) {
-			return true;
+			return !type.isPrimitive();
 		} else if(type instanceof QuasiPrimitive) {
 			return level <= ((QuasiPrimitive)type).level;
 		} else {

@@ -75,6 +75,12 @@ public class Test01 extends TestCase {
 		return method.invoke(null, new Object[] { val });
 	}
 
+	static Object invokeTestClass(Class<?> classe, String methodName,
+			Object val) throws Exception {
+		Method method = classe.getMethod(methodName, new Class<?>[] { Object.class });
+		return method.invoke(null, new Object[] { val });
+	}
+
 	static Object execclass(String code,
 			FunctionSpace fn,
 			VariableType returnType,
@@ -658,6 +664,142 @@ public class Test01 extends TestCase {
 		assertEquals("int", obj);
 		obj = invokeTestClass(cls, "test", 70);
 		assertEquals("unknown", obj);
+	}
+
+	public void testA0025() throws Exception {
+		Classfile cf = new Classfile();
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		cf.setMajorVersion(45);
+		cf.setMinorVersion(3);
+		cf.setAccessFlag(Classfile.ACC_PUBLIC);
+		cf.setThisClass(ConstantClass.getInstance("Test01"));
+		cf.setSuperClass(ConstantClass.getInstance("java/lang/Object"));
+		fn.importClass(Integer.class);
+
+		code = "return a instanceof Integer;";
+		fa.add(new NameAndType("a", QuasiPrimitive.OBJECT));
+		MethodCompiler.compile(cf,
+				MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC,
+				new NameAndType("test", Primitive.INT),
+				fa,
+				fl,
+				fn,
+				code);
+
+		Class<?> cls = createTestClass(cf);
+		obj = invokeTestClass(cls, "test", Integer.valueOf(72));
+		assertEquals(1, obj);
+		obj = invokeTestClass(cls, "test", Double.valueOf(72.0));
+		assertEquals(0, obj);
+		obj = invokeTestClass(cls, "test", new int[0]);
+		assertEquals(0, obj);
+	}
+
+	public void testA0026() throws Exception {
+		Classfile cf = new Classfile();
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		cf.setMajorVersion(45);
+		cf.setMinorVersion(3);
+		cf.setAccessFlag(Classfile.ACC_PUBLIC);
+		cf.setThisClass(ConstantClass.getInstance("Test01"));
+		cf.setSuperClass(ConstantClass.getInstance("java/lang/Object"));
+		fn.importClass(Integer.class);
+
+		code = "return a instanceof int[];";
+		fa.add(new NameAndType("a", QuasiPrimitive.OBJECT));
+		MethodCompiler.compile(cf,
+				MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC,
+				new NameAndType("test", Primitive.INT),
+				fa,
+				fl,
+				fn,
+				code);
+
+		Class<?> cls = createTestClass(cf);
+		obj = invokeTestClass(cls, "test", Integer.valueOf(72));
+		assertEquals(0, obj);
+		obj = invokeTestClass(cls, "test", Double.valueOf(72.0));
+		assertEquals(0, obj);
+		obj = invokeTestClass(cls, "test", new int[0]);
+		assertEquals(1, obj);
+	}
+
+	public void testA0027() throws Exception {
+		Classfile cf = new Classfile();
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		cf.setMajorVersion(45);
+		cf.setMinorVersion(3);
+		cf.setAccessFlag(Classfile.ACC_PUBLIC);
+		cf.setThisClass(ConstantClass.getInstance("Test01"));
+		cf.setSuperClass(ConstantClass.getInstance("java/lang/Object"));
+		fn.importClass(Integer.class);
+
+		code = "return a instanceof Integer[];";
+		fa.add(new NameAndType("a", QuasiPrimitive.OBJECT));
+		MethodCompiler.compile(cf,
+				MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC,
+				new NameAndType("test", Primitive.INT),
+				fa,
+				fl,
+				fn,
+				code);
+
+		Class<?> cls = createTestClass(cf);
+		obj = invokeTestClass(cls, "test", Integer.valueOf(72));
+		assertEquals(0, obj);
+		obj = invokeTestClass(cls, "test", Double.valueOf(72.0));
+		assertEquals(0, obj);
+		obj = invokeTestClass(cls, "test", new int[0]);
+		assertEquals(0, obj);
+		obj = invokeTestClass(cls, "test", new Integer[0]);
+		assertEquals(1, obj);
+	}
+
+	public void testA0028() throws Exception {
+		Classfile cf = new Classfile();
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		cf.setMajorVersion(45);
+		cf.setMinorVersion(3);
+		cf.setAccessFlag(Classfile.ACC_PUBLIC);
+		cf.setThisClass(ConstantClass.getInstance("Test01"));
+		cf.setSuperClass(ConstantClass.getInstance("java/lang/Object"));
+		fn.importClass(Integer.class);
+
+		code = "return a > 72 ? 9 : (long)0;";
+		fa.add(new NameAndType("a", Primitive.INT));
+		MethodCompiler.compile(cf,
+				MethodInfo.ACC_PUBLIC | MethodInfo.ACC_STATIC,
+				new NameAndType("test", Primitive.LONG),
+				fa,
+				fl,
+				fn,
+				code);
+
+		Class<?> cls = createTestClass(cf);
+		obj = invokeTestClass(cls, "test", 91);
+		assertEquals(9l, obj);
+		obj = invokeTestClass(cls, "test", 70);
+		assertEquals(0l, obj);
 	}
 
 	static final String TO_DECIMAL =

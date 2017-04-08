@@ -111,13 +111,13 @@ public class ReturnAST implements SAST {
 				if(ep.isConversible(Primitive.INT)) {
 					code.addCode(Mnemonic.IRETURN);
 				} else if(ep.equals(Primitive.LONG)) {
-					Utils.putConversionLong(ep, code);
+					Utils.putConversionLong(t, code);
 					code.addCode(Mnemonic.LRETURN);
 				} else if(ep.equals(Primitive.FLOAT)) {
-					Utils.putConversionFloat(ep, code);
+					Utils.putConversionFloat(t, code);
 					code.addCode(Mnemonic.FRETURN);
 				} else if(ep.equals(Primitive.DOUBLE)) {
-					Utils.putConversionDouble(ep, code);
+					Utils.putConversionDouble(t, code);
 					code.addCode(Mnemonic.DRETURN);
 				} else {
 					throw new SemanticsException("subroutine must not return value");

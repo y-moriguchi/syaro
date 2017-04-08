@@ -90,6 +90,26 @@ public class Utils {
 	}
 
 	/**
+	 * puts the codes of converting to given type.
+	 * 
+	 * @param type the type
+	 * @param code the container of codes
+	 * @param toconvert the type to convert
+	 */
+	public static void putConversion(VariableType type, Code code,
+			VariableType toconvert) {
+		if(toconvert.isConversible(Primitive.INT)) {
+			// do nothing
+		} else if(toconvert.equals(Primitive.LONG)) {
+			putConversionLong(type, code);
+		} else if(toconvert.equals(Primitive.FLOAT)) {
+			putConversionFloat(type, code);
+		} else if(toconvert.equals(Primitive.DOUBLE)) {
+			putConversionDouble(type, code);
+		}
+	}
+
+	/**
 	 * gets the symbol name of the AST.
 	 * 
 	 * @param ast the AST

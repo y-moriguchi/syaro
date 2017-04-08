@@ -56,7 +56,7 @@ public class CastAST implements AST {
 			} else if(type.equals(Primitive.SHORT)) {
 				code.addCode(Mnemonic.I2S);
 			} else if(type.equals(Primitive.LONG)) {
-				code.addCode(Mnemonic.I2D);
+				code.addCode(Mnemonic.I2L);
 			} else if(type.equals(Primitive.FLOAT)) {
 				code.addCode(Mnemonic.I2F);
 			} else if(type.equals(Primitive.DOUBLE)) {
