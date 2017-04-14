@@ -94,7 +94,7 @@ import net.morilib.syaro.classfile.code.*;
               |       **********     @@@@@@@@@@
               |        +-${S}-+         +-${S}-+          +-${S}-+       +-${S}-+
               |       *^******v***     *^******v*        *^******v*     *^******v*
-              +-"for"->_e = null;>-'('->        >-{expr}->        >-';'->        >-(FO1)
+              +-"for"->_e = null;>-'('->        >-{cexp}->        >-';'->        >-(FO1)
               |       ************     *v********        **********     *^********
               |                         |                                |
               |                         |     ***********                |
@@ -154,6 +154,10 @@ import net.morilib.syaro.classfile.code.*;
               |          ***           @@@
               +-"switch"-> >-{switchs}-> @
               |          ***           @@@
+              |
+              |     @@@@@@@@@@@@@@@@@@@@@@
+              +-";"->_s = new BlockAST();@
+              |     @@@@@@@@@@@@@@@@@@@@@@
               |
               |         +-${S}-+
               |        *^******v*     @@@@@@@@@@@
@@ -239,6 +243,11 @@ import net.morilib.syaro.classfile.code.*;
   |        ***********************
   +-{stmt}->$AB.addStatement(_s);>-(BA)
            ***********************
+-- cexp --
+                    +-${S}-+           +-${S}-+
+ *S*        @A<AST>@^@@@@@@v@         *^******v*        @@@@@@@@@@@@
+ * >-{asgn}->%% = _e;       >---','--->        >-{asgn}->comma($A);>-(A)
+ ***        @@@@@@@@@@@@@@@@@         **********        @@@@@@@@@@@@
 -- expr --
  *S*        @@@@@@@@@@@
  * >-{asgn}->         @
@@ -791,6 +800,10 @@ private void escStr(int c)
     }
 }
 
+private void comma(AST a) {
+	_e = new CommaAST(a, _e);
+}
+
 private void triop(AST a, AST b) {
 	_e = new TernaryAST(a, b, _e);
 }
@@ -1029,4 +1042,38 @@ public static void compile(Classfile classfile,
 	} catch(java.io.IOException e) {
 		throw new RuntimeException(e);
 	}
+}
+
+public static MethodCompiler newInstance(Classfile classfile,
+		int methodFlags,
+		NameAndType returnType,
+		java.util.List<NameAndType> args,
+		java.util.List<NameAndType> localvars,
+		FunctionSpace functionSpace) {
+	MethodCompiler mc = new MethodCompiler();
+
+	mc.classfile = classfile;
+	mc.methodFlags = methodFlags;
+	mc.funcnt = returnType;
+	mc.funcargs = new java.util.ArrayList<NameAndType>(args);
+	mc.localvars = new java.util.ArrayList<NameAndType>(localvars);
+	mc.functions = functionSpace;
+	mc.func();
+	return mc;
+}
+
+public Code getCode() {
+	return code;
+}
+
+public void compile(String code) {
+	try {
+		parse(new StringReader(code));
+	} catch(java.io.IOException e) {
+		throw new RuntimeException(e);
+	}
+}
+
+public void end() {
+	endfunc();
 }

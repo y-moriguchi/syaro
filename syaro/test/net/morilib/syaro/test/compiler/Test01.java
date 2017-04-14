@@ -915,6 +915,69 @@ public class Test01 extends TestCase {
 		assertEquals(765, getFieldTestClass(cls, ins, "a"));
 	}
 
+	public void testA0031() throws Exception {
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		code = "b = 0;" +
+				"for(a = 1;; a++) {" +
+				" if(a > 5) break;" +
+				" b += a;" +
+				"}" +
+				"return b;";
+		fl.add(new NameAndType("a", Primitive.INT));
+		fl.add(new NameAndType("b", Primitive.INT));
+		obj = execclass(code,
+				fn, Primitive.INT, fa, fl,
+				new Class<?>[] { },
+				new Object[] { });
+		assertEquals(15, ((Integer)obj).intValue());
+	}
+
+	public void testA0032() throws Exception {
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		code = "b = 0;" +
+				"for(a = 1; a <= 5;) {" +
+				" b += a++;" +
+				"}" +
+				"return b;";
+		fl.add(new NameAndType("a", Primitive.INT));
+		fl.add(new NameAndType("b", Primitive.INT));
+		obj = execclass(code,
+				fn, Primitive.INT, fa, fl,
+				new Class<?>[] { },
+				new Object[] { });
+		assertEquals(15, ((Integer)obj).intValue());
+	}
+
+	public void testA0033() throws Exception {
+		FunctionSpace fn = new FunctionSpace("Test01");
+		List<NameAndType> fa = new ArrayList<NameAndType>();
+		List<NameAndType> fl = new ArrayList<NameAndType>();
+		Object obj;
+		String code;
+
+		code = "for(a = 1, b = 0; a <= 5;) {" +
+				" b += a++;" +
+				"}" +
+				"return b;";
+		fl.add(new NameAndType("a", Primitive.INT));
+		fl.add(new NameAndType("b", Primitive.INT));
+		obj = execclass(code,
+				fn, Primitive.INT, fa, fl,
+				new Class<?>[] { },
+				new Object[] { });
+		assertEquals(15, ((Integer)obj).intValue());
+	}
+
 	static final String TO_DECIMAL =
 			"BBASE2 = BigInteger.valueOf(100);\n" +
 			"t = new byte[b.toString().length()];\n" +
@@ -945,7 +1008,7 @@ public class Test01 extends TestCase {
 			"\n" +
 			"t = s = r = BigInteger.ZERO;\n" +
 			"a = Test01.toDecimal(q);\n" +
-			"for(; a[i] == 0; i++) {}\n" +
+			"for(; a[i] == 0; i++);\n" +
 			"for(; i < a.length; i++) {\n" +
 			"	x = 0;\n" +
 			"	if(s.signum() == 0) {\n" +

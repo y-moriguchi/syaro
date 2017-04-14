@@ -61,8 +61,8 @@ public class ForAST implements SAST {
 			List<Integer> returnFinallyAddresses) {
 		List<Integer> brk = new ArrayList<Integer>();
 		List<Integer> cnt = new ArrayList<Integer>();
-		int addr, ifa;
-		If _if;
+		int addr, ifa = -1;
+		If _if = null;
 		Goto _gt;
 
 		if(initialize != null) {
@@ -70,20 +70,26 @@ public class ForAST implements SAST {
 			code.addCode(Mnemonic.POP);
 		}
 		addr = code.getCurrentAddress();
-		condition.putCode(functions, space, code);
-		_if = new If(If.Cond.EQ);
-		ifa = code.addCode(_if);
+		if(condition != null) {
+			condition.putCode(functions, space, code);
+			_if = new If(If.Cond.EQ);
+			ifa = code.addCode(_if);
+		}
 		statement.putCode(functions, space, code, brk, -1, cnt,
 				new ArrayList<Integer>(), returnFinallyAddresses);
 		for(int x : cnt) {
 			((Goto)code.getCode(x)).setOffset(code.getCurrentOffset(x));
 		}
-		inclement.putCode(functions, space, code);
-		code.addCode(Mnemonic.POP);
+		if(inclement != null) {
+			inclement.putCode(functions, space, code);
+			code.addCode(Mnemonic.POP);
+		}
 		_gt = new Goto();
 		_gt.setOffset(addr - code.getCurrentAddress());
 		code.addCode(_gt);
-		_if.setOffset(code.getCurrentOffset(ifa));
+		if(condition != null) {
+			_if.setOffset(code.getCurrentOffset(ifa));
+		}
 		for(int x : brk) {
 			((Goto)code.getCode(x)).setOffset(code.getCurrentOffset(x));
 		}
